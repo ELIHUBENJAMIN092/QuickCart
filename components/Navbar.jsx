@@ -21,16 +21,16 @@ const Navbar = () => {
       />
       <div className="flex items-center gap-4 lg:gap-8 max-md:hidden">
         <Link href="/" className="hover:text-gray-900 transition">
-          Home
+          Inicio
         </Link>
         <Link href="/all-products" className="hover:text-gray-900 transition">
-          Shop
+          Tienda
         </Link>
         <Link href="/" className="hover:text-gray-900 transition">
-          About Us
+          Acerca de Nosotros
         </Link>
         <Link href="/" className="hover:text-gray-900 transition">
-          Contact
+          Contactos
         </Link>
 
         {isSeller && <button onClick={() => router.push('/seller')} className="text-xs border px-4 py-1.5 rounded-full">Seller Dashboard</button>}
@@ -53,7 +53,7 @@ const Navbar = () => {
             </>
             : <button onClick={openSignIn} className="flex items-center gap-2 hover:text-gray-900 transition">
               <Image src={assets.user_icon} alt="user icon" />
-              Account
+              Cuenta
             </button>
         }
       </ul>
@@ -80,7 +80,7 @@ const Navbar = () => {
             </>
             : <button onClick={openSignIn} className="flex items-center gap-2 hover:text-gray-900 transition">
               <Image src={assets.user_icon} alt="user icon" />
-              Account
+              Cuenta
             </button>
         }
       </div>
