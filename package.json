@@ -11,7 +11,7 @@
   "dependencies": {
     "@clerk/nextjs": "^6.19.4",
     "axios": "^1.7.9",
-    "cloudinary": "^2.5.1",
+    "cloudinary": "^2.6.1",
     "inngest": "^3.37.0",
     "mongoose": "^8.15.0",
     "next": "^15.3.2",
