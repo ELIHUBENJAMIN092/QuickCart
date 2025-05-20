@@ -63,7 +63,7 @@ const ProductList = () => {
                     <div className="bg-gray-500/10 rounded p-2">
                       <Image
                         src={product.image[0]}
-                        alt="product Image"
+                        alt="Imagen del Producto"
                         className="w-16"
                         width={1280}
                         height={720}
@@ -76,7 +76,7 @@ const ProductList = () => {
                   <td className="px-4 py-3 max-sm:hidden">{product.category}</td>
                   <td className="px-4 py-3">${product.offerPrice}</td>
                   <td className="px-4 py-3 max-sm:hidden">
-                    <button onClick={() => router.push(`/product/${product._id}`)} className="flex items-center gap-1 px-1.5 md:px-3.5 py-2 bg-orange-600 text-white rounded-md">
+                    <button onClick={() => router.push(`/product/${product._id}`)} className="flex items-center gap-1 px-1.5 md:px-3.5 py-2 bg-blue-600 text-white rounded-md">
                       <span className="hidden md:block">Visit</span>
                       <Image
                         className="h-3.5"

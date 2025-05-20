@@ -114,24 +114,24 @@ const Product = () => {
 
                     <div className="flex items-center mt-10 gap-4">
                         <button onClick={() => addToCart(productData._id)} className="w-full py-3.5 bg-gray-100 text-gray-800/80 hover:bg-gray-200 transition">
-                            Add to Cart
+                            Añadir al carrito
                         </button>
-                        <button onClick={() => { addToCart(productData._id); router.push(user ? '/cart' : '') }} className="w-full py-3.5 bg-orange-500 text-white hover:bg-orange-600 transition">
-                            Buy now
+                        <button onClick={() => { addToCart(productData._id); router.push(user ? '/cart' : '') }} className="w-full py-3.5 bg-blue-700 text-white hover:bg-blue-700 transition">
+                            Comprar ahora
                         </button>
                     </div>
                 </div>
             </div>
             <div className="flex flex-col items-center">
                 <div className="flex flex-col items-center mb-4 mt-16">
-                    <p className="text-3xl font-medium">Featured <span className="font-medium text-orange-600">Products</span></p>
-                    <div className="w-28 h-0.5 bg-orange-600 mt-2"></div>
+                    <p className="text-3xl font-medium">Featured <span className="font-medium text-blue-600">Products</span></p>
+                    <div className="w-28 h-0.5 bg-blue-600 mt-2"></div>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mt-6 pb-14 w-full">
                     {products.slice(0, 5).map((product, index) => <ProductCard key={index} product={product} />)}
                 </div>
                 <button className="px-8 py-2 mb-16 border rounded text-gray-500/70 hover:bg-slate-50/90 transition">
-                    See more
+                    Ver más
                 </button>
             </div>
         </div>

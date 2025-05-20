@@ -20,7 +20,14 @@ export async function POST(request) {
         const amount = await items.reduce(async (acc, item) => {
             const product = await Product.findById(item.product);
             return await acc + product.offerPrice * item.quantity;
-        }, 0)
+        }, 0);
+
+        // calcular impuesto del 15% con decimales
+        const tax = (amount * 0.15);
+
+        // monto total a 2 decimales
+        const total = (amount + tax).toFixed(2); // Ej: "287.50"
+
 
         await inngest.send({
             name: 'order/created',
@@ -28,10 +35,11 @@ export async function POST(request) {
                 userId,
                 address,
                 items,
-                amount: amount + Math.floor(amount * 0.02),
+                amount: total,
                 date: Date.now()
             }
-        })
+        });
+
 
         // clear user cart
         const user = await User.findById(userId)

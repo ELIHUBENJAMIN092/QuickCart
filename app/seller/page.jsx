@@ -62,7 +62,7 @@ const AddProduct = () => {
     <div className="flex-1 min-h-screen flex flex-col justify-between">
       <form onSubmit={handleSubmit} className="md:p-10 p-4 space-y-5 max-w-lg">
         <div>
-          <p className="text-base font-medium">Product Image</p>
+          <p className="text-base font-medium">Imagen del Producto</p>
           <div className="flex flex-wrap items-center gap-3 mt-2">
 
             {[...Array(4)].map((_, index) => (
@@ -87,7 +87,7 @@ const AddProduct = () => {
         </div>
         <div className="flex flex-col gap-1 max-w-md">
           <label className="text-base font-medium" htmlFor="product-name">
-            Product Name
+            Nombre del Producto
           </label>
           <input
             id="product-name"
@@ -104,7 +104,7 @@ const AddProduct = () => {
             className="text-base font-medium"
             htmlFor="product-description"
           >
-            Product Description
+            Descripción del Producto
           </label>
           <textarea
             id="product-description"
@@ -119,7 +119,7 @@ const AddProduct = () => {
         <div className="flex items-center gap-5 flex-wrap">
           <div className="flex flex-col gap-1 w-32">
             <label className="text-base font-medium" htmlFor="category">
-              Category
+              Categoría
             </label>
             <select
               id="category"
@@ -138,7 +138,7 @@ const AddProduct = () => {
           </div>
           <div className="flex flex-col gap-1 w-32">
             <label className="text-base font-medium" htmlFor="product-price">
-              Product Price
+              Precio Producto
             </label>
             <input
               id="product-price"
@@ -152,7 +152,7 @@ const AddProduct = () => {
           </div>
           <div className="flex flex-col gap-1 w-32">
             <label className="text-base font-medium" htmlFor="offer-price">
-              Offer Price
+              Precio Oferta
             </label>
             <input
               id="offer-price"
@@ -165,8 +165,8 @@ const AddProduct = () => {
             />
           </div>
         </div>
-        <button type="submit" className="px-8 py-2.5 bg-orange-600 text-white font-medium rounded">
-          ADD
+        <button type="submit" className="px-8 py-2.5 bg-blue-600 text-white font-medium rounded">
+          Añadir
         </button>
       </form>
       {/* <Footer /> */}
