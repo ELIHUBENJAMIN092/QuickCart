@@ -92,7 +92,7 @@ const AddProduct = () => {
           <input
             id="product-name"
             type="text"
-            placeholder="Type here"
+            placeholder="Ingresar Texto"
             className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40"
             onChange={(e) => setName(e.target.value)}
             value={name}
@@ -110,7 +110,7 @@ const AddProduct = () => {
             id="product-description"
             rows={4}
             className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40 resize-none"
-            placeholder="Type here"
+            placeholder="Ingresar Texto"
             onChange={(e) => setDescription(e.target.value)}
             value={description}
             required
