@@ -66,7 +66,7 @@ export const AppContextProvider = (props) => {
     const addToCart = async (itemId) => {
 
         if (!user) {
-            return toast('Please login',{
+            return toast('Por Favor Registrarse',{
                 icon: '⚠️',
               })
         }
@@ -83,7 +83,7 @@ export const AppContextProvider = (props) => {
             try {
                 const token = await getToken()
                 await axios.post('/api/cart/update', {cartData}, {headers:{Authorization: `Bearer ${token}`}} )
-                toast.success('Item added to cart')
+                toast.success('Producto añadido a tu carrito')
             } catch (error) {
                 toast.error(error.message)
             }
