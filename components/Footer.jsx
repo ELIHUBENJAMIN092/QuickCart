@@ -55,6 +55,32 @@ const Footer = () => {
           </div>
         </div>
       </div>
+      {/* Redes sociales centradas */}
+      <div className="flex justify-center py-6">
+        <div className="flex items-center gap-4">
+          <a
+            href="https://www.facebook.com/CompelEcuadorImpresorasSuministrosEtiquetasNylon"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Image src={assets.facebook_icon} alt="facebook_icon" />
+          </a>
+          <a
+            href="https://www.instagram.com/compelecuador/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Image src={assets.instagram_icon} alt="instagram_icon" />
+          </a>
+          <a
+            href="https://www.youtube.com/@compelecuador7211"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Image src={assets.youtube_icon} alt="youtube_icon" />
+          </a>
+        </div>
+      </div>
       <p className="py-4 text-center text-xs md:text-sm">
         Copyright 2025 © COMPEL Todos los derechos reservados.
       </p>
