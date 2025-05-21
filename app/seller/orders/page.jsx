@@ -74,6 +74,8 @@ const Orders = () => {
                                         <br />
                                         <span>{`${order.address.city}, ${order.address.state}`}</span>
                                         <br />
+                                        <span>{order.address.phoneNumber}</span>
+                                        <br />
                                         <a
                                             href={`https://wa.me/593${order.address.phoneNumber.replace(/^0/, "")}`}
                                             target="_blank"
