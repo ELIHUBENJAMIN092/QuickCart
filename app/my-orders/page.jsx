@@ -76,9 +76,9 @@ const MyOrders = () => {
                                 <p className="font-medium my-auto">{currency}{order.amount}</p>
                                 <div>
                                     <p className="flex flex-col">
-                                        <span>Method : COD</span>
-                                        <span>Date : {new Date(order.date).toLocaleDateString()}</span>
-                                        <span>Payment : Pending</span>
+                                        <span>Método : COD</span>
+                                        <span>Fecha: {new Date(order.date).toLocaleDateString()}</span>
+                                        <span>Pago: Pendiente Generar DataLink</span>
                                     </p>
                                 </div>
                             </div>
