@@ -14,14 +14,26 @@ const Footer = () => {
         </p>
       </div>
       <div className="flex items-center gap-3">
-        <a href="#">
+        <a
+          href="https://www.facebook.com/CompelEcuadorImpresorasSuministrosEtiquetasNylon"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           <Image src={assets.facebook_icon} alt="facebook_icon" />
         </a>
-        <a href="#">
-          <Image src={assets.twitter_icon} alt="twitter_icon" />
-        </a>
-        <a href="#">
+        <a
+          href="https://www.instagram.com/compelecuador/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           <Image src={assets.instagram_icon} alt="instagram_icon" />
+        </a>
+        <a
+          href="https://www.youtube.com/@compelecuador7211"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Image src={assets.youtube_icon} alt="youtube_icon" />
         </a>
       </div>
     </div>
