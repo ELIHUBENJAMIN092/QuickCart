@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@clerk/clerk-sdk-node": "^4.13.23",
     "@clerk/nextjs": "^6.19.5",
     "axios": "^1.7.9",
     "cloudinary": "^2.6.1",

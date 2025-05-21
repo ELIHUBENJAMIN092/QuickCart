@@ -1,8 +1,8 @@
 import connectDB from "@/config/db"
 import User from "@/models/User"
 import { getAuth } from "@clerk/nextjs/server"
+import { clerkClient } from "@clerk/clerk-sdk-node" // ✅ este sí funciona
 import { NextResponse } from "next/server"
-import { clerkClient } from "@clerk/nextjs" // 👈 necesario para obtener más info del usuario
 
 export async function GET(request) {
   try {
@@ -12,10 +12,8 @@ export async function GET(request) {
     }
 
     await connectDB()
-
     let user = await User.findById(userId)
 
-    // Si no existe en tu DB, lo creas usando datos reales de Clerk
     if (!user) {
       const clerkUser = await clerkClient.users.getUser(userId)
 
