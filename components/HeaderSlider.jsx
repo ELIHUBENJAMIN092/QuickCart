@@ -28,6 +28,14 @@ const HeaderSlider = () => {
       buttonText2: "Aprende más",
       imgSrc: assets.header_macbook_image,
     },
+    {
+      id: 4,
+      title: "La tegnología del RFID, para tu control de activos",
+      offer: "Nuevos clientes 10% de descuento",
+      buttonText1: "Compra ahora",
+      buttonText2: "Aprende más",
+      imgSrc: assets.rfid,
+    },
   ];
 
   const [currentSlide, setCurrentSlide] = useState(0);

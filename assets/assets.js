@@ -23,6 +23,7 @@ import star_dull_icon from "./star_dull_icon.svg";
 import header_headphone_image from "./header_headphone_image.png";
 import header_playstation_image from "./header_playstation_image.png";
 import header_macbook_image from "./header_macbook_image.png";
+import rfid from "./rfid.png";
 import macbook_image from "./macbook_image.png";
 import bose_headphone_image from "./bose_headphone_image.png";
 import apple_earphone_image from "./apple_earphone_image.png";
@@ -74,6 +75,7 @@ export const assets = {
   header_headphone_image,
   header_playstation_image,
   header_macbook_image,
+  rfid,
   macbook_image,
   bose_headphone_image,
   apple_earphone_image,
