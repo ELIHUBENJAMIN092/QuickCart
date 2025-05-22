@@ -16,7 +16,7 @@ const HeaderSlider = () => {
       id: 2,
       title: "Impresión de otro nivel, comienzan aquí: ¡Descubre Zebra ZC300 hoy mismo!",
       offer: "¡Date prisa, quedan solo unas pocas",
-      buttonText1: "Compra hora",
+      buttonText1: "Compra ahora",
       buttonText2: "Explora los detalles",
       imgSrc: assets.header_playstation_image,
     },

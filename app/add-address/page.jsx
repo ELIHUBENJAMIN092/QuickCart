@@ -46,8 +46,8 @@ const AddAddress = () => {
             <Navbar />
             <div className="px-6 md:px-16 lg:px-32 py-16 flex flex-col md:flex-row justify-between">
                 <form onSubmit={onSubmitHandler} className="w-full">
-                    <p className="text-2xl md:text-3xl text-gray-500">
-                        Dirección de <span className="font-semibold text-blue-700">Envío</span>
+                    <p className="text-2xl md:text-3xl text-gray-700">
+                        Dirección de <span className="font-semibold text-blue-900">Envío</span>
                     </p>
                     <div className="space-y-3 max-w-sm mt-10">
                         <input
@@ -67,7 +67,7 @@ const AddAddress = () => {
                         <input
                             className="px-2 py-2.5 focus:border-blue-500 transition border border-gray-500/30 rounded outline-none w-full text-gray-500"
                             type="text"
-                            placeholder="Código de descuento"
+                            placeholder="Código de descuento (Opcional)"
                             onChange={(e) => setAddress({ ...address, pincode: e.target.value })}
                             value={address.pincode}
                         />
@@ -101,7 +101,7 @@ const AddAddress = () => {
                     </button>
                 </form>
                 <Image
-                    className="md:mr-16 mt-16 md:mt-0"
+                    className="md:mr-16 mt-16 md:mt-0 w-full h-auto" // Cambia w-64 a otro valor si lo quieres más pequeño o grande
                     src={assets.my_location_image}
                     alt="my_location_image"
                 />
