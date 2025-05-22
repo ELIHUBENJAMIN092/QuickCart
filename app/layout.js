@@ -1,10 +1,10 @@
-import { Outfit } from "next/font/google";
+import { Montserrat, Outfit } from "next/font/google";
 import "./globals.css";
 import { AppContextProvider } from "@/context/AppContext";
 import { Toaster } from "react-hot-toast";
 import { ClerkProvider } from "@clerk/nextjs";
 
-const outfit = Outfit({ subsets: ['latin'], weight: ["300", "400", "500"] })
+const montserrat = Montserrat({ subsets: ['latin'], weight: ["400", "500", "700"] })
 
 export const metadata = {
   title: "Ecommerce_Compel",
@@ -14,8 +14,8 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <ClerkProvider>
-      <html lang="en">
-        <body className={`${outfit.className} antialiased text-gray-700`} >
+      <html lang="es">
+        <body className={`${montserrat.className} antialiased text-gray-700`} >
           <Toaster />
           <AppContextProvider>
             {children}
