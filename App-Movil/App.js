@@ -39,7 +39,7 @@ function SyncUserWithBackend() {
 
     const crearOActualizarUsuario = async () => {
       try {
-        await axios.post('***', {
+        await axios.post('http://192.168.31.208:3000/api/users', { 
           clerkId: user.id,
           email: user.primaryEmailAddress?.emailAddress,
           name: user.firstName,
@@ -52,6 +52,7 @@ function SyncUserWithBackend() {
 
     crearOActualizarUsuario();
   }, [user]);
+
 
   return null;
 }
@@ -72,7 +73,7 @@ export default function App() {
           <SignIn
             path="/sign-in"
             routing="path"
-            // Aquí Clerk muestra Google y otros providers si están configurados en el Dashboard
+          // Aquí Clerk muestra Google y otros providers si están configurados en el Dashboard
           />
         </SignedOut>
       </NavigationContainer>

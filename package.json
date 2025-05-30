@@ -13,11 +13,12 @@
     "@clerk/clerk-sdk-node": "^5.1.6",
     "@clerk/nextjs": "^6.19.5",
     "axios": "^1.7.9",
+    "body-parser": "^2.2.0",
     "cloudinary": "^2.6.1",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "inngest": "^3.37.0",
-    "mongoose": "^8.15.0",
+    "mongoose": "^8.15.1",
     "next": "^15.3.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -30,5 +31,21 @@
     "eslint-config-next": "15.1.6",
     "postcss": "^8",
     "tailwindcss": "^3.4.1"
-  }
+  },
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ELIHUBENJAMIN092/QuickCart.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ELIHUBENJAMIN092/QuickCart/issues"
+  },
+  "homepage": "https://github.com/ELIHUBENJAMIN092/QuickCart#readme",
+  "description": ""
 }
