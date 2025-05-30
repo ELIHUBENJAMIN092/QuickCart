@@ -1,8 +1,8 @@
-// App.js
 import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ClerkProvider, SignedIn, SignedOut, SignIn, useUser } from '@clerk/clerk-expo';
+import { View, Text } from 'react-native'; // ✅ Agrega esto
 import HomeScreen from './screens/HomeScreen';
 import CartScreen from './screens/CartScreen';
 import * as SecureStore from 'expo-secure-store';
@@ -39,7 +39,7 @@ function SyncUserWithBackend() {
 
     const crearOActualizarUsuario = async () => {
       try {
-        await axios.post('http://192.168.31.208:3000/api/users', { 
+        await axios.post('http://192.168.31.208:3000/api/users', {
           clerkId: user.id,
           email: user.primaryEmailAddress?.emailAddress,
           name: user.firstName,
@@ -70,12 +70,11 @@ export default function App() {
         </SignedIn>
 
         <SignedOut>
-          <SignIn
-            path="/sign-in"
-            routing="path"
-          // Aquí Clerk muestra Google y otros providers si están configurados en el Dashboard
-          />
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text>Inicia sesión para continuar</Text>
+          </View>
         </SignedOut>
+
       </NavigationContainer>
     </ClerkWithProvider>
   );
