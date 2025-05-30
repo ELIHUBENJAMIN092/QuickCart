@@ -3,19 +3,19 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 
-// Cambia esta URI por tu URI real (con usuario, contraseña, DB)
+// URI de conexión a MongoDB
 const MONGODB_URI = 'mongodb+srv://Compel:Compel8794@cluster0.diarpfy.mongodb.net/mydatabase?retryWrites=true&w=majority';
 
-// Conexión a MongoDB sin opciones deprecated
+// Conexión a MongoDB
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('MongoDB conectado'))
   .catch(err => console.error('Error conectando a MongoDB:', err));
 
 const app = express();
-app.use(cors());              // Permite peticiones desde cualquier origen (ideal para desarrollo)
-app.use(bodyParser.json());   // Parseo de JSON en cuerpo de peticiones
+app.use(cors());
+app.use(bodyParser.json());
 
-// Definimos esquema y modelo Usuario
+// Modelo de Usuario
 const usuarioSchema = new mongoose.Schema({
   clerkId: { type: String, required: true, unique: true },
   email: String,
@@ -25,7 +25,7 @@ const usuarioSchema = new mongoose.Schema({
 
 const Usuario = mongoose.model('Usuario', usuarioSchema);
 
-// Ruta para crear o actualizar usuario
+// Ruta: Crear o actualizar usuario
 app.post('/api/users', async (req, res) => {
   const { clerkId, email, name, imageUrl } = req.body;
 
@@ -37,14 +37,12 @@ app.post('/api/users', async (req, res) => {
     const usuarioExistente = await Usuario.findOne({ clerkId });
 
     if (usuarioExistente) {
-      // Actualizar datos
       usuarioExistente.email = email;
       usuarioExistente.name = name;
       usuarioExistente.imageUrl = imageUrl;
       await usuarioExistente.save();
       return res.json({ message: 'Usuario actualizado', user: usuarioExistente });
     } else {
-      // Crear usuario nuevo
       const nuevoUsuario = new Usuario({ clerkId, email, name, imageUrl });
       await nuevoUsuario.save();
       return res.json({ message: 'Usuario creado', user: nuevoUsuario });
@@ -55,7 +53,7 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
-// Nueva ruta para obtener todos los usuarios
+// Ruta: Obtener todos los usuarios
 app.get('/api/users', async (req, res) => {
   try {
     const usuarios = await Usuario.find();
@@ -66,7 +64,15 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
-// Puerto y start - escucha en todas las interfaces para que se pueda acceder desde la red local
+// 🔥 Nueva ruta: Lista de productos
+app.get('/api/product/list', (req, res) => {
+  res.json([
+    { id: 1, nombre: 'Producto 1', precio: 20 },
+    { id: 2, nombre: 'Producto 2', precio: 35 }
+  ]);
+});
+
+// Iniciar servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Backend corriendo en puerto ${PORT}`);
