@@ -2,7 +2,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from './screens/HomeScreen';
 import CartScreen from './screens/CartScreen';
-import ClerkWithProvider from '../.expo/tienda-compel-movil/ClerkProvider'; // 👈 asegúrate de importar esto correctamente
+import ClerkWithProvider from './ClerkProvider';
 
 const Stack = createNativeStackNavigator();
 
