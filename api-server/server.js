@@ -55,6 +55,17 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
+// Nueva ruta para obtener todos los usuarios
+app.get('/api/users', async (req, res) => {
+  try {
+    const usuarios = await Usuario.find();
+    return res.json({ message: 'Lista de usuarios', users: usuarios });
+  } catch (error) {
+    console.error('Error en /api/users:', error);
+    return res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
 // Puerto y start - escucha en todas las interfaces para que se pueda acceder desde la red local
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
