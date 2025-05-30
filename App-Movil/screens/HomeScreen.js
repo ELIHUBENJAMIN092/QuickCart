@@ -67,14 +67,23 @@ export default function HomeScreen({ navigation }) {
 
       <FlatList
         data={productos}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Image source={{ uri: item.image[0] }} style={styles.image} />
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.price}>${item.price}</Text>
-            <Button title="Agregar al carrito" onPress={() => agregarAlCarrito(item)} />
-          </View>
-        )}
+        renderItem={({ item }) => {
+          // Validar imagen
+          const imageUri = Array.isArray(item.image) && item.image.length > 0
+            ? item.image[0]
+            : typeof item.image === 'string' && item.image.length > 0
+            ? item.image
+            : 'https://via.placeholder.com/100'; // fallback si no hay imagen
+
+          return (
+            <View style={styles.card}>
+              <Image source={{ uri: imageUri }} style={styles.image} />
+              <Text style={styles.name}>{item.name}</Text>
+              <Text style={styles.price}>${item.price}</Text>
+              <Button title="Agregar al carrito" onPress={() => agregarAlCarrito(item)} />
+            </View>
+          );
+        }}
         keyExtractor={item => item._id.toString()}
       />
     </View>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, Button, Image, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AntDesign } from '@expo/vector-icons';
 
@@ -35,22 +35,31 @@ export default function CartScreen() {
       <Text style={styles.title}>🛍️ Carrito de compras</Text>
       <FlatList
         data={carrito}
-        renderItem={({ item, index }) => (
-          <View style={styles.item}>
-            <Image source={{ uri: item.image }} style={styles.image} />
-            <View style={styles.info}>
-              <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.price}>${item.price}</Text>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => eliminarDelCarrito(index)}
-              >
-                <AntDesign name="delete" size={20} color="white" />
-                <Text style={styles.deleteText}>Eliminar</Text>
-              </TouchableOpacity>
+        renderItem={({ item, index }) => {
+          // Validar imagen del carrito
+          const imageUri = Array.isArray(item.image) && item.image.length > 0
+            ? item.image[0]
+            : typeof item.image === 'string' && item.image.length > 0
+            ? item.image
+            : 'https://via.placeholder.com/70';
+
+          return (
+            <View style={styles.item}>
+              <Image source={{ uri: imageUri }} style={styles.image} />
+              <View style={styles.info}>
+                <Text style={styles.name}>{item.name}</Text>
+                <Text style={styles.price}>${item.price}</Text>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => eliminarDelCarrito(index)}
+                >
+                  <AntDesign name="delete" size={20} color="white" />
+                  <Text style={styles.deleteText}>Eliminar</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        )}
+          );
+        }}
         keyExtractor={(_, index) => index.toString()}
       />
       <Text style={styles.total}>Total: ${total.toFixed(2)}</Text>
