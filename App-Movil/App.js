@@ -1,14 +1,16 @@
 import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ClerkProvider, SignedIn, SignedOut, SignIn, useUser } from '@clerk/clerk-expo';
-import { View, Text } from 'react-native'; // ✅ Agrega esto
-import HomeScreen from './screens/HomeScreen';
-import CartScreen from './screens/CartScreen';
+import { ClerkProvider, SignedIn, SignedOut, useUser } from '@clerk/clerk-expo';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 
-// Tu llave pública de Clerk (reemplaza con la tuya)
+// Screens
+import SignInScreen from './screens/SignInScreen'; // Asegúrate de que exista este archivo
+import HomeScreen from './screens/HomeScreen';
+import CartScreen from './screens/CartScreen';
+
+// Clerk Publishable Key
 const CLERK_PUBLISHABLE_KEY = 'pk_test_aWRlYWwtc3RpbmdyYXktNDIuY2xlcmsuYWNjb3VudHMuZGV2JA';
 
 const Stack = createNativeStackNavigator();
@@ -22,22 +24,13 @@ const tokenCache = {
   },
 };
 
-function ClerkWithProvider({ children }) {
-  return (
-    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
-      {children}
-    </ClerkProvider>
-  );
-}
-
-// Componente que sincroniza usuario con backend
 function SyncUserWithBackend() {
   const { user } = useUser();
 
   useEffect(() => {
     if (!user) return;
 
-    const crearOActualizarUsuario = async () => {
+    const sync = async () => {
       try {
         await axios.post('http://192.168.31.208:3000/api/users', {
           clerkId: user.id,
@@ -45,21 +38,20 @@ function SyncUserWithBackend() {
           name: user.firstName,
           imageUrl: user.imageUrl,
         });
-      } catch (error) {
-        console.error('Error sincronizando usuario con backend:', error);
+      } catch (err) {
+        console.error('Error sincronizando usuario:', err);
       }
     };
 
-    crearOActualizarUsuario();
+    sync();
   }, [user]);
-
 
   return null;
 }
 
 export default function App() {
   return (
-    <ClerkWithProvider>
+    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
       <NavigationContainer>
         <SignedIn>
           <SyncUserWithBackend />
@@ -70,12 +62,9 @@ export default function App() {
         </SignedIn>
 
         <SignedOut>
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text>Inicia sesión para continuar</Text>
-          </View>
+          <SignInScreen />
         </SignedOut>
-
       </NavigationContainer>
-    </ClerkWithProvider>
+    </ClerkProvider>
   );
 }

@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, Button, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  Button,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useUser, useAuth } from '@clerk/clerk-expo';
@@ -12,28 +21,27 @@ export default function HomeScreen({ navigation }) {
 
   const [productos, setProductos] = useState([]);
   const [carrito, setCarrito] = useState([]);
+  const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    const obtenerProductos = async () => {
+    const obtenerDatos = async () => {
       try {
-        const respuesta = await axios.get(API_URL);
-        setProductos(respuesta.data.products);
+        const [resProductos, guardadoCarrito] = await Promise.all([
+          axios.get(API_URL),
+          AsyncStorage.getItem('carrito'),
+        ]);
+
+        setProductos(resProductos.data.products || []);
+        if (guardadoCarrito) setCarrito(JSON.parse(guardadoCarrito));
       } catch (error) {
-        console.error('Error obteniendo productos:', error);
+        Alert.alert('Error', 'No se pudieron cargar los datos.');
+        console.error('Error en HomeScreen:', error);
+      } finally {
+        setCargando(false);
       }
     };
 
-    const obtenerCarritoGuardado = async () => {
-      try {
-        const guardado = await AsyncStorage.getItem('carrito');
-        if (guardado) setCarrito(JSON.parse(guardado));
-      } catch (error) {
-        console.error('Error cargando carrito:', error);
-      }
-    };
-
-    obtenerProductos();
-    obtenerCarritoGuardado();
+    obtenerDatos();
   }, []);
 
   const guardarCarrito = async (nuevoCarrito) => {
@@ -50,6 +58,32 @@ export default function HomeScreen({ navigation }) {
     guardarCarrito(actualizado);
   };
 
+  const renderItem = ({ item }) => {
+    const imageUri = Array.isArray(item.image) && item.image.length > 0
+      ? item.image[0]
+      : typeof item.image === 'string' && item.image
+      ? item.image
+      : 'https://via.placeholder.com/100';
+
+    return (
+      <View style={styles.card}>
+        <Image source={{ uri: imageUri }} style={styles.image} />
+        <Text style={styles.name}>{item.name}</Text>
+        <Text style={styles.price}>${item.price?.toFixed(2) || '0.00'}</Text>
+        <Button title="Agregar al carrito" onPress={() => agregarAlCarrito(item)} />
+      </View>
+    );
+  };
+
+  if (cargando) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text>Cargando productos...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {user && (
@@ -61,30 +95,15 @@ export default function HomeScreen({ navigation }) {
       )}
 
       <Button
-        title={`Ir al carrito (${carrito.length})`}
-        onPress={() => navigation.navigate('Carrito', { carrito })}
+        title={`🛒 Ir al carrito (${carrito.length})`}
+        onPress={() => navigation.navigate('Carrito')}
       />
 
       <FlatList
         data={productos}
-        renderItem={({ item }) => {
-          // Validar imagen
-          const imageUri = Array.isArray(item.image) && item.image.length > 0
-            ? item.image[0]
-            : typeof item.image === 'string' && item.image.length > 0
-            ? item.image
-            : 'https://via.placeholder.com/100'; // fallback si no hay imagen
-
-          return (
-            <View style={styles.card}>
-              <Image source={{ uri: imageUri }} style={styles.image} />
-              <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.price}>${item.price}</Text>
-              <Button title="Agregar al carrito" onPress={() => agregarAlCarrito(item)} />
-            </View>
-          );
-        }}
-        keyExtractor={item => item._id.toString()}
+        renderItem={renderItem}
+        keyExtractor={(item) => item._id?.toString() || Math.random().toString()}
+        contentContainerStyle={{ paddingBottom: 20 }}
       />
     </View>
   );
@@ -92,7 +111,12 @@ export default function HomeScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', padding: 20 },
-  welcome: { fontSize: 24, marginBottom: 10, fontWeight: 'bold', textAlign: 'center' },
+  welcome: {
+    fontSize: 24,
+    marginBottom: 10,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
   avatar: {
     width: 100,
     height: 100,
@@ -106,8 +130,14 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     borderRadius: 8,
     alignItems: 'center',
+    elevation: 1,
   },
   image: { width: 100, height: 100, borderRadius: 8 },
   name: { fontSize: 18, fontWeight: 'bold', marginTop: 10 },
   price: { fontSize: 16, color: 'green', marginBottom: 10 },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
