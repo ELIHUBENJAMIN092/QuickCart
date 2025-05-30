@@ -6,16 +6,14 @@ const bodyParser = require('body-parser');
 // Cambia esta URI por tu URI real (con usuario, contraseña, DB)
 const MONGODB_URI = 'mongodb+srv://Compel:Compel8794@cluster0.diarpfy.mongodb.net/mydatabase?retryWrites=true&w=majority';
 
-mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('MongoDB conectado'))
-.catch(err => console.error('Error conectando a MongoDB:', err));
+// Conexión a MongoDB sin opciones deprecated
+mongoose.connect(MONGODB_URI)
+  .then(() => console.log('MongoDB conectado'))
+  .catch(err => console.error('Error conectando a MongoDB:', err));
 
 const app = express();
-app.use(cors());
-app.use(bodyParser.json());
+app.use(cors());              // Permite peticiones desde cualquier origen (ideal para desarrollo)
+app.use(bodyParser.json());   // Parseo de JSON en cuerpo de peticiones
 
 // Definimos esquema y modelo Usuario
 const usuarioSchema = new mongoose.Schema({
@@ -31,7 +29,9 @@ const Usuario = mongoose.model('Usuario', usuarioSchema);
 app.post('/api/users', async (req, res) => {
   const { clerkId, email, name, imageUrl } = req.body;
 
-  if (!clerkId) return res.status(400).json({ message: 'clerkId es requerido' });
+  if (!clerkId) {
+    return res.status(400).json({ message: 'clerkId es requerido' });
+  }
 
   try {
     const usuarioExistente = await Usuario.findOne({ clerkId });
@@ -55,8 +55,8 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
-// Puerto y start
+// Puerto y start - escucha en todas las interfaces para que se pueda acceder desde la red local
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Backend corriendo en puerto ${PORT}`);
 });
