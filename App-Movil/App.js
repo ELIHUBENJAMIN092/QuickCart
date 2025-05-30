@@ -32,7 +32,7 @@ function SyncUserWithBackend() {
 
     const sync = async () => {
       try {
-        await axios.post('http://192.168.31.208:3000/api/users', {
+        await axios.post('http://192.168.31.208:4000/api/users', {
           clerkId: user.id,
           email: user.primaryEmailAddress?.emailAddress,
           name: user.firstName,
