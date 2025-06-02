@@ -1,13 +1,17 @@
 'use client';
+
 import React, { useEffect, useState } from "react";
-import { assets } from "@/assets/assets";
 import Image from "next/image";
+import axios from "axios";
+import toast from "react-hot-toast";
+
+import { assets } from "@/assets/assets";
 import { useAppContext } from "@/context/AppContext";
 import Footer from "@/components/seller/Footer";
 import Loading from "@/components/Loading";
-import axios from "axios";
-import toast from "react-hot-toast";
-import { FaWhatsapp } from "react-icons/fa"; // ✅ Importar icono de WhatsApp
+
+import { FaWhatsapp } from "react-icons/fa";
+import { MdShoppingBag } from "react-icons/md";
 
 const Orders = () => {
     const { currency, getToken, user } = useAppContext();
@@ -18,21 +22,19 @@ const Orders = () => {
     const fetchSellerOrders = async () => {
         try {
             const token = await getToken();
-
-            const { data } = await axios.get(
-                '/api/order/seller-orders',
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            const { data } = await axios.get('/api/order/seller-orders', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
 
             if (data.success) {
                 setOrders(data.orders);
-                setLoading(false);
             } else {
-                toast.error(data.message);
+                toast.error(data.message || "Error al obtener las órdenes.");
             }
-
         } catch (error) {
-            toast.error(error.message);
+            toast.error(error.message || "Ocurrió un error al obtener las órdenes.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -48,24 +50,31 @@ const Orders = () => {
                 <Loading />
             ) : (
                 <div className="md:p-10 p-4 space-y-5">
-                    <h2 className="text-lg font-medium">Ordenes Online</h2>
+                    <h2 className="text-lg font-medium">Órdenes Online</h2>
                     <div className="max-w-4xl rounded-md">
                         {orders.map((order, index) => (
-                            <div key={index} className="flex flex-col md:flex-row gap-5 justify-between p-5 border-t border-gray-300">
+                            <div
+                                key={index}
+                                className="flex flex-col md:flex-row gap-5 justify-between p-5 border-t border-gray-300"
+                            >
+                                {/* Columna 1: Imagen y productos */}
                                 <div className="flex-1 flex gap-5 max-w-80">
                                     <Image
-                                        className="max-w-16 max-h-16 object-cover"
+                                        className="w-16 h-16 object-cover"
                                         src={assets.box_icon}
                                         alt="box_icon"
                                     />
-                                    <p className="flex flex-col gap-3">
+                                    <div className="flex flex-col gap-3">
                                         <span className="font-medium">
-                                            {order.items.map((item) => item.product.name + ` x ${item.quantity}`).join(", ")}
+                                            {order.items
+                                                .map((item) => `${item.product.name} x ${item.quantity}`)
+                                                .join(", ")}
                                         </span>
-                                        <span>Items : {order.items.length}</span>
-                                    </p>
+                                        <span>Items: {order.items.length}</span>
+                                    </div>
                                 </div>
 
+                                {/* Columna 2: Dirección y WhatsApp */}
                                 <div>
                                     <p>
                                         <span className="font-medium">{order.address.fullName}</span>
@@ -88,14 +97,23 @@ const Orders = () => {
                                     </p>
                                 </div>
 
-                                <p className="font-medium my-auto">{currency}{order.amount}</p>
+                                {/* Columna 3: Monto */}
+                                <p className="font-medium my-auto whitespace-nowrap">
+                                    {currency}{order.amount}
+                                </p>
 
-                                <div>
+                                {/* Columna 4: Datos adicionales */}
+                                <div className="my-auto">
                                     <p className="flex flex-col">
                                         <span>Método: COD</span>
                                         <span>Fecha: {new Date(order.date).toLocaleDateString()}</span>
                                         <span>Pago: Pendiente Generar DataLink</span>
                                     </p>
+                                </div>
+
+                                {/* Columna 5: Ícono visual */}
+                                <div className="my-auto">
+                                    <MdShoppingBag size={32} color="black" />
                                 </div>
                             </div>
                         ))}
