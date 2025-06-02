@@ -11,7 +11,7 @@ import Footer from "@/components/seller/Footer";
 import Loading from "@/components/Loading";
 
 import { FaWhatsapp } from "react-icons/fa";
-import { MdShoppingBag } from "react-icons/md";
+
 
 const Orders = () => {
     const { currency, getToken, user } = useAppContext();
@@ -109,11 +109,6 @@ const Orders = () => {
                                         <span>Fecha: {new Date(order.date).toLocaleDateString()}</span>
                                         <span>Pago: Pendiente Generar DataLink</span>
                                     </p>
-                                </div>
-
-                                {/* Columna 5: Ícono visual */}
-                                <div className="my-auto">
-                                    <MdShoppingBag size={32} color="black" />
                                 </div>
                             </div>
                         ))}
