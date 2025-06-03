@@ -29,7 +29,7 @@ const Usuario = mongoose.model('Usuario', usuarioSchema);
 app.post('/api/users', async (req, res) => {
   const { clerkId, email, name, imageUrl } = req.body;
 
-  if (!clerkId) {
+  if (!clerkId) {W
     return res.status(400).json({ message: 'clerkId es requerido' });
   }
 
