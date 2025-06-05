@@ -3,77 +3,44 @@ import {
   View,
   Text,
   FlatList,
+  ScrollView,
   Image,
-  Button,
+  TextInput,
+  TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { useUser, useAuth } from '@clerk/clerk-expo';
 
 const API_URL = 'http://192.168.31.208:3000/api/product/list';
 
 export default function HomeScreen({ navigation }) {
-  const { user } = useUser();
-  const { signOut } = useAuth();
-
   const [productos, setProductos] = useState([]);
-  const [carrito, setCarrito] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [busqueda, setBusqueda] = useState('');
 
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
-        const [resProductos, guardadoCarrito] = await Promise.all([
-          axios.get(API_URL),
-          AsyncStorage.getItem('carrito'),
-        ]);
-
-        setProductos(resProductos.data.products || []);
-        if (guardadoCarrito) setCarrito(JSON.parse(guardadoCarrito));
+        const res = await axios.get(API_URL);
+        setProductos(res.data.products || []);
       } catch (error) {
-        Alert.alert('Error', 'No se pudieron cargar los datos.');
-        console.error('Error en HomeScreen:', error);
+        console.error('Error:', error);
       } finally {
         setCargando(false);
       }
     };
-
     obtenerDatos();
   }, []);
 
-  const guardarCarrito = async (nuevoCarrito) => {
-    try {
-      await AsyncStorage.setItem('carrito', JSON.stringify(nuevoCarrito));
-    } catch (error) {
-      console.error('Error guardando carrito:', error);
-    }
-  };
+  const categorias = [
+    { nombre: 'Inkjet Printers', imagen: require('./assets/inkjet.png') },
+    { nombre: 'Document Scanners', imagen: require('./assets/scanner.png') },
+    { nombre: 'POS Printers', imagen: require('./assets/pos.png') },
+    { nombre: 'Printer Ink', imagen: require('./assets/ink.png') },
+  ];
 
-  const agregarAlCarrito = (producto) => {
-    const actualizado = [...carrito, producto];
-    setCarrito(actualizado);
-    guardarCarrito(actualizado);
-  };
-
-  const renderItem = ({ item }) => {
-    const imageUri = Array.isArray(item.image) && item.image.length > 0
-      ? item.image[0]
-      : typeof item.image === 'string' && item.image
-      ? item.image
-      : 'https://via.placeholder.com/100';
-
-    return (
-      <View style={styles.card}>
-        <Image source={{ uri: imageUri }} style={styles.image} />
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.price}>${item.price?.toFixed(2) || '0.00'}</Text>
-        <Button title="Agregar al carrito" onPress={() => agregarAlCarrito(item)} />
-      </View>
-    );
-  };
+  const destacados = productos.slice(0, 2); // o filtrados por algún atributo
 
   if (cargando) {
     return (
@@ -85,56 +52,81 @@ export default function HomeScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      {user && (
-        <>
-          <Text style={styles.welcome}>¡Bienvenido, {user.firstName}!</Text>
-          {user.imageUrl && <Image source={{ uri: user.imageUrl }} style={styles.avatar} />}
-          <Button title="Cerrar Sesión" color="red" onPress={signOut} />
-        </>
-      )}
+    <ScrollView style={styles.container}>
+      <Text style={styles.titulo}>Printers</Text>
 
-      <Button
-        title={`🛒 Ir al carrito (${carrito.length})`}
-        onPress={() => navigation.navigate('Carrito')}
+      <TextInput
+        style={styles.searchInput}
+        placeholder="🔍 Search"
+        value={busqueda}
+        onChangeText={setBusqueda}
       />
 
+      <Text style={styles.sectionTitle}>Featured</Text>
       <FlatList
-        data={productos}
-        renderItem={renderItem}
-        keyExtractor={(item) => item._id?.toString() || Math.random().toString()}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        data={destacados}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={(item) => item._id}
+        renderItem={({ item }) => (
+          <TouchableOpacity style={styles.featuredCard}>
+            <Image
+              source={{ uri: item.image[0] || 'https://via.placeholder.com/150' }}
+              style={styles.featuredImage}
+            />
+            <Text style={styles.featuredText}>{item.name}</Text>
+          </TouchableOpacity>
+        )}
       />
-    </View>
+
+      <Text style={styles.sectionTitle}>Categories</Text>
+      <View style={styles.categoriesContainer}>
+        {categorias.map((cat, index) => (
+          <TouchableOpacity key={index} style={styles.categoryCard}>
+            <Image source={cat.imagen} style={styles.categoryImage} />
+            <Text style={styles.categoryText}>{cat.nombre}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 20 },
-  welcome: {
-    fontSize: 24,
-    marginBottom: 10,
-    fontWeight: 'bold',
-    textAlign: 'center',
+  container: { flex: 1, padding: 16, backgroundColor: '#F9FAFB' },
+  titulo: { fontSize: 22, fontWeight: 'bold', textAlign: 'center', marginBottom: 10 },
+  searchInput: {
+    backgroundColor: '#E5E7EB',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 20,
   },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 15,
-    alignSelf: 'center',
+  sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 10 },
+  featuredCard: {
+    backgroundColor: '#fff',
+    marginRight: 12,
+    borderRadius: 12,
+    overflow: 'hidden',
+    width: 200,
   },
-  card: {
-    backgroundColor: '#f8f8f8',
-    padding: 15,
-    marginVertical: 10,
-    borderRadius: 8,
+  featuredImage: { width: '100%', height: 120 },
+  featuredText: { padding: 8, fontWeight: '500' },
+  categoriesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  categoryCard: {
+    width: '48%',
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 12,
     alignItems: 'center',
-    elevation: 1,
+    marginBottom: 12,
   },
-  image: { width: 100, height: 100, borderRadius: 8 },
-  name: { fontSize: 18, fontWeight: 'bold', marginTop: 10 },
-  price: { fontSize: 16, color: 'green', marginBottom: 10 },
+  categoryImage: { width: 60, height: 60, marginBottom: 8 },
+  categoryText: { textAlign: 'center', fontWeight: '600' },
   loaderContainer: {
     flex: 1,
     justifyContent: 'center',
