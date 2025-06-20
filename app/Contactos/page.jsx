@@ -23,4 +23,19 @@ const ContactPage = () => {
 
         <div className="w-full md:max-w-md h-80 md:h-96">
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d996.2390283720582!2d-78.51072873052784!3d-0.22400739859244912!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91d59a742b0ffcaf%3A0xa4aa32ef7c2b2747!2s10%20de%20Ago
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d996.2390283720582!2d-78.51072873052784!3d-0.22400739859244912!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91d59a742b0ffcaf%3A0xa4aa32ef7c2b2747!2s10%20de%20Agosto%20%26%20Jer%C3%B3nimo%20Carri%C3%B3n%2C%20Quito%20170129!5e0!3m2!1ses!2sec!4v1718921699216!5m2!1ses!2sec"
+            width="100%"
+            height="100%"
+            style={{ border: 0 }}
+            allowFullScreen={true}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+      </div>
+      <Footer />
+    </>
+  );
+};
+
+export default ContactPage;
