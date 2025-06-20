@@ -3,6 +3,7 @@ import search_icon from "./search_icon.svg";
 import user_icon from "./user_icon.svg";
 import cart_icon from "./cart_icon.svg";
 import add_icon from "./add_icon.svg";
+import credit_icon from "./credit_icon.png";
 import order_icon from "./order_icon.svg";
 import instagram_icon from "./instagram_icon.svg";
 import facebook_icon from "./facebook_icon.svg";
@@ -55,6 +56,7 @@ export const assets = {
   user_icon,
   cart_icon,
   add_icon,
+  credit_icon,
   order_icon,
   instagram_icon,
   facebook_icon,
