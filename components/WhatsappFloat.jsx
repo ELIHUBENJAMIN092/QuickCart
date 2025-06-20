@@ -5,7 +5,7 @@ const WhatsappFloat = () => {
   return (
     <div className="fixed bottom-6 right-6 z-50 group">
       {/* Tooltip */}
-      <div className="absolute bottom-16 right-10 bg-gray-700 text-white text-sm px-4 py-1 rounded-md shadow opacity-0 group-hover:opacity-100 transition duration-300">
+      <div className="absolute bottom-16 right-10 bg-gray-500 text-white text-sm px-4 py-1 rounded-md shadow opacity-0 group-hover:opacity-100 transition duration-300">
         ¿Necesitas ayuda? Escríbenos por WhatsApp
       </div>
 
