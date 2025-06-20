@@ -3,7 +3,7 @@ import "./globals.css";
 import { AppContextProvider } from "@/context/AppContext";
 import { Toaster } from "react-hot-toast";
 import { ClerkProvider } from "@clerk/nextjs";
-import WhatsappFloat from "@/components/WhatsappFloat"; // 👈 importa aquí
+import WhatsappFloat from "@/components/seller/WhatsappFloat"; // 👈 importa aquí
 
 const montserrat = Montserrat({ subsets: ['latin'], weight: ["400", "500", "700"] });
 
