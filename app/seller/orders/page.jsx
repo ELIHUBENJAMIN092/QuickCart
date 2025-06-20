@@ -50,7 +50,7 @@ const Orders = () => {
                 <Loading />
             ) : (
                 <div className="md:p-10 p-4 space-y-5">
-                    <h2 className="text-lg font-medium">Órdenes Online</h2>
+                    <h2 className="text-lg font-medium">Ordenes Online</h2>
                     <div className="max-w-4xl rounded-md">
                         {orders.map((order, index) => (
                             <div
