@@ -8,12 +8,21 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useUser, useAuth } from '@clerk/clerk-expo';
 
 const API_URL = 'http://192.168.31.208:3000/api/product/list';
+
+const categoriasMock = [
+  { nombre: 'Tinta', imagen: require('../assets/ink.png') },
+  { nombre: 'Toner', imagen: require('../assets/toner.png') },
+  { nombre: 'Papel', imagen: require('../assets/paper.png') },
+  { nombre: 'Otros', imagen: require('../assets/misc.png') },
+];
 
 export default function HomeScreen({ navigation }) {
   const { user } = useUser();
@@ -58,12 +67,19 @@ export default function HomeScreen({ navigation }) {
     guardarCarrito(actualizado);
   };
 
-  const renderItem = ({ item }) => {
+  const renderCategoria = ({ item }) => (
+    <View style={styles.categoriaCard}>
+      <Image source={item.imagen} style={styles.categoriaImg} />
+      <Text style={styles.categoriaTexto}>{item.nombre}</Text>
+    </View>
+  );
+
+  const renderProducto = ({ item }) => {
     const imageUri = Array.isArray(item.image) && item.image.length > 0
       ? item.image[0]
       : typeof item.image === 'string' && item.image
-      ? item.image
-      : 'https://via.placeholder.com/100';
+        ? item.image
+        : 'https://via.placeholder.com/100';
 
     return (
       <View style={styles.card}>
@@ -85,7 +101,7 @@ export default function HomeScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       {user && (
         <>
           <Text style={styles.welcome}>¡Bienvenido, {user.firstName}!</Text>
@@ -94,18 +110,32 @@ export default function HomeScreen({ navigation }) {
         </>
       )}
 
-      <Button
-        title={`🛒 Ir al carrito (${carrito.length})`}
+      <TouchableOpacity
+        style={styles.carritoBtn}
         onPress={() => navigation.navigate('Carrito')}
+      >
+        <Text style={styles.carritoText}>🛒 Ver carrito ({carrito.length})</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.sectionTitle}>Categorías</Text>
+      <FlatList
+        data={categoriasMock}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={renderCategoria}
+        contentContainerStyle={{ paddingVertical: 10 }}
       />
 
+      <Text style={styles.sectionTitle}>Productos</Text>
       <FlatList
         data={productos}
-        renderItem={renderItem}
+        renderItem={renderProducto}
         keyExtractor={(item) => item._id?.toString() || Math.random().toString()}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        scrollEnabled={false} // ya que está dentro de ScrollView
+        contentContainerStyle={{ paddingBottom: 30 }}
       />
-    </View>
+    </ScrollView>
   );
 }
 
@@ -123,6 +153,39 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     marginBottom: 15,
     alignSelf: 'center',
+  },
+  carritoBtn: {
+    backgroundColor: '#007AFF',
+    padding: 10,
+    borderRadius: 10,
+    marginVertical: 10,
+    alignItems: 'center',
+  },
+  carritoText: { color: '#fff', fontWeight: 'bold' },
+
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  categoriaCard: {
+    backgroundColor: '#f2f2f2',
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginRight: 10,
+    width: 100,
+  },
+  categoriaImg: {
+    width: 60,
+    height: 60,
+    marginBottom: 5,
+    resizeMode: 'contain',
+  },
+  categoriaTexto: {
+    textAlign: 'center',
+    fontSize: 12,
   },
   card: {
     backgroundColor: '#f8f8f8',
