@@ -10,7 +10,7 @@ const SideBar = () => {
         { name: 'Añadir Producto', path: '/seller', icon: assets.add_icon },
         { name: 'Lista de Productos', path: '/seller/product-list', icon: assets.product_list_icon },
         { name: 'Ordenes', path: '/seller/orders', icon: assets.order_icon },
-        { name: 'Pagos', path: '/seller/pagos', icon: assets.credit_icon },
+        { name: 'Pagos Confirmados', path: '/seller/pagos', icon: assets.credit_icon },
     ];
 
     return (
