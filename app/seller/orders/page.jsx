@@ -110,9 +110,14 @@ const Orders = () => {
                                         <span>Pago: Pendiente Generar DataLink</span>
                                         <button
                                             onClick={() => handleConfirmPayment(order._id)}
-                                            className="mt-2 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition"
+                                            className="mt-2 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition flex justify-center items-center gap-2 w-full md:w-auto"
                                         >
-                                            Mover a Pagos
+                                            <span>Pagos</span>
+                                            <Image
+                                                className="h-4 w-auto"
+                                                src={assets.redirect_icon}
+                                                alt="redirect_icon"
+                                            />
                                         </button>
                                     </p>
                                 </div>
