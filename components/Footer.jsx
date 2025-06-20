@@ -23,7 +23,7 @@ const Footer = () => {
               <ul className="text-sm space-y-2">
                 <li><a className="hover:underline transition" href="#">Inicio</a></li>
                 <li><a className="hover:underline transition" href="#">Acerca de nosotros</a></li>
-                <li><a className="hover:underline transition" href="/contact">Contactos</a></li>
+                <li><a className="hover:underline transition" href="/Contactos">Contactos</a></li>
                 <li>
                   <button
                     onClick={() => setShowPDF(true)}
