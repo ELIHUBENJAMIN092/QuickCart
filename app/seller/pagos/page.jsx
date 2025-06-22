@@ -69,7 +69,11 @@ const Pagos = () => {
                     <div className="flex flex-col gap-3">
                       <span className="font-medium">
                         {order.items
-                          .map((item) => `${item.product.name} x ${item.quantity}`)
+                          .map((item) =>
+                            item.product
+                              ? `${item.product.name} x ${item.quantity}`
+                              : `Producto eliminado x ${item.quantity}`
+                          )
                           .join(", ")}
                       </span>
                       <span>Items: {order.items.length}</span>
@@ -101,7 +105,8 @@ const Pagos = () => {
 
                   {/* Columna 3: Monto */}
                   <p className="font-medium my-auto whitespace-nowrap">
-                    {currency}{order.amount}
+                    {currency}
+                    {order.amount}
                   </p>
 
                   {/* Columna 4: Datos adicionales */}
