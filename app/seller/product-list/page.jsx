@@ -72,7 +72,7 @@ const ProductList = () => {
               <thead className="text-gray-900 text-sm text-left">
                 <tr>
                   <th className="w-2/3 md:w-2/5 px-4 py-3 font-medium truncate">Producto</th>
-                  <th className="px-4 py-3 font-medium truncate max-sm:hidden">Categoria</th>
+                  <th className="px-4 py-3 font-medium truncate max-sm:hidden">Categoría</th>
                   <th className="px-4 py-3 font-medium truncate">Precio</th>
                   <th className="px-4 py-3 font-medium truncate max-sm:hidden">Acciones</th>
                 </tr>
@@ -94,26 +94,26 @@ const ProductList = () => {
                     </td>
                     <td className="px-4 py-3 max-sm:hidden">{product.category}</td>
                     <td className="px-4 py-3">${product.offerPrice}</td>
-                    <td className="px-4 py-3 max-sm:hidden flex gap-2">
-                      <button
-                        onClick={() => router.push(`/product/${product._id}`)}
-                        className="flex items-center gap-1 px-1.5 md:px-3.5 py-2 bg-blue-600 text-white rounded-md"
-                      >
-                        <span className="hidden md:block">Ver</span>
-                        <Image
-                          className="h-3.5"
-                          src={assets.redirect_icon}
-                          alt="redirect_icon"
-                        />
-                      </button>
-
-                      <button
-                        onClick={() => handleDelete(product._id)}
-                        className="flex items-center gap-1 px-1.5 md:px-3.5 py-2 bg-red-600 text-white rounded-md"
-                      >
-                        <span className="hidden md:block">Eliminar</span>
-                        🗑️
-                      </button>
+                    <td className="px-4 py-3 max-sm:hidden">
+                      <div className="flex items-center gap-2 h-full">
+                        <button
+                          onClick={() => router.push(`/product/${product._id}`)}
+                          className="flex items-center justify-center gap-1 px-1.5 md:px-3.5 py-2 bg-blue-600 text-white rounded-md"
+                        >
+                          <span className="hidden md:block">Ver</span>
+                          <Image
+                            className="h-3.5 w-3.5"
+                            src={assets.redirect_icon}
+                            alt="redirect_icon"
+                          />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(product._id)}
+                          className="flex items-center justify-center gap-1 px-1.5 md:px-3.5 py-2 bg-red-600 text-white rounded-md"
+                        >
+                          <span className="hidden md:block">Eliminar</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
