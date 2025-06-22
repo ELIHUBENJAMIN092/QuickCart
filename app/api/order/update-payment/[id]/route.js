@@ -3,10 +3,10 @@ import { NextResponse } from "next/server";
 import connectDB from "@/config/db";
 import Order from "@/models/Order";
 
-export async function PUT(req, { params }) {
+export async function PUT(req, context) {
   try {
     const { userId } = getAuth(req);
-    const { id } = params;
+    const { id } = await context.params; // 👈 esto soluciona el warning
 
     if (!userId) {
       return NextResponse.json({ success: false, message: "No autorizado" }, { status: 401 });
