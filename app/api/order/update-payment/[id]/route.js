@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import connectDB from "@/config/db";
 import Order from "@/models/Order";
 
-// Ruta: PUT /api/order/update-payment/:id
 export async function PUT(req, { params }) {
   try {
     const { userId } = getAuth(req);
@@ -21,13 +20,11 @@ export async function PUT(req, { params }) {
       return NextResponse.json({ success: false, message: "Orden no encontrada" }, { status: 404 });
     }
 
-    // Marcar la orden como pagada
     order.isPaid = true;
     await order.save();
 
     return NextResponse.json({ success: true, order });
   } catch (error) {
-    console.error("Error al confirmar pago:", error);
-    return NextResponse.json({ success: false, message: "Error interno del servidor" }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Error interno" }, { status: 500 });
   }
 }
