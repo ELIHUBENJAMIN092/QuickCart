@@ -6,20 +6,20 @@ const products = [
   {
     id: 1,
     image: assets.girl_with_headphone_image,
-    title: "Unparalleled Sound",
-    description: "Experience crystal-clear audio with premium headphones.",
+    title: "Identificación sin contacto RFID",
+    description: "Escanea y gestiona en segundos sin errores manuales.",
   },
   {
     id: 2,
     image: assets.girl_with_earphone_image,
-    title: "Stay Connected",
-    description: "Compact and stylish earphones for every occasion.",
+    title: "Tecnología probada, resultados confiables",
+    description: "La fuerza del código de barras en cada operación.",
   },
   {
     id: 3,
     image: assets.boy_with_laptop_image,
-    title: "Power in Every Pixel",
-    description: "Shop the latest laptops for work, gaming, and more.",
+    title: "Acceso seguro, imagen profesional",
+    description: "Identificación inteligente en una sola tarjeta.",
   },
   {
     id: 4,
