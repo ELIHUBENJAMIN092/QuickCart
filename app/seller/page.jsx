@@ -134,6 +134,9 @@ const AddProduct = () => {
               <option value="Suministros">Suministros</option>
               <option value="Etiquetas">Etiquetas</option>
               <option value="Cordones">Cordones</option>
+              <option value="Etiquetas RFID Tags">Etiquetas RFID Tags</option>
+              <option value="Brazaletes">Brazaletes</option>
+              <option value="PDA">PDA</option>
             </select>
           </div>
           <div className="flex flex-col gap-1 w-32">
