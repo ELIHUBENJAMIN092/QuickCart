@@ -1,28 +1,24 @@
 import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema({
-  userId: { type: String, required: true, ref: 'user' },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
 
   items: [
     {
-      product: { type: String, required: true, ref: 'product' },
+      product: { type: mongoose.Schema.Types.ObjectId, ref: 'product', required: true },
       quantity: { type: Number, required: true },
     },
   ],
 
   amount: { type: Number, required: true },
 
-  address: { type: String, ref: 'address', required: true },
+  address: { type: mongoose.Schema.Types.ObjectId, ref: 'address', required: true },
 
   status: { type: String, required: true, default: '' },
 
   date: { type: Number, required: true },
 
-  // 🔥 Campo necesario para pagos confirmados
-  isPaid: {
-    type: Boolean,
-    default: false,
-  },
+  isPaid: { type: Boolean, default: false },
 });
 
 const Order = mongoose.models.order || mongoose.model('order', orderSchema);
