@@ -23,21 +23,21 @@ const products = [
   },
   {
     id: 4,
-    image: assets.boy_with_laptop_image,
-    title: "Power in Every Pixel",
-    description: "Shop the latest laptops for work, gaming, and more.",
+    image: assets.codigo_barras,
+    title: "Un clic, toda la información",
+    description: "Transforma datos en decisiones al instante.",
   },
   {
     id: 5,
-    image: assets.boy_with_laptop_image,
-    title: "Power in Every Pixel",
-    description: "Shop the latest laptops for work, gaming, and more.",
+    image: assets.lectores_barras,
+    title: "Escaneo preciso, productividad garantizada",
+    description: "Lector de códigos de barras que nunca falla.",
   },
   {
     id: 6,
     image: assets.credencial,
     title: "Identificacion PVC",
-    description: "Shop the latest laptops for work, gaming, and more.",
+    description: "El poder de un lector en la palma de tu mano.",
   },
 ];
 
