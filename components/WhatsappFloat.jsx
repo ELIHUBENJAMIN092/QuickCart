@@ -11,7 +11,7 @@ const WhatsappFloat = () => {
 
       {/* Botón de WhatsApp */}
       <a
-        href="https://wa.me/593984647873"
+        href="https://wa.me/593987873"
         target="_blank"
         rel="noopener noreferrer"
         className="w-14 h-14 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg transition duration-300"

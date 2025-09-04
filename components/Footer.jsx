@@ -40,7 +40,7 @@ const Footer = () => {
             <div>
               <h2 className="font-medium text-gray-900 mb-5">Ponte en contacto</h2>
               <div className="text-sm space-y-2">
-                <a href="https://wa.me/593984647873" className="flex items-center gap-2 text-green-600 hover:underline">
+                <a href="https://wa.me/593984617873" className="flex items-center gap-2 text-green-600 hover:underline">
                   <FaWhatsapp size={18} /> +(593) 98 461 7873
                 </a>
                 <p>02 2548-701</p>
