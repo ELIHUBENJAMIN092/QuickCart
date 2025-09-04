@@ -103,7 +103,7 @@ export const AppContextProvider = (props) => {
             try {
                 const token = await getToken()
                 await axios.post('/api/cart/update', {cartData}, {headers:{Authorization: `Bearer ${token}`}} )
-                toast.success('Cart Updated')
+                toast.success('Carrito Actualizado')
             } catch (error) {
                 toast.error(error.message)
             }
