@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Node.js app to Azure Web App - compel
+name: Build and deploy Node.js app to Azure Web App - shopcompel
 
 on:
   push:
@@ -51,15 +51,15 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_65DCF9EE92A742499ADB7746D7AB98AA }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_CB522EE3238146CCB65F8B3E511FE9F6 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_E3CDE2B99F2D4B6B9EE0F5C328543BCF }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F264F916ADB145928EBDE6055BF6E347 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E52E5649DAD14710959390057B7B7028 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_6C329744F94E4E018323DCAD4B99B8BB }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'compel'
+          app-name: 'shopcompel'
           slot-name: 'Production'
           package: .
           
