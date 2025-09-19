@@ -89,7 +89,7 @@ const Navbar = () => {
             onClick={() => router.push("/seller")}
             className="text-xs border px-3 py-1 rounded-full"
           >
-            Panel de Administrador
+          Administrador
           </button>
         )}
 
