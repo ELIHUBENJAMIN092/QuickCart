@@ -22,7 +22,7 @@ const Navbar = () => {
         alt="logo"
       />
 
-      {/* Menú grande */}
+      {/* Menú grande (desktop) */}
       <div className="flex items-center gap-4 lg:gap-8 max-md:hidden">
         <Link href="/" className="hover:text-gray-900 transition">
           Inicio
@@ -46,7 +46,7 @@ const Navbar = () => {
         )}
       </div>
 
-      {/* Acciones usuario (Cuenta) */}
+      {/* Acciones usuario (desktop) */}
       <ul className="hidden md:flex items-center gap-4">
         <Image
           className="w-4 h-4"
@@ -81,14 +81,24 @@ const Navbar = () => {
         )}
       </ul>
 
-      {/* Hamburguesa en móvil */}
+      {/* Vista móvil */}
       <div className="md:hidden flex items-center gap-3">
+        {/* Botón admin afuera del menú hamburguesa */}
+        {isSeller && (
+          <button
+            onClick={() => router.push("/seller")}
+            className="text-xs border px-3 py-1 rounded-full"
+          >
+            Panel de Administrador
+          </button>
+        )}
+
         {/* Botón menú hamburguesa */}
         <button onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
 
-        {/* Botón cuenta (afuera del menú) */}
+        {/* Botón cuenta */}
         {user ? (
           <UserButton afterSignOutUrl="/" />
         ) : (
@@ -102,25 +112,17 @@ const Navbar = () => {
         )}
       </div>
 
-      {/* Menú desplegable en móvil (solo links principales) */}
+      {/* Menú desplegable móvil (solo links principales) */}
       {isOpen && (
         <div className="absolute top-16 left-0 w-full bg-white shadow-md border-t border-gray-200 flex flex-col items-start px-6 py-4 space-y-4 md:hidden z-50">
           <Link href="/" onClick={() => setIsOpen(false)}>Inicio</Link>
           <Link href="/all-products" onClick={() => setIsOpen(false)}>Tienda 🛒</Link>
           <Link href="/Acerca" onClick={() => setIsOpen(false)}>Acerca de Nosotros</Link>
           <Link href="/Contactos" onClick={() => setIsOpen(false)}>Contactos</Link>
-          {isSeller && (
-            <button
-              onClick={() => { router.push("/seller"); setIsOpen(false); }}
-              className="text-xs border px-4 py-1.5 rounded-full"
-            >
-              Panel de Administrador
-            </button>
-          )}
         </div>
       )}
     </nav>
   );
 };
 
-export default Na
+export default Navbar;
