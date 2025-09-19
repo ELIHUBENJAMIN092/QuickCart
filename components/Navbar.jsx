@@ -46,7 +46,7 @@ const Navbar = () => {
         )}
       </div>
 
-      {/* Acciones usuario en desktop */}
+      {/* Acciones usuario (Cuenta) */}
       <ul className="hidden md:flex items-center gap-4">
         <Image
           className="w-4 h-4"
@@ -83,12 +83,26 @@ const Navbar = () => {
 
       {/* Hamburguesa en móvil */}
       <div className="md:hidden flex items-center gap-3">
+        {/* Botón menú hamburguesa */}
         <button onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
+
+        {/* Botón cuenta (afuera del menú) */}
+        {user ? (
+          <UserButton afterSignOutUrl="/" />
+        ) : (
+          <button
+            onClick={openSignIn}
+            className="flex items-center gap-2 hover:text-gray-900 transition"
+          >
+            <Image src={assets.user_icon} alt="user icon" />
+            Cuenta
+          </button>
+        )}
       </div>
 
-      {/* Menú desplegable en móvil */}
+      {/* Menú desplegable en móvil (solo links principales) */}
       {isOpen && (
         <div className="absolute top-16 left-0 w-full bg-white shadow-md border-t border-gray-200 flex flex-col items-start px-6 py-4 space-y-4 md:hidden z-50">
           <Link href="/" onClick={() => setIsOpen(false)}>Inicio</Link>
@@ -103,22 +117,10 @@ const Navbar = () => {
               Panel de Administrador
             </button>
           )}
-          {user ? (
-            <>
-              <button onClick={() => { router.push("/cart"); setIsOpen(false); }}>
-                Carrito
-              </button>
-              <button onClick={() => { router.push("/my-orders"); setIsOpen(false); }}>
-                Mis Ordenes
-              </button>
-            </>
-          ) : (
-            <button onClick={openSignIn}>Cuenta</button>
-          )}
         </div>
       )}
     </nav>
   );
 };
 
-export default Navbar;
+export default Na
