@@ -3,7 +3,7 @@ import "./globals.css";
 import { AppContextProvider } from "@/context/AppContext";
 import { Toaster } from "react-hot-toast";
 import { ClerkProvider } from "@clerk/nextjs";
-import WhatsappFloat from "@/components/seller/WhatsappFloat"; // 👈 importa aquí
+import WhatsappFloat from "@/components/seller/WhatsappFloat";
 
 const montserrat = Montserrat({ subsets: ['latin'], weight: ["400", "500", "700"] });
 
@@ -12,15 +12,37 @@ export const metadata = {
   description: "E-Commerce with Next.js ",
 };
 
+// Traducciones básicas para login y registro
+const localization = {
+  signIn: {
+    start: {
+      title: "Inicia sesión en Ecommerce_Compel",
+      subtitle: "Accede con tu cuenta o correo electrónico",
+      emailLabel: "Correo electrónico",
+      continueButton: "Continuar",
+      noAccount: "¿No tienes cuenta?",
+      signUpLink: "Regístrate aquí"
+    }
+  },
+  signUp: {
+    start: {
+      title: "Crea tu cuenta",
+      subtitle: "Regístrate para comenzar",
+      emailLabel: "Correo electrónico",
+      continueButton: "Continuar"
+    }
+  }
+};
+
 export default function RootLayout({ children }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider localization={localization}>
       <html lang="es">
         <body className={`${montserrat.className} antialiased text-gray-700`}>
           <Toaster />
           <AppContextProvider>
             {children}
-            <WhatsappFloat /> {/* 👈 aquí va el icono flotante */}
+            <WhatsappFloat />
           </AppContextProvider>
         </body>
       </html>
