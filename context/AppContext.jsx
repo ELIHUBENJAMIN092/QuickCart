@@ -82,7 +82,7 @@ export const AppContextProvider = (props) => {
           { cartData },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        toast.success("Producto añadido a tu carrito");
+        toast.success("Agregado al Carrito");
       } catch (error) {
         toast.error(error.message);
       }

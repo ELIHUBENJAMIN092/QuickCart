@@ -74,7 +74,7 @@ export async function POST(request) {
             date: Date.now()
         })
 
-        return NextResponse.json({ success: true, message: 'Carga exitosa', newProduct })
+        return NextResponse.json({ success: true, message: 'Producto Agregado', newProduct })
 
 
     } catch (error) {
