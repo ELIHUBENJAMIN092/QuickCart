@@ -2,6 +2,7 @@ import React from "react";
 import { assets } from "@/assets/assets";
 import Image from "next/image";
 import Link from "next/link";
+import { FaArrowUp, FaWhatsapp } from "react-icons/fa";
 
 const products = [
   {
@@ -43,10 +44,14 @@ const products = [
 ];
 
 const FeaturedProduct = () => {
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <div className="mt-14">
       <div className="flex flex-col items-center">
-        <p className="text-3xl font-medium">Productos Destacados</p>
+        <p className="text-3xl font-medium">Categoría de Productos</p>
         <div className="w-28 h-0.5 bg-blue-700 mt-2"></div>
       </div>
 
@@ -63,21 +68,15 @@ const FeaturedProduct = () => {
               <p className="text-sm lg:text-base leading-5 max-w-60">
                 {description}
               </p>
-
               {id === 1 ? (
                 <Link href="/Productos">
-                  <button className="flex items-center gap-1.5 bg-blue-700 px-4 py-2 rounded">
-                    Ver más{" "}
-                    <Image
-                      className="h-3 w-3"
-                      src={assets.redirect_icon}
-                      alt="Redirect Icon"
-                    />
+                  <button className="flex items-center gap-1.5 bg-blue-700 px-4 py-2 rounded mt-4">
+                    Ver más
                   </button>
                 </Link>
               ) : (
                 <button
-                  className="flex items-center gap-1.5 bg-gray-500 px-4 py-2 rounded cursor-not-allowed"
+                  className="flex items-center gap-1.5 bg-gray-500 px-4 py-2 rounded cursor-not-allowed mt-4"
                   disabled
                 >
                   Ver más
@@ -86,6 +85,36 @@ const FeaturedProduct = () => {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Botón flotante centrado para subir */}
+      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+        <button
+          onClick={scrollToTop}
+          className="w-14 h-14 flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white rounded-full shadow-lg transition duration-300"
+          aria-label="Subir al inicio"
+        >
+          <FaArrowUp size={26} />
+        </button>
+      </div>
+
+      {/* Botón flotante de WhatsApp */}
+      <div className="fixed bottom-6 right-6 z-50 group">
+        {/* Tooltip */}
+        <div className="absolute bottom-16 right-10 bg-gray-500 text-white text-sm px-4 py-1 rounded-md shadow opacity-0 group-hover:opacity-100 transition duration-300">
+          ¿Necesitas ayuda?
+        </div>
+
+        {/* Botón */}
+        <a
+          href="https://wa.me/593987873"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-14 h-14 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg transition duration-300"
+          aria-label="Chat en WhatsApp"
+        >
+          <FaWhatsapp size={26} />
+        </a>
       </div>
     </div>
   );

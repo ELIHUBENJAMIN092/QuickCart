@@ -1,8 +1,9 @@
-'use client'
+'use client';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 import { assets } from "@/assets/assets";
+import ScrollToTopFloat from "@/components/ScrollToTopFloat";
 
 const ProductosPage = () => {
   const productos = [
@@ -11,21 +12,21 @@ const ProductosPage = () => {
       nombre: "FX9600",
       descripcion:
         "Lector fijo robusto de alto rendimiento, diseñado para entornos difíciles y de alto volumen, gran precisión en la lectura de las etiquetas y colocación de varias antenas.",
-      imagen: assets.rfid_fx9600, // ⚡️ Asegúrate de agregar esta imagen en tu assets
+      imagen: assets.rfid_fx9600,
     },
     {
       id: 2,
       nombre: "RFD40",
       descripcion:
         "Lector de mano ligero y ergonómico, lea sus etiquetas RFID rápidamente, gracias a su batería de gran capacidad y su conectividad a dispositivos móviles.",
-      imagen: assets.rfid_rfd40, // ⚡️ Agrega esta imagen en tu assets
+      imagen: assets.rfid_rfd40,
     },
     {
       id: 3,
       nombre: "MC3330R",
       descripcion:
         "Computador móvil con lector RFID integrado, capture datos de etiquetas y códigos de barras, aumente su productividad gracias a su sistema operativo Android.",
-      imagen: assets.rfid_mc3330r, // ⚡️ Agrega esta imagen en tu assets
+      imagen: assets.rfid_mc3330r,
     },
   ];
 
@@ -59,6 +60,7 @@ const ProductosPage = () => {
         </div>
       </div>
       <Footer />
+      <ScrollToTopFloat />
     </>
   );
 };

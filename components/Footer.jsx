@@ -22,7 +22,7 @@ const Footer = () => {
               <h2 className="font-medium text-gray-900 mb-5">Empresa</h2>
               <ul className="text-sm space-y-2">
                 <li><a className="hover:underline transition" href="#">Inicio</a></li>
-                <li><a className="hover:underline transition" href="/Acerca">Acerca de nosotros</a></li>
+                <li><a className="hover:underline transition" href="/Acerca">Sobre Nosotros</a></li>
                 <li><a className="hover:underline transition" href="/Contactos">Contactos</a></li>
                 <li>
                   <button

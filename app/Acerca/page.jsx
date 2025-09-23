@@ -7,7 +7,7 @@ const AboutPage = () => {
     <>
       <Navbar />
       <div className="px-6 md:px-16 lg:px-32 py-16 max-w-4xl mx-auto text-gray-700">
-        <h1 className="text-3xl md:text-4xl font-semibold text-blue-900 mb-6">Acerca de Nosotros</h1>
+        <h1 className="text-3xl md:text-4xl font-semibold text-blue-900 mb-6">Sobre Nosotros</h1>
         
         <p className="mb-6">
           En <span className="font-semibold">COMPEL</span> nos especializamos en la comercialización de productos eléctricos y electrónicos, brindando soluciones confiables y eficientes a nuestros clientes en todo el Ecuador. A través de nuestro compromiso con la calidad y la innovación, buscamos fortalecer cada proyecto eléctrico con productos duraderos y un servicio personalizado.

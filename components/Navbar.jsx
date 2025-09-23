@@ -34,7 +34,7 @@ const Navbar = () => {
           Tienda 🛒
         </Link>
         <Link href="/Acerca" className="hover:text-gray-900 transition">
-          Acerca de Nosotros
+          Sobre Nosotros
         </Link>
         <Link href="/Contactos" className="hover:text-gray-900 transition">
           Contactos
@@ -121,7 +121,7 @@ const Navbar = () => {
           <Link href="/" onClick={() => setIsOpen(false)}>Inicio</Link>
            <Link href="/Productos" onClick={() => setIsOpen(false)}>Productos</Link>
           <Link href="/all-products" onClick={() => setIsOpen(false)}>Tienda 🛒</Link>
-          <Link href="/Acerca" onClick={() => setIsOpen(false)}>Acerca de Nosotros</Link>
+          <Link href="/Acerca" onClick={() => setIsOpen(false)}>Sobre Nosotros</Link>
           <Link href="/Contactos" onClick={() => setIsOpen(false)}>Contactos</Link>
         </div>
       )}
