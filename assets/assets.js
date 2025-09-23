@@ -46,6 +46,9 @@ import boy_with_laptop_image from "./boy_with_laptop_image.png";
 import codigo_barras from "./codigo_barras.png";
 import lectores_barras from "./lectores_barras.png";
 import checkmark from "./checkmark.png";
+import rfid_fx9600 from "./rfid_fx9600.jpg";
+import rfid_rfd40 from "./rfid_rfd40.jpg";
+import rfid_mc3330r from "./rfid_mc3330r.jpg";
 import product_details_page_apple_earphone_image1 from "./product_details_page_apple_earphone_image1.png";
 import product_details_page_apple_earphone_image2 from "./product_details_page_apple_earphone_image2.png";
 import product_details_page_apple_earphone_image3 from "./product_details_page_apple_earphone_image3.png";
@@ -100,6 +103,9 @@ export const assets = {
   boy_with_laptop_image,
   codigo_barras,
   lectores_barras,
+  rfid_mc3330r,
+  rfid_rfd40,
+  rfid_fx9600,
   product_details_page_apple_earphone_image1,
   product_details_page_apple_earphone_image2,
   product_details_page_apple_earphone_image3,

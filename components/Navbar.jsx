@@ -27,6 +27,9 @@ const Navbar = () => {
         <Link href="/" className="hover:text-gray-900 transition">
           Inicio
         </Link>
+        <Link href="/Productos" className="hover:text-gray-900 transition">
+          Productos
+        </Link>
         <Link href="/all-products" className="hover:text-gray-900 transition">
           Tienda 🛒
         </Link>
@@ -116,6 +119,7 @@ const Navbar = () => {
       {isOpen && (
         <div className="absolute top-16 left-0 w-full bg-white shadow-md border-t border-gray-200 flex flex-col items-start px-6 py-4 space-y-4 md:hidden z-50">
           <Link href="/" onClick={() => setIsOpen(false)}>Inicio</Link>
+           <Link href="/Productos" onClick={() => setIsOpen(false)}>Productos</Link>
           <Link href="/all-products" onClick={() => setIsOpen(false)}>Tienda 🛒</Link>
           <Link href="/Acerca" onClick={() => setIsOpen(false)}>Acerca de Nosotros</Link>
           <Link href="/Contactos" onClick={() => setIsOpen(false)}>Contactos</Link>
