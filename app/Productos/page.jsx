@@ -13,6 +13,8 @@ const ProductosPage = () => {
       descripcion:
         "Lector fijo robusto de alto rendimiento, diseñado para entornos difíciles y de alto volumen, gran precisión en la lectura de las etiquetas y colocación de varias antenas.",
       imagen: assets.rfid_fx9600,
+      catalogo:
+        "https://drive.google.com/file/d/1D4k9CzE6jgvtXOEd9RImBCp1tO53FYwG/view?usp=drive_link", // enlace real
     },
     {
       id: 2,
@@ -20,6 +22,7 @@ const ProductosPage = () => {
       descripcion:
         "Lector de mano ligero y ergonómico, lea sus etiquetas RFID rápidamente, gracias a su batería de gran capacidad y su conectividad a dispositivos móviles.",
       imagen: assets.rfid_rfd40,
+      catalogo: "https://drive.google.com/file/d/1v8GufUus8U2Y8vzUq-WYOcgfP3u2EPEK/view?usp=drive_link",
     },
     {
       id: 3,
@@ -27,6 +30,7 @@ const ProductosPage = () => {
       descripcion:
         "Computador móvil con lector RFID integrado, capture datos de etiquetas y códigos de barras, aumente su productividad gracias a su sistema operativo Android.",
       imagen: assets.rfid_mc3330r,
+      catalogo: "https://drive.google.com/file/d/1vV6P8scx9Ui_KwJ-i6rL4pIOuYixHH3q/view?usp=drive_link",
     },
   ];
 
@@ -54,7 +58,15 @@ const ProductosPage = () => {
               <h2 className="text-xl font-semibold text-blue-800 mb-3">
                 {prod.nombre}
               </h2>
-              <p className="text-gray-700 text-sm">{prod.descripcion}</p>
+              <p className="text-gray-700 text-sm mb-4">{prod.descripcion}</p>
+              <a
+                href={prod.catalogo}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-blue-600 text-white px-5 py-2 rounded-full hover:bg-blue-700 transition-colors"
+              >
+                Catálogo
+              </a>
             </div>
           ))}
         </div>
