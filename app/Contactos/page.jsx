@@ -1,6 +1,7 @@
 'use client'
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ScrollToTopFloat from "@/components/ScrollToTopFloat";
 
 const ContactPage = () => {
   return (
@@ -34,6 +35,8 @@ const ContactPage = () => {
         </div>
       </div>
       <Footer />
+      <ScrollToTopFloat />
+
     </>
   );
 };
