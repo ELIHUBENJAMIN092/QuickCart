@@ -2,18 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Scroll suave en toda la app */
 * {
-    scroll-behavior: smooth;
+  scroll-behavior: smooth;
 }
 
+/* Ocultar flechas en inputs numéricos */
 @layer base {
-    input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
+}
 
+/* Ocultar scrollbar en navegadores WebKit */
 ::-webkit-scrollbar {
   display: none;
+}
+
+/* Animación para carrusel horizontal infinito */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 30s linear infinite;
+}
+
+/* Transiciones suaves para hover y focus */
+.transition-all {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Estilo base para logos en carrusel */
+.brand-logo {
+  min-width: 100px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive tweaks para carrusel */
+@media (max-width: 768px) {
+  .brand-logo {
+    min-width: 80px;
+    height: 50px;
+  }
 }

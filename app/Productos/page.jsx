@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import Image from "next/image";
 import { assets } from "@/assets/assets";
 import ScrollToTopFloat from "@/components/ScrollToTopFloat";
+import BrandCarousel from "@/components/BrandLogos";
 
 const ProductosPage = () => {
   const productos = [
@@ -71,6 +72,7 @@ const ProductosPage = () => {
           ))}
         </div>
       </div>
+      <BrandCarousel/>
       <Footer />
       <ScrollToTopFloat />
     </>
