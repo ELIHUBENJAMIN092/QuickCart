@@ -1,6 +1,7 @@
 'use client'
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ScrollToTopFloat from "@/components/ScrollToTopFloat";
 
 const AboutPage = () => {
   return (
@@ -32,6 +33,7 @@ const AboutPage = () => {
         </p>
       </div>
       <Footer />
+      <ScrollToTopFloat />
     </>
   );
 };
