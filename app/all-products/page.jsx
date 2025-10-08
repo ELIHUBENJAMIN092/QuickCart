@@ -5,6 +5,8 @@ import ProductCard from "@/components/ProductCard";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAppContext } from "@/context/AppContext";
+import ScrollToTopFloat from "@/components/ScrollToTopFloat";
+
 
 const AllProducts = () => {
   const { products } = useAppContext();
@@ -65,6 +67,7 @@ const AllProducts = () => {
         </div>
       </div>
       <Footer />
+      <ScrollToTopFloat />
     </>
   );
 };

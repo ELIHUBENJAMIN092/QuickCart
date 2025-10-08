@@ -3,6 +3,7 @@ import { assets } from "@/assets/assets";
 import Image from "next/image";
 import Link from "next/link";
 import { FaArrowUp, FaWhatsapp } from "react-icons/fa";
+import ScrollToTopFloat from "@/components/ScrollToTopFloat";
 
 const products = [
   {
@@ -87,16 +88,7 @@ const FeaturedProduct = () => {
         ))}
       </div>
 
-      {/* Botón flotante centrado para subir */}
-      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-        <button
-          onClick={scrollToTop}
-          className="w-14 h-14 flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white rounded-full shadow-lg transition duration-300"
-          aria-label="Subir al inicio"
-        >
-          <FaArrowUp size={26} />
-        </button>
-      </div>
+      <ScrollToTopFloat />
 
       {/* Botón flotante de WhatsApp */}
       <div className="fixed bottom-6 right-6 z-50 group">
