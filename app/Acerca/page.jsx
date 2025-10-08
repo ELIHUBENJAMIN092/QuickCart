@@ -2,6 +2,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollToTopFloat from "@/components/ScrollToTopFloat";
+import BrandCarousel from "@/components/BrandLogos";
 
 const AboutPage = () => {
   return (
@@ -32,6 +33,7 @@ const AboutPage = () => {
           En COMPEL creemos en el crecimiento sostenible, la mejora continua y el fortalecimiento de las relaciones con nuestros clientes, proveedores y colaboradores. Gracias por confiar en nosotros.
         </p>
       </div>
+      <BrandCarousel/>
       <Footer />
       <ScrollToTopFloat />
     </>
