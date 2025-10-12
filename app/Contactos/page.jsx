@@ -2,6 +2,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollToTopFloat from "@/components/ScrollToTopFloat";
+import BrandCarousel from "@/components/BrandLogos";
 
 const ContactPage = () => {
   return (
@@ -34,6 +35,7 @@ const ContactPage = () => {
           ></iframe>
         </div>
       </div>
+      <BrandCarousel/>
       <Footer />
       <ScrollToTopFloat />
 

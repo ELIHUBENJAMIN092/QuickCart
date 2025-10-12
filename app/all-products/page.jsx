@@ -5,6 +5,9 @@ import ProductCard from "@/components/ProductCard";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAppContext } from "@/context/AppContext";
+import BrandCarousel from "@/components/BrandLogos";
+import ScrollToTopFloat from "@/components/ScrollToTopFloat";
+
 
 const AllProducts = () => {
   const { products } = useAppContext();
@@ -64,7 +67,9 @@ const AllProducts = () => {
           )}
         </div>
       </div>
+      <BrandCarousel/>
       <Footer />
+      <ScrollToTopFloat />
     </>
   );
 };

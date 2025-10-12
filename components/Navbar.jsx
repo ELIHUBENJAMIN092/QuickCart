@@ -34,7 +34,7 @@ const Navbar = () => {
           Tienda 🛒
         </Link>
         <Link href="/Acerca" className="hover:text-gray-900 transition">
-          Sobre Nosotros
+          Nosotros
         </Link>
         <Link href="/Contactos" className="hover:text-gray-900 transition">
           Contactos
@@ -44,7 +44,7 @@ const Navbar = () => {
             onClick={() => router.push("/seller")}
             className="text-xs border px-4 py-1.5 rounded-full"
           >
-            Panel de Administrador
+          Administrador
           </button>
         )}
       </div>
@@ -97,8 +97,23 @@ const Navbar = () => {
         </button>
 
         {/* Botón cuenta */}
-        {user ? (
-          <UserButton afterSignOutUrl="/" />
+          {user ? (
+          <UserButton>
+            <UserButton.MenuItems>
+              <UserButton.Action
+                label="Carrito"
+                labelIcon={<CartIcon />}
+                onClick={() => router.push("/cart")}
+              />
+            </UserButton.MenuItems>
+            <UserButton.MenuItems>
+              <UserButton.Action
+                label="Mis Ordenes"
+                labelIcon={<BagIcon />}
+                onClick={() => router.push("/my-orders")}
+              />
+            </UserButton.MenuItems>
+          </UserButton>
         ) : (
           <button
             onClick={openSignIn}
@@ -124,4 +139,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default Navbar;
