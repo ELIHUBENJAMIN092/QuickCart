@@ -98,7 +98,7 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      message: "Orden registrada y correo enviado",
+      message: "Orden registrada,correo enviado",
     });
   } catch (error) {
     console.error("Error al guardar orden:", error);
