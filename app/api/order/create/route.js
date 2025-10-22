@@ -14,23 +14,36 @@ export async function POST(request) {
     const { userId } = getAuth(request);
     const { address, items } = await request.json();
 
-    if (!address || items.length === 0) {
-      return NextResponse.json({ success: false, message: "Invalid data" });
+    if (!address || !items || items.length === 0) {
+      return NextResponse.json({ success: false, message: "Datos inválidos" });
     }
 
     await connectDB();
 
-    // Calcular monto total
+    // 🔹 Calcular monto total validando productos existentes
     const amount = await items.reduce(async (accP, item) => {
       const acc = await accP;
       const product = await Product.findById(item.product);
-      return acc + product.offerPrice * item.quantity;
+
+      // Si no existe el producto, lo omitimos del cálculo
+      if (!product) {
+        console.warn(`⚠️ Producto no encontrado en BD: ${item.product}`);
+        return acc;
+      }
+
+      // Usa offerPrice o, si no existe, price o 0
+      const price =
+        product.offerPrice !== undefined
+          ? product.offerPrice
+          : product.price || 0;
+
+      return acc + price * item.quantity;
     }, Promise.resolve(0));
 
     const tax = amount * 0.15;
     const total = parseFloat((amount + tax).toFixed(2));
 
-    // Guardar orden
+    // 🔹 Guardar orden
     const newOrder = await Order.create({
       userId,
       address,
@@ -40,34 +53,44 @@ export async function POST(request) {
       date: Date.now(),
     });
 
-    // Evento a Inngest (opcional)
+    // 🔹 Enviar evento a Inngest (opcional)
     await inngest.send({
       name: "order/created",
       data: { userId, address, items, amount: total, date: Date.now() },
     });
 
-    // Limpiar carrito
+    // 🔹 Limpiar carrito del usuario
     const user = await User.findById(userId);
-    user.cartItems = {};
-    await user.save();
+    if (user) {
+      user.cartItems = {};
+      await user.save();
+    }
 
-    // ✅ ENVIAR CORREO DE CONFIRMACIÓN SIN DEPENDENCIAS EXTRAS
-    if (user.email) {
+    // 🔹 Enviar correo de confirmación
+    if (user?.email) {
       let productRows = "";
+
       for (const item of items) {
         const product = await Product.findById(item.product);
+        if (!product) continue;
+
+        const price =
+          product.offerPrice !== undefined
+            ? product.offerPrice
+            : product.price || 0;
+
         productRows += `
           <tr>
             <td>${product.name}</td>
             <td>${item.quantity}</td>
-            <td>$${product.offerPrice.toFixed(2)}</td>
-            <td>$${(product.offerPrice * item.quantity).toFixed(2)}</td>
+            <td>$${price.toFixed(2)}</td>
+            <td>$${(price * item.quantity).toFixed(2)}</td>
           </tr>`;
       }
 
       const html = `
         <div style="font-family: Arial, sans-serif; color: #333;">
-          <h2>🛍️ ¡Gracias por tu compra, ${user.name || "cliente"}!</h2>
+          <h2>🛍 ¡Gracias por tu compra, ${user.name || "cliente"}!</h2>
           <p>Hemos registrado tu pedido con éxito. Aquí tienes los detalles:</p>
           <table width="100%" border="1" cellspacing="0" cellpadding="8" style="border-collapse:collapse;">
             <thead>
@@ -87,9 +110,8 @@ export async function POST(request) {
           <p>Gracias por comprar en <b>Mi Tienda</b> 🛒</p>
         </div>`;
 
-      // Enviar correo usando la API nativa de Resend
       await resend.emails.send({
-        from: "Mi Tienda <onboarding@resend.dev>", // o tu dominio verificado
+        from: "Mi Tienda <onboarding@resend.dev>",
         to: user.email,
         subject: "✅ Compra registrada - Comprobante de tu pedido",
         html,
@@ -98,7 +120,7 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      message: "Orden registrada,correo enviado",
+      message: "Orden registrada y correo enviado",
     });
   } catch (error) {
     console.error("Error al guardar orden:", error);

@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { useAuth, useUser } from "@clerk/nextjs";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -23,6 +23,7 @@ export const AppContextProvider = (props) => {
   const [isSeller, setIsSeller] = useState(false);
   const [cartItems, setCartItems] = useState({});
 
+  // 🔹 Obtener todos los productos disponibles
   const fetchProductData = async () => {
     try {
       const { data } = await axios.get("/api/product/list");
@@ -37,6 +38,7 @@ export const AppContextProvider = (props) => {
     }
   };
 
+  // 🔹 Obtener datos del usuario actual
   const fetchUserData = async () => {
     try {
       if (user?.publicMetadata?.role === "seller") {
@@ -51,7 +53,7 @@ export const AppContextProvider = (props) => {
 
       if (data.success) {
         setUserData(data.user);
-        setCartItems(data.user.cartItems);
+        setCartItems(data.user.cartItems || {});
       } else {
         toast.error(data.message);
       }
@@ -60,11 +62,10 @@ export const AppContextProvider = (props) => {
     }
   };
 
+  // 🔹 Agregar producto al carrito
   const addToCart = async (itemId) => {
     if (!user) {
-      return toast("Por Favor Registrarse", {
-        icon: "⚠️",
-      });
+      return toast("Por Favor Registrarse", { icon: "⚠️" });
     }
 
     let cartData = structuredClone(cartItems);
@@ -74,21 +75,21 @@ export const AppContextProvider = (props) => {
       cartData[itemId] = 1;
     }
     setCartItems(cartData);
-    if (user) {
-      try {
-        const token = await getToken();
-        await axios.post(
-          "/api/cart/update",
-          { cartData },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        toast.success("Agregado al Carrito");
-      } catch (error) {
-        toast.error(error.message);
-      }
+
+    try {
+      const token = await getToken();
+      await axios.post(
+        "/api/cart/update",
+        { cartData },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("Agregado al Carrito");
+    } catch (error) {
+      toast.error(error.message);
     }
   };
 
+  // 🔹 Actualizar cantidad de un producto en el carrito
   const updateCartQuantity = async (itemId, quantity) => {
     let cartData = structuredClone(cartItems);
     if (quantity === 0) {
@@ -97,21 +98,21 @@ export const AppContextProvider = (props) => {
       cartData[itemId] = quantity;
     }
     setCartItems(cartData);
-    if (user) {
-      try {
-        const token = await getToken();
-        await axios.post(
-          "/api/cart/update",
-          { cartData },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        toast.success("Carrito Actualizado");
-      } catch (error) {
-        toast.error(error.message);
-      }
+
+    try {
+      const token = await getToken();
+      await axios.post(
+        "/api/cart/update",
+        { cartData },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("Carrito Actualizado");
+    } catch (error) {
+      toast.error(error.message);
     }
   };
 
+  // 🔹 Contar número total de productos en el carrito
   const getCartCount = () => {
     let totalCount = 0;
     for (const items in cartItems) {
@@ -122,33 +123,59 @@ export const AppContextProvider = (props) => {
     return totalCount;
   };
 
+  // 🔹 Calcular el total del carrito (corregido)
   const getCartAmount = () => {
+    // Si no hay productos aún, devolvemos 0
+    if (!products || products.length === 0) {
+      console.warn("⚠️ No hay productos cargados aún para calcular el total.");
+      return 0;
+    }
+
     let totalAmount = 0;
+
+    // Recorremos los items del carrito
     for (const items in cartItems) {
-      let itemInfo = products.find((product) => product._id === items);
+      const itemInfo = products.find((product) => product._id === items);
+
+      // Si no se encuentra el producto, lo omitimos
+      if (!itemInfo) {
+        console.warn(`⚠️ Producto no encontrado para el ID: ${items}`);
+        continue;
+      }
+
+      // Solo calculamos si la cantidad es mayor a 0
       if (cartItems[items] > 0) {
-        totalAmount += itemInfo.offerPrice * cartItems[items];
+        const price =
+          itemInfo.offerPrice !== undefined
+            ? itemInfo.offerPrice
+            : itemInfo.price || 0;
+
+        totalAmount += price * cartItems[items];
       }
     }
+
+    // Redondeamos el resultado a 2 decimales
     return Math.floor(totalAmount * 100) / 100;
   };
 
+  // 🔹 Cargar productos al iniciar
   useEffect(() => {
     fetchProductData();
   }, []);
 
-  // 🔥 este efecto maneja la sesión
+  // 🔹 Manejar sesión de usuario
   useEffect(() => {
     if (user) {
       fetchUserData();
     } else {
-      // 👇 cuando no hay user, limpiamos todo
+      // Cuando no hay usuario, limpiar datos
       setIsSeller(false);
       setUserData(false);
       setCartItems({});
     }
   }, [user]);
 
+  // 🔹 Valor global del contexto
   const value = {
     user,
     getToken,
