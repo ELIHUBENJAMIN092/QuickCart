@@ -1,22 +1,21 @@
 import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema({
-  userId: { type: String, required: true, ref: "user" },
+  // 👇 Clerk usa strings, así que mantenemos string aquí
+  userId: { type: String, required: true }, 
+
   items: [
     {
-      product: { type: String, required: true, ref: "product" },
+      product: { type: mongoose.Schema.Types.ObjectId, ref: "product", required: true },
       quantity: { type: Number, required: true },
     },
   ],
   amount: { type: Number, required: true },
-  address: { type: String, ref: "address", required: true },
+  address: { type: mongoose.Schema.Types.Mixed, required: true },
   status: { type: String, required: true, default: "Order Placed" },
   date: { type: Number, required: true },
-
-  // 👇 Nuevo campo para manejar pagos
   isPaid: { type: Boolean, required: true, default: false },
 });
 
 const Order = mongoose.models.order || mongoose.model("order", orderSchema);
-
 export default Order;

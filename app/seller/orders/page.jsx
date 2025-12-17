@@ -26,7 +26,7 @@ const Orders = () => {
       });
 
       if (data.success) {
-        // Solo mostrar órdenes que no han sido pagadas
+        // Filtrar solo órdenes no pagadas
         const ordersPendientes = data.orders.filter((order) => !order.isPaid);
         setOrders(ordersPendientes);
       } else {
@@ -42,15 +42,16 @@ const Orders = () => {
   const handleConfirmPayment = async (orderId) => {
     try {
       const token = await getToken();
-      const { data } = await axios.put(`/api/order/update-payment/${orderId}`, {}, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    const { data } = await axios.put(
+      `/api/order/update-payment/${orderId}`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
 
       if (data.success) {
         toast.success("Pago confirmado.");
-        // Eliminar la orden de la lista actual
         setOrders((prev) => prev.filter((order) => order._id !== orderId));
       } else {
         toast.error("No se pudo confirmar el pago.");
@@ -73,6 +74,7 @@ const Orders = () => {
       ) : (
         <div className="md:p-10 p-4 space-y-5">
           <h2 className="text-lg font-medium">Órdenes Online</h2>
+
           <div className="max-w-4xl rounded-md">
             {orders.length === 0 ? (
               <p>No hay órdenes pendientes.</p>
@@ -82,7 +84,7 @@ const Orders = () => {
                   key={index}
                   className="flex flex-col md:flex-row gap-5 justify-between p-5 border-t border-gray-300"
                 >
-                  {/* Columna 1: Imagen y productos */}
+                  {/* Columna 1: Productos */}
                   <div className="flex-1 flex gap-5 max-w-80">
                     <Image
                       className="w-16 h-16 object-cover"
@@ -92,7 +94,10 @@ const Orders = () => {
                     <div className="flex flex-col gap-3">
                       <span className="font-medium">
                         {order.items
-                          .map((item) => `${item.product.name} x ${item.quantity}`)
+                          .map((item) => {
+                            const nombre = item?.product?.name || "Producto eliminado";
+                            return `${nombre} x ${item.quantity}`;
+                          })
                           .join(", ")}
                       </span>
                       <span>Items: {order.items.length}</span>
@@ -108,17 +113,25 @@ const Orders = () => {
                       <br />
                       <span>{`${order.address.city}, ${order.address.state}`}</span>
                       <br />
-                      <span>{order.address.phoneNumber}</span>
+                      <span>{order.address.phoneNumber || "Sin teléfono"}</span>
                       <br />
-                      <a
-                        href={`https://wa.me/593${order.address.phoneNumber.replace(/^0/, "")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-green-600 hover:underline mt-1"
-                      >
-                        <FaWhatsapp size={16} />
-                        {order.address.phoneNumber}
-                      </a>
+
+                      {/* Validación del número */}
+                      {order?.address?.phoneNumber ? (
+                        <a
+                          href={`https://wa.me/593${order.address.phoneNumber.replace(/^0/, "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-green-600 hover:underline mt-1"
+                        >
+                          <FaWhatsapp size={16} />
+                          {order.address.phoneNumber}
+                        </a>
+                      ) : (
+                        <p className="text-red-500 text-xs mt-1">
+                          No dejó teléfono
+                        </p>
+                      )}
                     </p>
                   </div>
 
@@ -127,12 +140,13 @@ const Orders = () => {
                     {currency}{order.amount}
                   </p>
 
-                  {/* Columna 4: Datos adicionales y botón */}
+                  {/* Columna 4: Datos adicionales */}
                   <div className="my-auto">
                     <p className="flex flex-col">
                       <span>Método: COD</span>
                       <span>Fecha: {new Date(order.date).toLocaleDateString()}</span>
                       <span>Pago: Pendiente</span>
+
                       <button
                         onClick={() => handleConfirmPayment(order._id)}
                         className="mt-2 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition flex justify-center items-center gap-2 w-full md:w-auto"

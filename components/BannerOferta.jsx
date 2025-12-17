@@ -14,7 +14,7 @@ export default function BannerOferta() {
   if (!isOpen) return null;
 
   return (
-    <div className="w-full bg-gradient-to-r from-violet-500 via-purple-600 to-orange-400 text-white text-center py-2 px-4">
+    <div className="w-full bg-gradient-to-r from-blue-800 to-cyan-400 text-white text-center py-2 px-4">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         {/* Texto de la oferta */}
         <p className="font-medium text-sm">

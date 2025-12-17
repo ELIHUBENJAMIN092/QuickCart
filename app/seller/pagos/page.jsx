@@ -91,15 +91,19 @@ const Pagos = () => {
                       <br />
                       <span>{order.address.phoneNumber}</span>
                       <br />
-                      <a
-                        href={`https://wa.me/593${order.address.phoneNumber.replace(/^0/, "")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-green-600 hover:underline mt-1"
-                      >
-                        <FaWhatsapp size={16} />
-                        {order.address.phoneNumber}
-                      </a>
+                      {order.address?.phoneNumber ? (
+                        <a
+                          href={`https://wa.me/593${order.address.phoneNumber.replace(/^0/, "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-green-600 hover:underline mt-1"
+                        >
+                          <FaWhatsapp size={16} />
+                          {order.address.phoneNumber}
+                        </a>
+                      ) : (
+                        <span className="text-gray-400 italic">Teléfono no disponible</span>
+                      )}
                     </p>
                   </div>
 
