@@ -6,15 +6,32 @@ import { NextResponse } from "next/server";
 export async function GET(request) {
   try {
     const { userId } = getAuth(request);
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, message: "No autorizado" },
+        { status: 401 }
+      );
+    }
+
     await connectDB();
 
     const orders = await Order.find({ userId })
-      .populate("items.product")
-      .exec();
+      .populate({
+        path: "items.product",
+        select: "name price offerPrice",
+      })
+      .sort({ date: -1 });
 
-    return NextResponse.json({ success: true, orders });
+    return NextResponse.json({
+      success: true,
+      orders,
+    });
   } catch (error) {
     console.error("Error in /api/order/list:", error);
-    return NextResponse.json({ success: false, message: error.message });
+    return NextResponse.json(
+      { success: false, message: error.message },
+      { status: 500 }
+    );
   }
 }
