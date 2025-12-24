@@ -23,7 +23,7 @@ export const AppContextProvider = (props) => {
   const [isSeller, setIsSeller] = useState(false);
   const [cartItems, setCartItems] = useState({});
 
-  // 🔹 Obtener todos los productos disponibles
+  // Obtener todos los productos disponibles
   const fetchProductData = async () => {
     try {
       const { data } = await axios.get("/api/product/list");
@@ -38,7 +38,7 @@ export const AppContextProvider = (props) => {
     }
   };
 
-  // 🔹 Obtener datos del usuario actual
+  // Obtener datos del usuario actual
   const fetchUserData = async () => {
     try {
       if (user?.publicMetadata?.role === "seller") {
@@ -62,7 +62,7 @@ export const AppContextProvider = (props) => {
     }
   };
 
-  // 🔹 Agregar producto al carrito
+  // Agregar producto al carrito
   const addToCart = async (itemId) => {
     if (!user) {
       return toast("Por Favor Registrarse", { icon: "⚠️" });
@@ -89,7 +89,7 @@ export const AppContextProvider = (props) => {
     }
   };
 
-  // 🔹 Actualizar cantidad de un producto en el carrito
+  // Actualizar cantidad de un producto en el carrito
   const updateCartQuantity = async (itemId, quantity) => {
     let cartData = structuredClone(cartItems);
     if (quantity === 0) {
@@ -112,7 +112,7 @@ export const AppContextProvider = (props) => {
     }
   };
 
-  // 🔹 Contar número total de productos en el carrito
+  // Contar número total de productos en el carrito
   const getCartCount = () => {
     let totalCount = 0;
     for (const items in cartItems) {
@@ -123,7 +123,7 @@ export const AppContextProvider = (props) => {
     return totalCount;
   };
 
-  // 🔹 Calcular el total del carrito (corregido)
+  // Calcular el total del carrito
   const getCartAmount = () => {
     // Si no hay productos aún, devolvemos 0
     if (!products || products.length === 0) {
@@ -158,12 +158,12 @@ export const AppContextProvider = (props) => {
     return Math.floor(totalAmount * 100) / 100;
   };
 
-  // 🔹 Cargar productos al iniciar
+  // Cargar productos al iniciar
   useEffect(() => {
     fetchProductData();
   }, []);
 
-  // 🔹 Manejar sesión de usuario
+  // Manejar sesión de usuario
   useEffect(() => {
     if (user) {
       fetchUserData();
@@ -175,7 +175,7 @@ export const AppContextProvider = (props) => {
     }
   }, [user]);
 
-  // 🔹 Valor global del contexto
+  // Valor global del contexto
   const value = {
     user,
     getToken,
