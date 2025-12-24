@@ -8,18 +8,18 @@ export default function BannerOferta() {
   if (!isOpen) return null;
 
   return (
-    <div className="w-full bg-black text-white py-3 shadow-md">
+    <div className="w-full bg-gradient-to-r from-pink-600 via-red-600 to-yellow-500 text-white py-3 shadow-lg animate-pulse">
       <div className="relative max-w-7xl mx-auto flex items-center justify-center px-4">
-        
+
         {/* Texto centrado */}
-        <p className="text-sm md:text-base font-bold tracking-wide text-center">
-          📢 ¡20% de descuento en tu primer pedido! 🛍️
+        <p className="text-sm md:text-base font-extrabold tracking-wide text-center drop-shadow-md">
+          🔥 ¡20% DE DESCUENTO EN TU PRIMER PEDIDO! 🔥 🛍️
         </p>
 
         {/* Botón cerrar */}
         <button
           onClick={() => setIsOpen(false)}
-          className="absolute right-4 text-white text-xl font-bold hover:scale-110 transition-transform"
+          className="absolute right-4 text-white text-xl font-bold hover:scale-125 transition-transform"
           aria-label="Cerrar banner"
         >
           ×
