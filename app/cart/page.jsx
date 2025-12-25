@@ -62,7 +62,7 @@ const Cart = () => {
                             className="md:hidden text-xs text-blue-600 mt-1"
                             onClick={() => updateCartQuantity(product._id, 0)}
                           >
-                            Remove
+                            Eliminar
                           </button>
                         </div>
                         <div className="text-sm hidden md:block">
@@ -71,7 +71,7 @@ const Cart = () => {
                             className="text-xs text-blue-600 mt-1"
                             onClick={() => updateCartQuantity(product._id, 0)}
                           >
-                            Remove
+                            Eliminar
                           </button>
                         </div>
                       </td>

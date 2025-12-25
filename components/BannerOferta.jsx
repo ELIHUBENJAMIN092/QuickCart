@@ -8,12 +8,12 @@ export default function BannerOferta() {
   if (!isOpen) return null;
 
   return (
-    <div className="w-full bg-gradient-to-r from-pink-600 via-red-600 to-yellow-500 text-white py-3 shadow-lg animate-pulse">
+    <div className="w-full bg-gradient-to-r from-gray-900 via-gray-600 to-gray-900 text-white py-3 shadow-lg">
       <div className="relative max-w-7xl mx-auto flex items-center justify-center px-4">
 
         {/* Texto centrado */}
         <p className="text-sm md:text-base font-extrabold tracking-wide text-center drop-shadow-md">
-          🔥 ¡20% DE DESCUENTO EN TU PRIMER PEDIDO! 🔥 🛍️
+          ¡20% DE DESCUENTO EN TU PRIMER PEDIDO! 🛍️
         </p>
 
         {/* Botón cerrar */}
