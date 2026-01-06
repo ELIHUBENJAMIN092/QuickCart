@@ -8,7 +8,8 @@ export default function BannerOferta() {
   if (!isOpen) return null;
 
   return (
-    <div className="w-full bg-gradient-to-r from-gray-900 via-gray-600 to-gray-900 text-white py-3 shadow-lg">
+    <div className="w-full bg-gradient-to-r from-fuchsia-600 via-rose-500 to-pink-600 text-white py-3 shadow-lg">
+      
       <div className="relative max-w-7xl mx-auto flex items-center justify-center px-4">
 
         {/* Texto centrado */}

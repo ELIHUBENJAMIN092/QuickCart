@@ -2,7 +2,7 @@
 
 import { useAppContext } from "@/context/AppContext";
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 const OrderSummary = () => {
@@ -17,18 +17,32 @@ const OrderSummary = () => {
     setCartItems,
   } = useAppContext();
 
-  // 📦 Dirección embebida (NO lista, NO dropdown)
+  // 📦 Dirección + datos personales
   const [address, setAddress] = useState({
     fullName: "",
     phoneNumber: "",
+    idNumber: "", // 👈 Cédula o RUC
     area: "",
     city: "",
     state: "",
   });
 
+  // 🔄 Autocompletar nombre del usuario
+  useEffect(() => {
+    if (user?.fullName) {
+      setAddress((prev) => ({
+        ...prev,
+        fullName: user.fullName,
+      }));
+    }
+  }, [user]);
+
   const handleChange = (e) => {
     setAddress({ ...address, [e.target.name]: e.target.value });
   };
+
+  const validatePhone = (phone) => /^09\d{8}$/.test(phone);
+  const validateIdNumber = (id) => /^\d{10}$|^\d{13}$/.test(id);
 
   const createOrder = async () => {
     try {
@@ -36,10 +50,22 @@ const OrderSummary = () => {
         return toast("Por favor inicia sesión", { icon: "⚠️" });
       }
 
-      // Validación básica
-      const { fullName, area, city, state } = address;
-      if (!fullName || !area || !city || !state) {
-        return toast.error("Completa todos los campos de dirección");
+      const { fullName, phoneNumber, idNumber, area, city, state } = address;
+
+      if (!fullName || !phoneNumber || !idNumber || !area || !city || !state) {
+        return toast.error("Completa todos los campos obligatorios");
+      }
+
+      if (!validatePhone(phoneNumber)) {
+        return toast.error(
+          "Número celular inválido. Debe iniciar con 09 y tener 10 dígitos"
+        );
+      }
+
+      if (!validateIdNumber(idNumber)) {
+        return toast.error(
+          "Cédula o RUC inválido. Debe tener 10 o 13 dígitos"
+        );
       }
 
       let items = Object.keys(cartItems)
@@ -55,7 +81,7 @@ const OrderSummary = () => {
       const { data } = await axios.post(
         "/api/order/create",
         {
-          address, // 👈 OBJETO COMPLETO
+          address,
           items,
         },
         {
@@ -83,7 +109,7 @@ const OrderSummary = () => {
 
       <hr className="border-gray-500/30 my-5" />
 
-      {/* 📍 Dirección */}
+      {/* 📍 Datos del cliente */}
       <div className="space-y-3">
         <input
           name="fullName"
@@ -92,13 +118,23 @@ const OrderSummary = () => {
           onChange={handleChange}
           className="w-full border p-2"
         />
+
+        <input
+          name="idNumber"
+          placeholder="Cédula o RUC"
+          value={address.idNumber}
+          onChange={handleChange}
+          className="w-full border p-2"
+        />
+
         <input
           name="phoneNumber"
-          placeholder="Teléfono"
+          placeholder="Teléfono celular (09xxxxxxxx)"
           value={address.phoneNumber}
           onChange={handleChange}
           className="w-full border p-2"
         />
+
         <textarea
           name="area"
           placeholder="Dirección / Sector"
@@ -107,6 +143,7 @@ const OrderSummary = () => {
           className="w-full border p-2 resize-none"
           rows={3}
         />
+
         <input
           name="city"
           placeholder="Ciudad"
@@ -114,6 +151,7 @@ const OrderSummary = () => {
           onChange={handleChange}
           className="w-full border p-2"
         />
+
         <input
           name="state"
           placeholder="Provincia"

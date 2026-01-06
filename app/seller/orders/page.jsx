@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
@@ -21,18 +21,22 @@ const Orders = () => {
   const fetchSellerOrders = async () => {
     try {
       const token = await getToken();
-      const { data } = await axios.get('/api/order/seller-orders', {
+      const { data } = await axios.get("/api/order/seller-orders", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (data.success) {
-        const ordersPendientes = data.orders.filter(order => !order.isPaid);
+        const ordersPendientes = data.orders.filter(
+          (order) => !order.isPaid
+        );
         setOrders(ordersPendientes);
       } else {
         toast.error(data.message || "Error al obtener las órdenes.");
       }
     } catch (error) {
-      toast.error(error.message || "Ocurrió un error al obtener las órdenes.");
+      toast.error(
+        error.message || "Ocurrió un error al obtener las órdenes."
+      );
     } finally {
       setLoading(false);
     }
@@ -49,7 +53,9 @@ const Orders = () => {
 
       if (data.success) {
         toast.success("Pago confirmado.");
-        setOrders(prev => prev.filter(order => order._id !== orderId));
+        setOrders((prev) =>
+          prev.filter((order) => order._id !== orderId)
+        );
       } else {
         toast.error("No se pudo confirmar el pago.");
       }
@@ -89,8 +95,10 @@ const Orders = () => {
                     <div className="flex flex-col gap-3">
                       <span className="font-medium">
                         {order.items
-                          .map(item => {
-                            const nombre = item?.product?.name || "Producto eliminado";
+                          .map((item) => {
+                            const nombre =
+                              item?.product?.name ||
+                              "Producto eliminado";
                             return `${nombre} x ${item.quantity}`;
                           })
                           .join(", ")}
@@ -101,21 +109,36 @@ const Orders = () => {
 
                   {/* Columna 2: Dirección y WhatsApp */}
                   <div className="text-sm text-gray-700">
+                    {/* Nombre */}
                     <span className="font-medium block">
                       {order.address?.fullName || "Sin nombre"}
                     </span>
 
-                    <span className="block">
+                    {/* Cédula / RUC */}
+                    {order.address?.idNumber && (
+                      <span className="block text-xs text-gray-600">
+                        Cédula / RUC:{" "}
+                        <span className="font-medium">
+                          {order.address.idNumber}
+                        </span>
+                      </span>
+                    )}
+
+                    <span className="block mt-1">
                       {order.address?.area || "Sin dirección"}
                     </span>
 
                     <span className="block">
-                      {order.address?.city}, {order.address?.state}
+                      {order.address?.city},{" "}
+                      {order.address?.state}
                     </span>
 
                     {order.address?.phoneNumber ? (
                       <a
-                        href={`https://wa.me/593${order.address.phoneNumber.replace(/^0/, "")}`}
+                        href={`https://wa.me/593${order.address.phoneNumber.replace(
+                          /^0/,
+                          ""
+                        )}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 text-green-600 hover:underline mt-1"
@@ -132,18 +155,24 @@ const Orders = () => {
 
                   {/* Columna 3: Monto */}
                   <div className="font-medium my-auto whitespace-nowrap">
-                    {currency}{order.amount}
+                    {currency}
+                    {order.amount}
                   </div>
 
                   {/* Columna 4: Datos adicionales */}
                   <div className="my-auto">
                     <div className="flex flex-col gap-1">
                       <span>Método: COD</span>
-                      <span>Fecha: {new Date(order.date).toLocaleDateString()}</span>
+                      <span>
+                        Fecha:{" "}
+                        {new Date(order.date).toLocaleDateString()}
+                      </span>
                       <span>Pago: Pendiente</span>
 
                       <button
-                        onClick={() => handleConfirmPayment(order._id)}
+                        onClick={() =>
+                          handleConfirmPayment(order._id)
+                        }
                         className="mt-2 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition flex justify-center items-center gap-2 w-full md:w-auto"
                       >
                         <span>Pagos</span>
