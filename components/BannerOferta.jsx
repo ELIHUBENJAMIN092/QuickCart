@@ -14,7 +14,7 @@ export default function BannerOferta() {
 
         {/* Texto centrado */}
         <p className="text-sm md:text-base font-extrabold tracking-wide text-center drop-shadow-md">
-          ¡20% DE DESCUENTO EN TU PRIMER PEDIDO! 🛍️
+          ¡20% DE DESCUENTO EN TU PRIMER PEDIDO!
         </p>
 
         {/* Botón cerrar */}

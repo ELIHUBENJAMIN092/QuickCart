@@ -107,7 +107,7 @@ const Orders = () => {
                     </div>
                   </div>
 
-                  {/* Columna 2: Dirección y WhatsApp */}
+                  {/* Columna 2: Datos del cliente */}
                   <div className="text-sm text-gray-700">
                     {/* Nombre */}
                     <span className="font-medium block">
@@ -116,14 +116,15 @@ const Orders = () => {
 
                     {/* Cédula / RUC */}
                     {order.address?.idNumber && (
-                      <span className="block text-xs text-gray-600">
-                        Cédula / RUC:{" "}
+                      <span className="block text-sm text-gray-700">
+                        C.I:{" "}
                         <span className="font-medium">
                           {order.address.idNumber}
                         </span>
                       </span>
                     )}
 
+                    {/* Dirección */}
                     <span className="block mt-1">
                       {order.address?.area || "Sin dirección"}
                     </span>
@@ -133,6 +134,17 @@ const Orders = () => {
                       {order.address?.state}
                     </span>
 
+                    {/* 📧 Correo electrónico */}
+                    {order.address?.email && (
+                      <span className="block text-sm text-blue-700 mt-1">
+                        {" "}
+                        <span className="font-medium">
+                          {order.address.email}
+                        </span>
+                      </span>
+                    )}
+
+                    {/* 📱 WhatsApp (sin cambios) */}
                     {order.address?.phoneNumber ? (
                       <a
                         href={`https://wa.me/593${order.address.phoneNumber.replace(
@@ -162,7 +174,7 @@ const Orders = () => {
                   {/* Columna 4: Datos adicionales */}
                   <div className="my-auto">
                     <div className="flex flex-col gap-1">
-                      <span>Método: COD</span>
+                      <span>Detalles:</span>
                       <span>
                         Fecha:{" "}
                         {new Date(order.date).toLocaleDateString()}

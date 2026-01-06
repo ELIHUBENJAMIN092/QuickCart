@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+
 const addressSchema = new mongoose.Schema(
   {
     fullName: {
@@ -6,21 +7,38 @@ const addressSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+
+    idNumber: {                 // 👈 CÉDULA / RUC
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    email: {                    // 👈 CORREO DEL CLIENTE
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+    },
+
     phoneNumber: {
       type: String,
       required: true,
       trim: true,
     },
+
     area: {
       type: String,
       required: true,
       trim: true,
     },
+
     city: {
       type: String,
       required: true,
       trim: true,
     },
+
     state: {
       type: String,
       required: true,
@@ -72,7 +90,7 @@ const orderSchema = new mongoose.Schema(
 
     date: {
       type: Date,
-      default: Date.now, 
+      default: Date.now,
     },
 
     isPaid: {
@@ -81,10 +99,9 @@ const orderSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, 
+    timestamps: true,
   }
 );
-
 
 const Order =
   mongoose.models.Order || mongoose.model("Order", orderSchema);
