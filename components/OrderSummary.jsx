@@ -17,22 +17,24 @@ const OrderSummary = () => {
     setCartItems,
   } = useAppContext();
 
-  // 📦 Dirección + datos personales
+  // 📦 Dirección + datos del cliente
   const [address, setAddress] = useState({
     fullName: "",
+    email: "",
     phoneNumber: "",
-    idNumber: "", // 👈 Cédula o RUC
+    idNumber: "",
     area: "",
     city: "",
     state: "",
   });
 
-  // 🔄 Autocompletar nombre del usuario
+  // 🔄 Autocompletar nombre y correo desde CLERK
   useEffect(() => {
-    if (user?.fullName) {
+    if (user) {
       setAddress((prev) => ({
         ...prev,
-        fullName: user.fullName,
+        fullName: user.fullName || "",
+        email: user.primaryEmailAddress?.emailAddress || "",
       }));
     }
   }, [user]);
@@ -41,8 +43,11 @@ const OrderSummary = () => {
     setAddress({ ...address, [e.target.name]: e.target.value });
   };
 
+  // ✅ Validaciones Ecuador
   const validatePhone = (phone) => /^09\d{8}$/.test(phone);
   const validateIdNumber = (id) => /^\d{10}$|^\d{13}$/.test(id);
+  const validateEmail = (email) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const createOrder = async () => {
     try {
@@ -50,10 +55,30 @@ const OrderSummary = () => {
         return toast("Por favor inicia sesión", { icon: "⚠️" });
       }
 
-      const { fullName, phoneNumber, idNumber, area, city, state } = address;
+      const {
+        fullName,
+        email,
+        phoneNumber,
+        idNumber,
+        area,
+        city,
+        state,
+      } = address;
 
-      if (!fullName || !phoneNumber || !idNumber || !area || !city || !state) {
+      if (
+        !fullName ||
+        !email ||
+        !phoneNumber ||
+        !idNumber ||
+        !area ||
+        !city ||
+        !state
+      ) {
         return toast.error("Completa todos los campos obligatorios");
+      }
+
+      if (!validateEmail(email)) {
+        return toast.error("Correo electrónico inválido");
       }
 
       if (!validatePhone(phoneNumber)) {
@@ -68,9 +93,12 @@ const OrderSummary = () => {
         );
       }
 
-      let items = Object.keys(cartItems)
-        .map((key) => ({ product: key, quantity: cartItems[key] }))
-        .filter((i) => i.quantity > 0);
+      const items = Object.keys(cartItems)
+        .map((key) => ({
+          product: key,
+          quantity: cartItems[key],
+        }))
+        .filter((item) => item.quantity > 0);
 
       if (items.length === 0) {
         return toast.error("El carrito está vacío");
@@ -115,6 +143,15 @@ const OrderSummary = () => {
           name="fullName"
           placeholder="Nombre completo"
           value={address.fullName}
+          onChange={handleChange}
+          className="w-full border p-2"
+        />
+
+        <input
+          name="email"
+          type="email"
+          placeholder="Correo electrónico"
+          value={address.email}
           onChange={handleChange}
           className="w-full border p-2"
         />
@@ -167,15 +204,24 @@ const OrderSummary = () => {
       <div className="space-y-3 text-sm">
         <div className="flex justify-between">
           <span>Productos ({getCartCount()})</span>
-          <span>{currency}{getCartAmount().toFixed(2)}</span>
+          <span>
+            {currency}
+            {getCartAmount().toFixed(2)}
+          </span>
         </div>
         <div className="flex justify-between">
           <span>IVA (15%)</span>
-          <span>{currency}{(getCartAmount() * 0.15).toFixed(2)}</span>
+          <span>
+            {currency}
+            {(getCartAmount() * 0.15).toFixed(2)}
+          </span>
         </div>
         <div className="flex justify-between font-medium text-lg border-t pt-3">
           <span>Total</span>
-          <span>{currency}{(getCartAmount() * 1.15).toFixed(2)}</span>
+          <span>
+            {currency}
+            {(getCartAmount() * 1.15).toFixed(2)}
+          </span>
         </div>
       </div>
 
