@@ -4,15 +4,31 @@ import { useAppContext } from "@/context/AppContext";
 
 const HomeProducts = () => {
 
-  const { products, router } = useAppContext()
+  const { products, router } = useAppContext();
+
+  // 5 columnas x 3 filas
+  const MAX_PRODUCTS = 15;
 
   return (
     <div className="flex flex-col items-center pt-14">
-      <p className="text-2xl font-medium text-left w-full">Productos Recomendados </p>
+      {/* NO se cambia tipografía */}
+      <p className="text-2xl font-medium text-left w-full">
+        Productos Recomendados
+      </p>
+
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 flex-col items-center gap-6 mt-6 pb-14 w-full">
-        {products.map((product, index) => <ProductCard key={index} product={product} />)}
+        {products
+          .slice(0, MAX_PRODUCTS)
+          .map((product, index) => (
+            <ProductCard key={index} product={product} />
+          ))}
       </div>
-      <button onClick={() => { router.push('/all-products') }} className="px-12 py-2.5 border rounded text-gray-500/70 hover:bg-slate-50/90 transition">
+
+      {/* Botón se mantiene */}
+      <button
+        onClick={() => { router.push('/all-products') }}
+        className="px-12 py-2.5 border rounded text-gray-500/70 hover:bg-slate-50/90 transition"
+      >
         Ver más
       </button>
     </div>
