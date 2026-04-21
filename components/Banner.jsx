@@ -20,7 +20,7 @@ const Banner = () => {
         {/* Columna 2: Texto */}
         <div className="flex flex-col items-center justify-center space-y-2 px-4">
           <h2 className="text-2xl md:text-3xl font-semibold max-w-[290px]">
-            Todo lo que buscas, en un solo lugar
+            Todo lo que buscas, en un solo lugar COMPEL
           </h2>
           <p className="max-w-[343px] font-medium text-gray-800/60">
             en un solo lugar con garantía y soporte garantizado.
