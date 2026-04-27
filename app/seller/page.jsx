@@ -11,6 +11,7 @@ const AddProduct = () => {
   const { getToken } = useAppContext()
 
   const [files, setFiles] = useState([]);
+  const [video, setVideo] = useState(null); // 🔥 NUEVO
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Código de Barras');
@@ -32,15 +33,23 @@ const AddProduct = () => {
       formData.append('images',files[i])
     }
 
+    // 🔥 VIDEO
+    if (video) {
+      formData.append('video', video)
+    }
+
     try {
 
       const token = await getToken()
 
-      const { data } = await axios.post('/api/product/add',formData,{headers:{Authorization:`Bearer ${token}`}})
+      const { data } = await axios.post('/api/product/add',formData,{
+        headers:{Authorization:`Bearer ${token}`}
+      })
 
       if (data.success) {
         toast.success(data.message)
         setFiles([]);
+        setVideo(null); // 🔥 LIMPIAR VIDEO
         setName('');
         setDescription('');
         setCategory('Código de Barras');
@@ -50,17 +59,17 @@ const AddProduct = () => {
         toast.error(data.message);
       }
 
-      
     } catch (error) {
       toast.error(error.message)
     }
-
 
   };
 
   return (
     <div className="flex-1 min-h-screen flex flex-col justify-between">
       <form onSubmit={handleSubmit} className="md:p-10 p-4 space-y-5 max-w-lg">
+        
+        {/* IMÁGENES */}
         <div>
           <p className="text-base font-medium">Imagen del Producto</p>
           <div className="flex flex-wrap items-center gap-3 mt-2">
@@ -85,6 +94,34 @@ const AddProduct = () => {
 
           </div>
         </div>
+
+        {/* 🔥 VIDEO */}
+        <div>
+          <p className="text-base font-medium">Video del Producto</p>
+
+          <label htmlFor="videoUpload">
+            <input 
+              type="file" 
+              id="videoUpload" 
+              accept="video/*" 
+              hidden
+              onChange={(e) => setVideo(e.target.files[0])}
+            />
+
+            <div className="mt-2 w-40 h-24 flex items-center justify-center border border-dashed border-gray-400 rounded cursor-pointer">
+              {video ? (
+                <video
+                  src={URL.createObjectURL(video)}
+                  className="w-full h-full object-cover rounded"
+                />
+              ) : (
+                <span className="text-gray-400 text-sm">Subir video</span>
+              )}
+            </div>
+          </label>
+        </div>
+
+        {/* NOMBRE */}
         <div className="flex flex-col gap-1 max-w-md">
           <label className="text-base font-medium" htmlFor="product-name">
             Nombre del Producto
@@ -99,6 +136,8 @@ const AddProduct = () => {
             required
           />
         </div>
+
+        {/* DESCRIPCIÓN */}
         <div className="flex flex-col gap-1 max-w-md">
           <label
             className="text-base font-medium"
@@ -116,6 +155,8 @@ const AddProduct = () => {
             required
           ></textarea>
         </div>
+
+        {/* CATEGORÍA Y PRECIOS */}
         <div className="flex items-center gap-5 flex-wrap">
           <div className="flex flex-col gap-1 w-32">
             <label className="text-base font-medium" htmlFor="category">
@@ -139,6 +180,7 @@ const AddProduct = () => {
               <option value="PDA">PDA</option>
             </select>
           </div>
+
           <div className="flex flex-col gap-1 w-32">
             <label className="text-base font-medium" htmlFor="product-price">
               Precio
@@ -153,6 +195,7 @@ const AddProduct = () => {
               required
             />
           </div>
+
           <div className="flex flex-col gap-1 w-32">
             <label className="text-base font-medium" htmlFor="offer-price">
               Precio Oferta
@@ -168,11 +211,11 @@ const AddProduct = () => {
             />
           </div>
         </div>
+
         <button type="submit" className="px-8 py-2.5 bg-blue-600 text-white font-medium rounded">
           Añadir
         </button>
       </form>
-      {/* <Footer /> */}
     </div>
   );
 };
