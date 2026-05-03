@@ -58,7 +58,7 @@ const FeaturedProduct = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-14 mt-12 md:px-14 px-4">
         {products.map(({ id, image, title, description }) => (
-          <div key={id} className="relative group">
+          <div key={id} className="relative group rounded-2xl overflow-hidden">
             <Image
               src={image}
               alt={title}
