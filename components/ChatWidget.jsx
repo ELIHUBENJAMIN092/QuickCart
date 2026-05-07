@@ -6,7 +6,77 @@ import { MessageCircle, X, Send } from "lucide-react";
 export default function ChatWidget() {
 
     const [open, setOpen] = useState(false);
-    const [message, setMessage] = useState("");
+
+    const [input, setInput] = useState("");
+
+    const [messages, setMessages] = useState([
+        {
+            role: "assistant",
+            content: "Hola 👋 Puedo ayudarte a encontrar productos."
+        }
+    ]);
+
+    // ================= ENVIAR MENSAJE =================
+    const sendMessage = () => {
+
+        if (!input.trim()) return;
+
+        // MENSAJE USUARIO
+        const userMessage = {
+            role: "user",
+            content: input
+        };
+
+        // ACTUALIZA CHAT
+        setMessages(prev => [...prev, userMessage]);
+
+        // RESPUESTA AUTOMÁTICA TEMPORAL
+        setTimeout(() => {
+
+            const botMessage = {
+                role: "assistant",
+                content: getBotResponse(input)
+            };
+
+            setMessages(prev => [...prev, botMessage]);
+
+        }, 700);
+
+        setInput("");
+    };
+
+    // ================= RESPUESTAS TEMPORALES =================
+    const getBotResponse = (text) => {
+
+        const msg = text.toLowerCase();
+
+        if (msg.includes("hola")) {
+            return "Hola 👋 ¿Qué producto estás buscando?";
+        }
+
+        if (
+            msg.includes("zebra") ||
+            msg.includes("scanner") ||
+            msg.includes("lector")
+        ) {
+            return "Tenemos lectores Zebra 1D y 2D disponibles. ¿Buscas uno para punto de venta o inventario?";
+        }
+
+        if (
+            msg.includes("tablet") ||
+            msg.includes("pda")
+        ) {
+            return "Tenemos tablets industriales Zebra con Android para inventario y logística.";
+        }
+
+        if (
+            msg.includes("precio")
+        ) {
+            return "¿Qué producto deseas consultar?";
+        }
+
+        return "Puedo ayudarte a encontrar productos Zebra, impresoras, lectores y tablets industriales.";
+    };
 
     return (
         <>
@@ -40,7 +110,7 @@ export default function ChatWidget() {
                 )}
             </button>
 
-            {/* ================= VENTANA CHAT ================= */}
+            {/* ================= CHAT ================= */}
             {open && (
                 <div
                     className="
@@ -55,17 +125,12 @@ export default function ChatWidget() {
                         rounded-[28px]
                         shadow-[0_10px_40px_rgba(0,0,0,0.18)]
                         border border-gray-200
-                        flex
-                        flex-col
+                        flex flex-col
                         overflow-hidden
-                        animate-in
-                        fade-in
-                        slide-in-from-bottom-3
-                        duration-300
                     "
                 >
 
-                    {/* ================= HEADER ================= */}
+                    {/* HEADER */}
                     <div className="
                         bg-gradient-to-r
                         from-blue-600
@@ -75,50 +140,61 @@ export default function ChatWidget() {
                         py-4
                     ">
 
-                        <h2 className="font-semibold text-lg leading-none">
+                        <h2 className="font-semibold text-lg">
                             Asistente COMPEL
                         </h2>
 
-                        <p className="text-sm text-white/80 mt-1">
+                        <p className="text-sm text-white/80">
                             ¿En qué puedo ayudarte?
                         </p>
 
                     </div>
 
-                    {/* ================= MENSAJES ================= */}
+                    {/* MENSAJES */}
                     <div className="
                         flex-1
                         overflow-y-auto
                         px-4
                         py-5
                         bg-[#f7f8fc]
+                        space-y-4
                     ">
 
-                        {/* MENSAJE BOT */}
-                        <div className="flex">
+                        {messages.map((msg, index) => (
 
-                            <div className="
-                                bg-white
-                                px-4
-                                py-3
-                                rounded-2xl
-                                rounded-tl-sm
-                                shadow-sm
-                                text-[15px]
-                                text-gray-700
-                                leading-relaxed
-                                max-w-[85%]
-                                border border-gray-100
-                            ">
-                                Hola 👋 <br />
-                                Puedo ayudarte a encontrar productos.
+                            <div
+                                key={index}
+                                className={`flex ${msg.role === "user"
+                                        ? "justify-end"
+                                        : "justify-start"
+                                    }`}
+                            >
+
+                                <div
+                                    className={`
+                                        px-4
+                                        py-3
+                                        rounded-2xl
+                                        text-sm
+                                        leading-relaxed
+                                        max-w-[85%]
+                                        shadow-sm
+                                        ${msg.role === "user"
+                                            ? "bg-blue-600 text-white rounded-br-sm"
+                                            : "bg-white text-gray-700 rounded-tl-sm border border-gray-100"
+                                        }
+                                    `}
+                                >
+                                    {msg.content}
+                                </div>
+
                             </div>
 
-                        </div>
+                        ))}
 
                     </div>
 
-                    {/* ================= INPUT ================= */}
+                    {/* INPUT */}
                     <div className="
                         p-4
                         bg-white
@@ -128,12 +204,16 @@ export default function ChatWidget() {
 
                         <div className="flex items-center gap-2">
 
-                            {/* INPUT */}
                             <input
                                 type="text"
                                 placeholder="Escribe un mensaje..."
-                                value={message}
-                                onChange={(e) => setMessage(e.target.value)}
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        sendMessage();
+                                    }
+                                }}
                                 className="
                                     flex-1
                                     h-12
@@ -144,12 +224,11 @@ export default function ChatWidget() {
                                     outline-none
                                     text-sm
                                     focus:border-blue-500
-                                    transition
                                 "
                             />
 
-                            {/* BOTÓN ENVIAR */}
                             <button
+                                onClick={sendMessage}
                                 className="
                                     w-12
                                     h-12
@@ -160,10 +239,6 @@ export default function ChatWidget() {
                                     flex
                                     items-center
                                     justify-center
-                                    shadow-md
-                                    transition-all
-                                    duration-200
-                                    hover:scale-105
                                 "
                             >
                                 <Send size={19} />
