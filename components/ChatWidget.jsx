@@ -9,78 +9,73 @@ export default function ChatWidget() {
 
     const [input, setInput] = useState("");
 
+    const [loading, setLoading] = useState(false);
+
     const [messages, setMessages] = useState([
         {
             role: "assistant",
-            content: "Hola 👋 Puedo ayudarte a encontrar productos."
+            content: "Hola 👋 Soy el asistente virtual de COMPEL. ¿Qué producto estás buscando?"
         }
     ]);
 
     // ================= ENVIAR MENSAJE =================
-    const sendMessage = () => {
+    const sendMessage = async () => {
 
-        if (!input.trim()) return;
+        if (!input.trim() || loading) return;
 
-        // MENSAJE USUARIO
         const userMessage = {
             role: "user",
             content: input
         };
 
-        // ACTUALIZA CHAT
-        setMessages(prev => [...prev, userMessage]);
+        const updatedMessages = [...messages, userMessage];
 
-        // RESPUESTA AUTOMÁTICA TEMPORAL
-        setTimeout(() => {
-
-            const botMessage = {
-                role: "assistant",
-                content: getBotResponse(input)
-            };
-
-            setMessages(prev => [...prev, botMessage]);
-
-        }, 700);
+        setMessages(updatedMessages);
 
         setInput("");
-    };
 
-    // ================= RESPUESTAS TEMPORALES =================
-    const getBotResponse = (text) => {
+        setLoading(true);
 
-        const msg = text.toLowerCase();
+        try {
 
-        if (msg.includes("hola")) {
-            return "Hola 👋 ¿Qué producto estás buscando?";
+            const response = await fetch("/api/chat", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    messages: updatedMessages
+                })
+
+            });
+
+            const data = await response.json();
+
+            const assistantMessage = {
+                role: "assistant",
+                content: data.message
+            };
+
+            setMessages(prev => [...prev, assistantMessage]);
+
+        } catch (error) {
+
+            console.log(error);
+
+        } finally {
+
+            setLoading(false);
+
         }
 
-        if (
-            msg.includes("zebra") ||
-            msg.includes("scanner") ||
-            msg.includes("lector")
-        ) {
-            return "Tenemos lectores Zebra 1D y 2D disponibles. ¿Buscas uno para punto de venta o inventario?";
-        }
-
-        if (
-            msg.includes("tablet") ||
-            msg.includes("pda")
-        ) {
-            return "Tenemos tablets industriales Zebra con Android para inventario y logística.";
-        }
-
-        if (
-            msg.includes("precio")
-        ) {
-            return "¿Qué producto deseas consultar?";
-        }
-
-        return "Puedo ayudarte a encontrar productos Zebra, impresoras, lectores y tablets industriales.";
     };
 
     return (
         <>
-            {/* ================= BOTÓN CHAT ================= */}
+            {/* BOTÓN CHAT */}
             <button
                 onClick={() => setOpen(!open)}
                 className="
@@ -103,14 +98,10 @@ export default function ChatWidget() {
                     hover:scale-105
                 "
             >
-                {open ? (
-                    <X size={24} />
-                ) : (
-                    <MessageCircle size={24} />
-                )}
+                {open ? <X size={24} /> : <MessageCircle size={24} />}
             </button>
 
-            {/* ================= CHAT ================= */}
+            {/* CHAT */}
             {open && (
                 <div
                     className="
@@ -139,15 +130,13 @@ export default function ChatWidget() {
                         px-5
                         py-4
                     ">
-
                         <h2 className="font-semibold text-lg">
                             Asistente COMPEL
                         </h2>
 
                         <p className="text-sm text-white/80">
-                            ¿En qué puedo ayudarte?
+                            IA especializada en productos Zebra
                         </p>
-
                     </div>
 
                     {/* MENSAJES */}
@@ -164,10 +153,11 @@ export default function ChatWidget() {
 
                             <div
                                 key={index}
-                                className={`flex ${msg.role === "user"
+                                className={`flex ${
+                                    msg.role === "user"
                                         ? "justify-end"
                                         : "justify-start"
-                                    }`}
+                                }`}
                             >
 
                                 <div
@@ -179,9 +169,11 @@ export default function ChatWidget() {
                                         leading-relaxed
                                         max-w-[85%]
                                         shadow-sm
-                                        ${msg.role === "user"
-                                            ? "bg-blue-600 text-white rounded-br-sm"
-                                            : "bg-white text-gray-700 rounded-tl-sm border border-gray-100"
+                                        whitespace-pre-wrap
+                                        ${
+                                            msg.role === "user"
+                                                ? "bg-blue-600 text-white rounded-br-sm"
+                                                : "bg-white text-gray-700 rounded-tl-sm border border-gray-100"
                                         }
                                     `}
                                 >
@@ -191,6 +183,26 @@ export default function ChatWidget() {
                             </div>
 
                         ))}
+
+                        {loading && (
+
+                            <div className="flex justify-start">
+
+                                <div className="
+                                    bg-white
+                                    px-4
+                                    py-3
+                                    rounded-2xl
+                                    rounded-tl-sm
+                                    border
+                                    text-sm
+                                ">
+                                    Escribiendo...
+                                </div>
+
+                            </div>
+
+                        )}
 
                     </div>
 
