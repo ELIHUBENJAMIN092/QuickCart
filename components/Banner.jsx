@@ -23,7 +23,7 @@ const Banner = () => {
             Todo lo que buscas, en un solo lugar COMPEL
           </h2>
           <p className="max-w-[343px] font-medium text-gray-800/60">
-            en un solo lugar con garantía y soporte garantizado.
+            con garantía y soporte garantizado.
           </p>
         </div>
 
