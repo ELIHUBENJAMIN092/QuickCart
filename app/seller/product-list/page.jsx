@@ -1,6 +1,11 @@
 'use client'
 import React, { useEffect, useState } from "react";
-import { assets } from "@/assets/assets";
+import {
+  Eye,
+  Pencil,
+  Trash2
+} from "lucide-react";
+
 import Image from "next/image";
 import { useAppContext } from "@/context/AppContext";
 import Footer from "@/components/seller/Footer";
@@ -9,120 +14,267 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 const ProductList = () => {
+
   const { router, getToken, user } = useAppContext();
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // OBTENER PRODUCTOS
   const fetchSellerProduct = async () => {
+
     try {
+
       const token = await getToken();
 
-      const { data } = await axios.get('/api/product/seller-list', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data } = await axios.get(
+        '/api/product/seller-list',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+        }
+      );
 
       if (data.success) {
+
         setProducts(data.products);
         setLoading(false);
+
       } else {
+
         toast.error(data.message);
+
       }
+
     } catch (error) {
+
       toast.error(error.message);
+
     }
   };
 
+  // ELIMINAR
   const handleDelete = async (productId) => {
+
     try {
-      const confirmDelete = confirm("¿Estás seguro de eliminar este producto?");
+
+      const confirmDelete = confirm(
+        "¿Estás seguro de eliminar este producto?"
+      );
+
       if (!confirmDelete) return;
 
       const token = await getToken();
-      const { data } = await axios.delete(`/api/product/delete/${productId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+
+      const { data } = await axios.delete(
+        `/api/product/delete/${productId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+        }
+      );
 
       if (data.success) {
+
         toast.success("Producto eliminado");
-        setProducts(products.filter((p) => p._id !== productId));
+
+        setProducts(
+          products.filter((p) => p._id !== productId)
+        );
+
       } else {
+
         toast.error(data.message);
+
       }
+
     } catch (error) {
+
       toast.error("Error al eliminar producto");
+
     }
   };
 
   useEffect(() => {
+
     if (user) {
       fetchSellerProduct();
     }
+
   }, [user]);
 
   return (
+
     <div className="flex-1 min-h-screen flex flex-col justify-between">
+
       {loading ? (
+
         <Loading />
+
       ) : (
-        <div className="w-full md:p-10 p-4">
-          <h2 className="pb-4 text-lg font-medium">Todos los Productos</h2>
-          <div className="flex flex-col items-center max-w-4xl w-full overflow-hidden rounded-md bg-white border border-gray-500/20">
-            <table className="table-fixed w-full overflow-hidden">
-              <thead className="text-gray-900 text-sm text-left">
+
+        <div className="w-full md:p-8 p-3">
+
+          <h2 className="pb-4 text-xl font-semibold text-gray-800">
+            Todos los Productos
+          </h2>
+
+          <div className="w-full overflow-x-auto rounded-xl border border-gray-200 bg-white">
+
+            <table className="w-full min-w-[900px]">
+
+              {/* HEADER */}
+              <thead className="bg-gray-50 text-gray-700 text-sm">
+
                 <tr>
-                  <th className="w-2/3 md:w-2/5 px-4 py-3 font-medium truncate">Producto</th>
-                  <th className="px-4 py-3 font-medium truncate max-sm:hidden">Categoría</th>
-                  <th className="px-4 py-3 font-medium truncate">Precio</th>
-                  <th className="px-4 py-3 font-medium truncate max-sm:hidden">Acciones</th>
+
+                  <th className="text-left px-4 py-4 font-semibold">
+                    Producto
+                  </th>
+
+                  <th className="text-left px-4 py-4 font-semibold">
+                    Categoría
+                  </th>
+
+                  <th className="text-left px-4 py-4 font-semibold">
+                    Precio
+                  </th>
+
+                  <th className="text-left px-4 py-4 font-semibold">
+                    Stock
+                  </th>
+
+                  <th className="text-center px-4 py-4 font-semibold w-[160px]">
+                    Acciones
+                  </th>
+
                 </tr>
+
               </thead>
-              <tbody className="text-sm text-gray-500">
+
+              {/* BODY */}
+              <tbody>
+
                 {products.map((product, index) => (
-                  <tr key={index} className="border-t border-gray-500/20">
-                    <td className="md:px-4 pl-2 md:pl-4 py-3 flex items-center space-x-3 truncate">
-                      <div className="bg-gray-500/10 rounded p-2">
-                        <Image
-                          src={product.image[0]}
-                          alt="Imagen del Producto"
-                          className="w-16"
-                          width={1280}
-                          height={720}
-                        />
-                      </div>
-                      <span className="truncate w-full">{product.name}</span>
-                    </td>
-                    <td className="px-4 py-3 max-sm:hidden">{product.category}</td>
-                    <td className="px-4 py-3">${product.offerPrice}</td>
-                    <td className="px-4 py-3 max-sm:hidden">
-                      <div className="flex items-center gap-2 h-full">
-                        <button
-                          onClick={() => router.push(`/product/${product._id}`)}
-                          className="flex items-center justify-center gap-1 px-1.5 md:px-3.5 py-2 bg-blue-600 text-white rounded-md"
-                        >
-                          <span className="hidden md:block">Ver</span>
+
+                  <tr
+                    key={index}
+                    className="border-t border-gray-100 hover:bg-gray-50 transition"
+                  >
+
+                    {/* PRODUCTO */}
+                    <td className="px-4 py-4">
+
+                      <div className="flex items-center gap-3">
+
+                        <div className="bg-gray-100 rounded-lg p-2 min-w-[70px]">
+
                           <Image
-                            className="h-3.5 w-3.5"
-                            src={assets.redirect_icon}
-                            alt="redirect_icon"
+                            src={product.image[0]}
+                            alt="Producto"
+                            className="w-14 h-14 object-cover rounded"
+                            width={100}
+                            height={100}
                           />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(product._id)}
-                          className="flex items-center justify-center gap-1 px-1.5 md:px-3.5 py-2 bg-red-600 text-white rounded-md"
-                        >
-                          <span className="hidden md:block">Eliminar</span>
-                        </button>
+
+                        </div>
+
+                        <div className="max-w-[260px]">
+
+                          <p className="font-medium text-gray-800 truncate">
+                            {product.name}
+                          </p>
+
+                        </div>
+
                       </div>
+
                     </td>
+
+                    {/* CATEGORÍA */}
+                    <td className="px-4 py-4 text-gray-600">
+                      {product.category}
+                    </td>
+
+                    {/* PRECIO */}
+                    <td className="px-4 py-4 font-medium text-gray-800">
+                      ${product.offerPrice}
+                    </td>
+
+                    {/* STOCK */}
+                    <td className="px-4 py-4">
+
+                      <span className={`
+                        px-3 py-1 rounded-full text-xs font-semibold
+                        ${product.stock > 10
+                          ? 'bg-green-100 text-green-700'
+                          : product.stock > 0
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-red-100 text-red-700'
+                        }
+                      `}>
+                        {product.stock || 0}
+                      </span>
+
+                    </td>
+
+                    {/* ACCIONES */}
+                    <td className="px-4 py-4">
+
+                      <div className="flex items-center justify-center gap-2">
+
+                        {/* VER */}
+                        <button
+                          onClick={() =>
+                            router.push(`/product/${product._id}`)
+                          }
+                          className="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition"
+                        >
+                          <Eye size={18} />
+                        </button>
+
+                        {/* EDITAR */}
+                        <button
+                          onClick={() =>
+                            router.push(`/seller/edit-product/${product._id}`)
+                          }
+                          className="w-9 h-9 flex items-center justify-center rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white transition"
+                        >
+                          <Pencil size={18} />
+                        </button>
+
+                        {/* ELIMINAR */}
+                        <button
+                          onClick={() =>
+                            handleDelete(product._id)
+                          }
+                          className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 text-white transition"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+
+                      </div>
+
+                    </td>
+
                   </tr>
+
                 ))}
+
               </tbody>
+
             </table>
+
           </div>
+
         </div>
+
       )}
+
       <Footer />
+
     </div>
   );
 };
