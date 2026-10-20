@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
@@ -14,14 +15,26 @@ import {
   X,
 } from "lucide-react";
 import { assets } from "@/assets/assets";
+import { defaultBanner } from "@/lib/banner";
 import { categories } from "@/lib/categories";
 import { useAppContext } from "@/context/AppContext";
 
+function BannerLink({ href, className, children }) {
+  if (!href) return <span className={className.replace("hover:underline", "")}>{children}</span>;
+  return href.startsWith("/")
+    ? <Link href={href} className={className}>{children}</Link>
+    : <a href={href} target="_blank" rel="noopener noreferrer" className={className}>{children}</a>;
+}
+
 export default function Navbar() {
-  const { isSeller, router, user, signOut, products, cartItems, getCartCount, getCartAmount } =
+  const { isSeller, user, signOut, products, cartItems, getCartCount, getCartAmount } =
     useAppContext();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [catalogOpen, setCatalogOpen] = useState(false);
+  const [banner, setBanner] = useState(defaultBanner);
+  const [openMenu, setOpenMenu] = useState(null);
+  const [suggestOpen, setSuggestOpen] = useState(false);
+  const searchRef = useRef(null);
+  const router = useRouter();
   const [cartOpen, setCartOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -29,6 +42,10 @@ export default function Navbar() {
   const menuRef = useRef(null);
   const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
   const displayName = user?.user_metadata?.name || user?.user_metadata?.full_name || user?.email || "?";
+
+  useEffect(() => {
+    fetch("/api/banner").then((res) => res.json()).then((data) => data.banner && setBanner(data.banner)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!userMenuOpen) return undefined;
@@ -51,81 +68,71 @@ export default function Navbar() {
       ).slice(0, 5)
     : [];
 
+  const submitSearch = (event) => {
+    event.preventDefault();
+    setSuggestOpen(false);
+    router.push(`/all-products${search.trim() ? `?search=${encodeURIComponent(search.trim())}` : ""}`);
+  };
+
+  useEffect(() => {
+    if (!suggestOpen) return undefined;
+    const close = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) setSuggestOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [suggestOpen]);
+
   const categoryHref = (slug, subcategory) =>
     `/all-products?category=${slug}${subcategory ? `/${subcategory}` : ""}`;
 
   return (
     <>
       <header className="sticky top-0 z-40">
-        <div className="bg-brand-ink px-4 py-2 text-center text-[10px] font-medium uppercase tracking-[0.16em] text-brand-cream md:text-xs">
-          Envíos a todo el Ecuador <span className="mx-2 text-brand-muted">·</span> Soporte especializado B2B
-        </div>
-        <nav className="border-b border-brand-line bg-brand-cream/95 backdrop-blur">
+        {banner.enabled && (
+          <div style={{ backgroundColor: banner.bg_color, color: banner.text_color }} className="px-4 py-2 text-[10px] font-medium uppercase tracking-[0.16em] md:text-xs">
+            <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 md:px-8 lg:px-12">
+              <BannerLink href={banner.left_url} className="hidden hover:underline md:block">{banner.left_label && `${banner.left_label} →`}</BannerLink>
+              <BannerLink href={banner.message_url} className="flex-1 text-center hover:underline">{banner.message}</BannerLink>
+              <BannerLink href={banner.right_url} className="hidden hover:underline md:block">{banner.right_label && `${banner.right_label} →`}</BannerLink>
+            </div>
+          </div>
+        )}
+        <nav className="border-b border-brand-line bg-white/95 backdrop-blur">
           <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between gap-5 px-4 md:px-8 lg:px-12">
-            <Link href="/" aria-label="COMPEL, inicio">
+            <Link href="/" aria-label="COMPEL, inicio" className="shrink-0">
               <Image className="w-28 md:w-32" src={assets.logo} alt="COMPEL" priority />
             </Link>
 
-            <div className="hidden items-center gap-7 text-sm text-brand-charcoal lg:flex">
-              <Link href="/" className="hover:text-brand-accent">Inicio</Link>
-              <div
-                className="relative"
-                onMouseEnter={() => setCatalogOpen(true)}
-                onMouseLeave={() => setCatalogOpen(false)}
-              >
-                <button
-                  className="flex items-center gap-1 hover:text-brand-accent"
-                  onClick={() => setCatalogOpen((open) => !open)}
-                  aria-expanded={catalogOpen}
-                >
-                  Catálogo <ChevronDown size={15} />
-                </button>
-                {catalogOpen && (
-                  <div className="absolute left-1/2 top-full z-50 w-[min(900px,90vw)] -translate-x-1/2 border border-brand-line bg-brand-cream p-8 shadow-xl">
-                    <div className="grid grid-cols-4 gap-7">
-                      {categories.map((category) => (
-                        <div key={category.slug}>
-                          <Link
-                            href={categoryHref(category.slug)}
-                            onClick={() => setCatalogOpen(false)}
-                            className="mb-3 block font-display text-lg text-brand-ink hover:text-brand-accent"
-                          >
-                            {category.name}
-                          </Link>
-                          <ul className="space-y-2">
-                            {category.subcategories.map((subcategory) => (
-                              <li key={subcategory.slug}>
-                                <Link
-                                  href={categoryHref(category.slug, subcategory.slug)}
-                                  onClick={() => setCatalogOpen(false)}
-                                  className="text-xs text-brand-muted hover:text-brand-accent"
-                                >
-                                  {subcategory.name}
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                    <Link
-                      href="/all-products"
-                      onClick={() => setCatalogOpen(false)}
-                      className="mt-7 inline-block border-b border-brand-accent pb-1 text-xs font-semibold uppercase tracking-wider text-brand-accent"
-                    >
-                      Ver todo el catálogo
+            <div className="relative mx-auto hidden w-full max-w-2xl md:block" ref={searchRef}>
+              <form onSubmit={submitSearch} role="search" className="flex items-center gap-3 rounded-full border border-brand-line bg-white px-5 py-2.5 focus-within:border-brand-accent">
+                <button type="submit" aria-label="Buscar" className="text-brand-ink"><Search size={18} /></button>
+                <input
+                  value={search}
+                  onChange={(event) => { setSearch(event.target.value); setSuggestOpen(true); }}
+                  onFocus={() => setSuggestOpen(true)}
+                  placeholder="¿Qué producto estás buscando?"
+                  className="w-full bg-transparent text-sm outline-none placeholder:text-brand-muted"
+                />
+              </form>
+              {suggestOpen && search.trim() && (
+                <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-brand-line bg-white shadow-xl">
+                  {matches.map((product) => (
+                    <Link key={product._id} href={`/product/${product._id}`} onClick={() => { setSuggestOpen(false); setSearch(""); }} className="flex items-center gap-3 border-b border-brand-line px-4 py-2.5 text-sm hover:bg-brand-sand">
+                      <span className="relative h-10 w-10 shrink-0 bg-brand-sand">
+                        {product.image?.[0] && <Image src={product.image[0]} alt="" fill sizes="40px" className="object-contain p-1" />}
+                      </span>
+                      <span className="line-clamp-1">{product.name}</span>
                     </Link>
-                  </div>
-                )}
-              </div>
-              <Link href="/Productos" className="hover:text-brand-accent">Soluciones</Link>
-              <Link href="/Acerca" className="hover:text-brand-accent">Nosotros</Link>
-              <Link href="/Contactos" className="hover:text-brand-accent">Contacto</Link>
-              {isSeller && <Link href="/seller" className="text-xs font-semibold text-brand-accent">Administración</Link>}
+                  ))}
+                  {matches.length === 0 && <p className="px-4 py-3 text-sm text-brand-muted">No encontramos productos con ese nombre.</p>}
+                  <Link href={`/all-products?search=${encodeURIComponent(search.trim())}`} onClick={() => setSuggestOpen(false)} className="block px-4 py-3 text-sm font-medium text-brand-accent hover:bg-brand-sand">Ver todos los resultados →</Link>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-4 text-brand-ink">
-              <button onClick={() => setSearchOpen(true)} aria-label="Buscar" className="hover:text-brand-accent">
+              <button onClick={() => setSearchOpen(true)} aria-label="Buscar" className="hover:text-brand-accent md:hidden">
                 <Search size={20} />
               </button>
               <button onClick={() => setCartOpen(true)} aria-label="Abrir carrito" className="relative hover:text-brand-accent">
@@ -178,8 +185,41 @@ export default function Navbar() {
             </div>
           </div>
 
+          <div className="hidden border-t border-brand-line lg:block">
+            <div className="mx-auto flex max-w-7xl items-center justify-center gap-8 px-8 text-sm font-medium text-brand-charcoal">
+              {categories.map((category) => (
+                <div
+                  key={category.slug}
+                  className="relative"
+                  onMouseEnter={() => setOpenMenu(category.slug)}
+                  onMouseLeave={() => setOpenMenu(null)}
+                >
+                  <button
+                    onClick={() => setOpenMenu((current) => (current === category.slug ? null : category.slug))}
+                    aria-expanded={openMenu === category.slug}
+                    className={`flex items-center gap-1 border-b-2 py-3 hover:text-brand-accent ${openMenu === category.slug ? "border-brand-accent text-brand-accent" : "border-transparent"}`}
+                  >
+                    {category.name} <ChevronDown size={14} />
+                  </button>
+                  {openMenu === category.slug && (
+                    <div className="absolute left-0 top-full z-50 min-w-60 border border-brand-line bg-white py-2 shadow-xl">
+                      {category.subcategories.map((subcategory) => (
+                        <Link key={subcategory.slug} href={categoryHref(category.slug, subcategory.slug)} onClick={() => setOpenMenu(null)} className="block px-5 py-2.5 text-sm font-normal hover:bg-brand-sand hover:text-brand-accent">{subcategory.name}</Link>
+                      ))}
+                      <Link href={categoryHref(category.slug)} onClick={() => setOpenMenu(null)} className="block px-5 py-2.5 text-sm font-semibold text-brand-accent hover:bg-brand-sand">Ver todo</Link>
+                    </div>
+                  )}
+                </div>
+              ))}
+              <Link href="/Productos" className="py-3 hover:text-brand-accent">Soluciones</Link>
+              <Link href="/Acerca" className="py-3 hover:text-brand-accent">Nosotros</Link>
+              <Link href="/Contactos" className="py-3 hover:text-brand-accent">Contacto</Link>
+              {isSeller && <Link href="/seller" className="py-3 text-xs font-semibold text-brand-accent">Administración</Link>}
+            </div>
+          </div>
+
           {mobileOpen && (
-            <div className="max-h-[calc(100vh-100px)] overflow-y-auto border-t border-brand-line bg-brand-cream px-5 py-5 lg:hidden">
+            <div className="max-h-[calc(100vh-100px)] overflow-y-auto border-t border-brand-line bg-white px-5 py-5 lg:hidden">
               <Link className="block border-b border-brand-line py-3" href="/" onClick={() => setMobileOpen(false)}>Inicio</Link>
               <Link className="block border-b border-brand-line py-3" href="/all-products" onClick={() => setMobileOpen(false)}>Todo el catálogo</Link>
               {categories.map((category) => (
