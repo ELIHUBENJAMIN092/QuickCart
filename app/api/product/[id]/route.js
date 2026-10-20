@@ -1,30 +1,32 @@
 import { NextResponse } from "next/server";
-import Product from "@/models/Product";
-import connectDB from "@/config/db";
+import { createSupabasePublicClient } from "@/lib/supabase/server";
+import { mapProduct } from "@/lib/supabase/records";
 
-export async function GET(request, { params }) {
-
+export async function GET(_request, { params }) {
   try {
+    const { id } = await params;
+    const supabase = createSupabasePublicClient();
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("id", id)
+      .eq("is_active", true)
+      .maybeSingle();
 
-    await connectDB();
+    if (error) throw error;
+    if (!data) {
+      return NextResponse.json(
+        { success: false, message: "Producto no encontrado." },
+        { status: 404 }
+      );
+    }
 
-    // ✅ NEXT 15
-    const id = (await params).id;
-
-    const product = await Product.findById(id);
-
-    return NextResponse.json({
-      success: true,
-      product,
-    });
-
+    return NextResponse.json({ success: true, product: mapProduct(data) });
   } catch (error) {
-
-    return NextResponse.json({
-      success: false,
-      message: error.message,
-    });
-
+    console.error("Error cargando producto:", error);
+    return NextResponse.json(
+      { success: false, message: "No se pudo cargar el producto." },
+      { status: 500 }
+    );
   }
-
 }

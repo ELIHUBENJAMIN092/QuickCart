@@ -86,8 +86,8 @@ export default function ChatWidget() {
                     w-14
                     h-14
                     rounded-full
-                    bg-blue-600
-                    hover:bg-blue-700
+                    bg-brand-accent
+                    hover:bg-brand-accent-hover
                     text-white
                     shadow-xl
                     flex
@@ -124,8 +124,8 @@ export default function ChatWidget() {
                     {/* HEADER */}
                     <div className="
                         bg-gradient-to-r
-                        from-blue-600
-                        to-blue-500
+                        from-brand-accent
+                        to-brand-accent-hover
                         text-white
                         px-5
                         py-4
@@ -172,8 +172,8 @@ export default function ChatWidget() {
                                         whitespace-pre-wrap
                                         ${
                                             msg.role === "user"
-                                                ? "bg-blue-600 text-white rounded-br-sm"
-                                                : "bg-white text-gray-700 rounded-tl-sm border border-gray-100"
+                                                ? "bg-brand-accent text-white rounded-br-sm"
+                                                : "bg-white text-brand-charcoal rounded-tl-sm border border-brand-line"
                                         }
                                     `}
                                 >
@@ -235,7 +235,7 @@ export default function ChatWidget() {
                                     border-gray-200
                                     outline-none
                                     text-sm
-                                    focus:border-blue-500
+                                    focus:border-brand-accent
                                 "
                             />
 
@@ -245,8 +245,8 @@ export default function ChatWidget() {
                                     w-12
                                     h-12
                                     rounded-full
-                                    bg-blue-600
-                                    hover:bg-blue-700
+                                    bg-brand-accent
+                                    hover:bg-brand-accent-hover
                                     text-white
                                     flex
                                     items-center

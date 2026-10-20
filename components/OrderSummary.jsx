@@ -28,13 +28,12 @@ const OrderSummary = () => {
     state: "",
   });
 
-  // 🔄 Autocompletar nombre y correo desde CLERK
   useEffect(() => {
     if (user) {
       setAddress((prev) => ({
         ...prev,
-        fullName: user.fullName || "",
-        email: user.primaryEmailAddress?.emailAddress || "",
+        fullName: user.user_metadata?.name || "",
+        email: user.email || "",
       }));
     }
   }, [user]);
@@ -130,12 +129,12 @@ const OrderSummary = () => {
   };
 
   return (
-    <div className="w-full md:w-96 bg-gray-500/5 p-5">
-      <h2 className="text-xl md:text-2xl font-medium text-gray-700">
+    <div className="w-full bg-brand-sand p-6 md:w-96">
+      <h2 className="font-display text-2xl text-brand-ink">
         Orden de Compra
       </h2>
 
-      <hr className="border-gray-500/30 my-5" />
+      <hr className="my-5 border-brand-line" />
 
       {/* 📍 Datos del cliente */}
       <div className="space-y-3">
@@ -144,7 +143,8 @@ const OrderSummary = () => {
           placeholder="Nombre completo"
           value={address.fullName}
           onChange={handleChange}
-          className="w-full border p-2"
+          required
+          className="w-full border-b border-brand-line bg-transparent px-1 py-3 text-sm outline-none placeholder:text-brand-muted focus:border-brand-accent"
         />
 
         <input
@@ -153,7 +153,8 @@ const OrderSummary = () => {
           placeholder="Correo electrónico"
           value={address.email}
           onChange={handleChange}
-          className="w-full border p-2"
+          required
+          className="w-full border-b border-brand-line bg-transparent px-1 py-3 text-sm outline-none placeholder:text-brand-muted focus:border-brand-accent"
         />
 
         <input
@@ -161,7 +162,8 @@ const OrderSummary = () => {
           placeholder="Cédula o RUC"
           value={address.idNumber}
           onChange={handleChange}
-          className="w-full border p-2"
+          required
+          className="w-full border-b border-brand-line bg-transparent px-1 py-3 text-sm outline-none placeholder:text-brand-muted focus:border-brand-accent"
         />
 
         <input
@@ -169,7 +171,8 @@ const OrderSummary = () => {
           placeholder="Teléfono celular (09xxxxxxxx)"
           value={address.phoneNumber}
           onChange={handleChange}
-          className="w-full border p-2"
+          required
+          className="w-full border-b border-brand-line bg-transparent px-1 py-3 text-sm outline-none placeholder:text-brand-muted focus:border-brand-accent"
         />
 
         <textarea
@@ -177,7 +180,8 @@ const OrderSummary = () => {
           placeholder="Dirección / Sector"
           value={address.area}
           onChange={handleChange}
-          className="w-full border p-2 resize-none"
+          required
+          className="w-full resize-none border-b border-brand-line bg-transparent px-1 py-3 text-sm outline-none placeholder:text-brand-muted focus:border-brand-accent"
           rows={3}
         />
 
@@ -186,7 +190,8 @@ const OrderSummary = () => {
           placeholder="Ciudad"
           value={address.city}
           onChange={handleChange}
-          className="w-full border p-2"
+          required
+          className="w-full border-b border-brand-line bg-transparent px-1 py-3 text-sm outline-none placeholder:text-brand-muted focus:border-brand-accent"
         />
 
         <input
@@ -194,11 +199,12 @@ const OrderSummary = () => {
           placeholder="Provincia"
           value={address.state}
           onChange={handleChange}
-          className="w-full border p-2"
+          required
+          className="w-full border-b border-brand-line bg-transparent px-1 py-3 text-sm outline-none placeholder:text-brand-muted focus:border-brand-accent"
         />
       </div>
 
-      <hr className="border-gray-500/30 my-5" />
+      <hr className="my-5 border-brand-line" />
 
       {/* 💰 Totales */}
       <div className="space-y-3 text-sm">
@@ -216,7 +222,7 @@ const OrderSummary = () => {
             {(getCartAmount() * 0.15).toFixed(2)}
           </span>
         </div>
-        <div className="flex justify-between font-medium text-lg border-t pt-3">
+        <div className="flex justify-between border-t border-brand-line pt-3 text-lg font-medium text-brand-ink">
           <span>Total</span>
           <span>
             {currency}
@@ -227,7 +233,7 @@ const OrderSummary = () => {
 
       <button
         onClick={createOrder}
-        className="w-full bg-blue-600 text-white py-3 mt-5 hover:bg-blue-700"
+        className="mt-5 w-full rounded-full bg-brand-accent py-3 text-sm font-semibold text-white transition hover:bg-brand-accent-hover"
       >
         Finalizar Compra
       </button>

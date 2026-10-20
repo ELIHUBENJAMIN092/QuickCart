@@ -1,4 +1,3 @@
-import React from "react";
 import Image from "next/image";
 
 const brandLogos = [
@@ -7,32 +6,22 @@ const brandLogos = [
   { src: "/logos/swiftpro.png", alt: "Swiftpro" },
   { src: "/logos/magicard.png", alt: "Magicard" },
   { src: "/logos/epson.png", alt: "Epson" },
-  { src: "/logos/hid.png", alt: "Hid" },
+  { src: "/logos/hid.png", alt: "HID" },
   { src: "/logos/bartender.png", alt: "Bartender" },
   { src: "/logos/unitech.png", alt: "Unitech" },
 ];
 
-const BrandCarousel = () => {
+export default function BrandCarousel() {
   return (
-    <div className="overflow-hidden bg-[#F4F6FA] py-6">
-      <div className="animate-scroll flex gap-10 items-center whitespace-nowrap px-4">
-        {brandLogos.concat(brandLogos).map((logo, index) => (
-          <div
-            key={`${logo.alt}-${index}`}
-            className="min-w-[100px] h-[60px] flex items-center justify-center"
-          >
-            <Image
-              src={logo.src}
-              alt={logo.alt}
-              width={100}
-              height={60}
-              priority={index < 10} // Mejora el rendimiento en los primeros logos
-            />
+    <section className="overflow-hidden border-y border-brand-line bg-brand-cream py-8" aria-label="Marcas que distribuimos">
+      <p className="mb-5 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-muted">Marcas de confianza</p>
+      <div className="animate-scroll flex w-max items-center gap-12 whitespace-nowrap px-6">
+        {[...brandLogos, ...brandLogos].map((logo, index) => (
+          <div key={`${logo.alt}-${index}`} className="brand-logo grayscale transition duration-300 hover:grayscale-0">
+            <Image src={logo.src} alt={index < brandLogos.length ? logo.alt : ""} width={120} height={60} className="max-h-12 w-auto object-contain" />
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
-};
-
-export default BrandCarousel;
+}

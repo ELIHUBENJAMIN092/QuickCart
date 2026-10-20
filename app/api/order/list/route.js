@@ -1,37 +1,22 @@
-import connectDB from "@/config/db";
-import Order from "@/models/Order";
-import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { getAuthenticatedSupabase } from "@/lib/supabase/server";
+import { mapOrder } from "@/lib/supabase/records";
 
 export async function GET(request) {
-  try {
-    const { userId } = getAuth(request);
-
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, message: "No autorizado" },
-        { status: 401 }
-      );
-    }
-
-    await connectDB();
-
-    const orders = await Order.find({ userId })
-      .populate({
-        path: "items.product",
-        select: "name price offerPrice",
-      })
-      .sort({ date: -1 });
-
-    return NextResponse.json({
-      success: true,
-      orders,
-    });
-  } catch (error) {
-    console.error("Error in /api/order/list:", error);
-    return NextResponse.json(
-      { success: false, message: error.message },
-      { status: 500 }
-    );
+  const { supabase, user } = await getAuthenticatedSupabase(request);
+  if (!user) {
+    return NextResponse.json({ success: false, message: "Inicia sesión." }, { status: 401 });
   }
+
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*, order_items(*)")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+  if (error) {
+    console.error("Error cargando órdenes:", error);
+    return NextResponse.json({ success: false, message: "No se pudieron cargar las órdenes." }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true, orders: data.map(mapOrder) });
 }

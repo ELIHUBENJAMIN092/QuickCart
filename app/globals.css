@@ -2,9 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Scroll suave en toda la app */
-* {
+html {
   scroll-behavior: smooth;
+}
+
+body {
+  background: #FFFFFF;
+  color: #333333;
+}
+
+::selection {
+  background: #003087;
+  color: #FFFFFF;
 }
 
 /* Ocultar flechas en inputs numéricos */
@@ -16,9 +25,17 @@
   }
 }
 
-/* Ocultar scrollbar en navegadores WebKit */
 ::-webkit-scrollbar {
-  display: none;
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #B9C5D6;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FFFFFF;
 }
 
 /* Animación para carrusel horizontal infinito */
@@ -35,9 +52,8 @@
   animation: scroll 30s linear infinite;
 }
 
-/* Transiciones suaves para hover y focus */
-.transition-all {
-  transition: all 0.3s ease-in-out;
+.animate-scroll:hover {
+  animation-play-state: paused;
 }
 
 /* Estilo base para logos en carrusel */
@@ -54,5 +70,16 @@
   .brand-logo {
     min-width: 80px;
     height: 50px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

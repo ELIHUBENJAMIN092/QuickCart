@@ -1,45 +1,41 @@
 import React from 'react';
 import Link from 'next/link';
-import { assets } from '../../assets/assets';
-import Image from 'next/image';
+import { BarChart3, CreditCard, GalleryHorizontal, List, PackagePlus, ShoppingBag } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 const SideBar = () => {
     const pathname = usePathname()
     const menuItems = [
-        { name: 'Añadir Producto', path: '/seller', icon: assets.add_icon },
-        { name: 'Lista de Productos', path: '/seller/product-list', icon: assets.product_list_icon },
-        { name: 'Ordenes', path: '/seller/orders', icon: assets.order_icon },
-        { name: 'Pagos Confirmados', path: '/seller/pagos', icon: assets.credit_icon },
+        { name: 'Resumen', path: '/seller/dashboard', icon: BarChart3 },
+        { name: 'Añadir producto', path: '/seller', icon: PackagePlus },
+        { name: 'Productos', path: '/seller/product-list', icon: List },
+        { name: 'Carrusel', path: '/seller/carousel', icon: GalleryHorizontal },
+        { name: 'Órdenes', path: '/seller/orders', icon: ShoppingBag },
+        { name: 'Pagos confirmados', path: '/seller/pagos', icon: CreditCard },
     ];
 
     return (
-        <div className='md:w-64 w-16 border-r min-h-screen text-base border-gray-300 py-2 flex flex-col'>
+        <nav aria-label="Navegación de administración" className='sticky top-[65px] flex min-h-[calc(100vh-65px)] w-14 shrink-0 flex-col border-r border-brand-line bg-white py-3 text-sm md:w-60'>
             {menuItems.map((item) => {
 
-                const isActive = pathname === item.path;
+                const isActive = pathname === item.path || (item.path === "/seller/product-list" && pathname.startsWith("/seller/edit-product"));
 
                 return (
-                    <Link href={item.path} key={item.name} passHref>
+                    <Link href={item.path} key={item.name} aria-current={isActive ? "page" : undefined}>
                         <div
-                            className={
-                                `flex items-center py-3 px-4 gap-3 ${isActive
-                                    ? "border-r-4 md:border-r-[6px] bg-blue-600/10 border-blue-500/90"
-                                    : "hover:bg-gray-100/90 border-white"
-                                }`
-                            }
+                            title={item.name}
+                            className={`flex items-center gap-3 border-r-[3px] px-4 py-3 transition ${isActive
+                                ? "border-brand-accent bg-brand-sand text-brand-accent"
+                                : "border-transparent text-brand-charcoal hover:bg-brand-cream"
+                            }`}
                         >
-                            <Image
-                                src={item.icon}
-                                alt={`${item.name.toLowerCase()}_icon`}
-                                className="w-7 h-7"
-                            />
-                            <p className='md:block hidden text-center'>{item.name}</p>
+                            <item.icon size={19} aria-hidden="true" />
+                            <p className='hidden md:block'>{item.name}</p>
                         </div>
                     </Link>
                 );
             })}
-        </div>
+        </nav>
     );
 };
 

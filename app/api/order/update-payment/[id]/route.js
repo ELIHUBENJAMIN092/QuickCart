@@ -1,30 +1,28 @@
-import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import connectDB from "@/config/db";
-import Order from "@/models/Order";
+import authSeller from "@/lib/authSeller";
+import { getAuthenticatedSupabase } from "@/lib/supabase/server";
+import { mapOrder } from "@/lib/supabase/records";
 
-export async function PUT(req, context) {
-  try {
-    const { userId } = getAuth(req);
-    const { id } = await context.params; // 👈 esto soluciona el warning
-
-    if (!userId) {
-      return NextResponse.json({ success: false, message: "No autorizado" }, { status: 401 });
-    }
-
-    await connectDB();
-
-    const order = await Order.findById(id);
-
-    if (!order) {
-      return NextResponse.json({ success: false, message: "Orden no encontrada" }, { status: 404 });
-    }
-
-    order.isPaid = true;
-    await order.save();
-
-    return NextResponse.json({ success: true, order });
-  } catch (error) {
-    return NextResponse.json({ success: false, message: "Error interno" }, { status: 500 });
+export async function PUT(request, context) {
+  const { supabase, user } = await getAuthenticatedSupabase(request);
+  if (!user || !(await authSeller(supabase, user.id))) {
+    return NextResponse.json({ success: false, message: "No autorizado." }, { status: 401 });
   }
+
+  const { id } = await context.params;
+  const { data, error } = await supabase
+    .from("orders")
+    .update({ is_paid: true, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select("*, order_items(*)")
+    .maybeSingle();
+  if (error) {
+    console.error("Error confirmando pago:", error);
+    return NextResponse.json({ success: false, message: "No se pudo confirmar el pago." }, { status: 500 });
+  }
+  if (!data) {
+    return NextResponse.json({ success: false, message: "Orden no encontrada." }, { status: 404 });
+  }
+
+  return NextResponse.json({ success: true, order: mapOrder(data) });
 }

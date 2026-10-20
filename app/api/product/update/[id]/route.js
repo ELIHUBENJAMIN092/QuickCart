@@ -1,58 +1,104 @@
 import { NextResponse } from "next/server";
-import connectDB from "@/config/db";
-import Product from "@/models/Product";
+import authSeller from "@/lib/authSeller";
+import { categories } from "@/lib/categories";
+import { getAuthenticatedSupabase } from "@/lib/supabase/server";
+import { mapProduct } from "@/lib/supabase/records";
+import { removeProductMedia, validateProductFile } from "@/lib/supabase/storage";
 
-export async function PUT(req, context) {
-
+export async function PUT(request, context) {
   try {
-
-    // Conectar MongoDB
-    await connectDB();
-
-    // Obtener params correctamente
-    const params = await context.params;
-
-    // Obtener body
-    const body = await req.json();
-
-    // Actualizar producto
-    const updatedProduct = await Product.findByIdAndUpdate(
-      params.id,
-      {
-        name: body.name,
-        category: body.category,
-        offerPrice: body.offerPrice,
-        stock: body.stock,
-      },
-      {
-        new: true,
-      }
-    );
-
-    // Validar producto
-    if (!updatedProduct) {
-
-      return NextResponse.json({
-        success: false,
-        message: "Producto no encontrado",
-      });
-
+    const { supabase, user } = await getAuthenticatedSupabase(request);
+    if (!user || !(await authSeller(supabase, user.id))) {
+      return NextResponse.json({ success: false, message: "No autorizado." }, { status: 401 });
     }
 
-    // Respuesta exitosa
+    const { id } = await context.params;
+    const body = await request.json();
+    const name = String(body.name || "").trim();
+    const description = String(body.description || "").trim();
+    const category = String(body.category || "");
+    const subcategory = String(body.subcategory || "");
+    const price = Number(body.price);
+    const offerPrice = Number(body.offerPrice);
+    const stock = Number(body.stock);
+    const selectedCategory = categories.find((item) => item.slug === category);
+    const validSubcategory =
+      !subcategory ||
+      selectedCategory?.subcategories.some((item) => item.slug === subcategory);
+    const imagePaths = body.imagePaths || [];
+    const videoPath = body.videoPath || "";
+    const removeVideo = body.removeVideo === true;
+
+    if (!name || name.length > 160 || !description || description.length > 5000 || !selectedCategory || !validSubcategory) {
+      return NextResponse.json({ success: false, message: "Completa los datos y selecciona una categoría válida." }, { status: 400 });
+    }
+    if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(offerPrice) || offerPrice < 0 || offerPrice > price || !Number.isInteger(stock) || stock < 0) {
+      return NextResponse.json({ success: false, message: "Revisa los precios y el stock del producto." }, { status: 400 });
+    }
+    if (!Array.isArray(imagePaths) || imagePaths.length > 4) {
+      return NextResponse.json({ success: false, message: "Cada imagen debe ser válida y pesar máximo 8 MB; puedes subir hasta 4." }, { status: 400 });
+    }
+
+    const { data: current, error: readError } = await supabase
+      .from("products")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+    if (readError) throw readError;
+    if (!current) {
+      return NextResponse.json({ success: false, message: "Producto no encontrado." }, { status: 404 });
+    }
+
+    const imageUrls = imagePaths.length
+      ? await Promise.all(imagePaths.map((path) =>
+          validateProductFile(supabase, user.id, path, "images", 8 * 1024 * 1024, "image/")
+        ))
+      : current.image_urls;
+    let videoUrl = removeVideo ? "" : current.video || "";
+    if (videoPath) videoUrl = await validateProductFile(supabase, user.id, videoPath, "videos", 100 * 1024 * 1024, "video/");
+    const { data: updated, error } = await supabase
+      .from("products")
+      .update({
+        name,
+        description,
+        category,
+        subcategory,
+        price,
+        offer_price: offerPrice,
+        stock,
+        image_urls: imageUrls,
+        video: videoUrl,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .select("*")
+      .single();
+    if (error) throw error;
+
+    const oldMedia = [
+      ...(imagePaths.length ? current.image_urls || [] : []),
+      ...(videoUrl !== current.video && current.video ? [current.video] : []),
+    ];
+    let cleanupPending = false;
+    try {
+      await removeProductMedia(supabase, oldMedia);
+    } catch (cleanupError) {
+      cleanupPending = true;
+      console.error("No se pudo limpiar el archivo anterior:", cleanupError);
+    }
+
     return NextResponse.json({
       success: true,
-      message: "Producto actualizado",
-      product: updatedProduct,
+      message: cleanupPending
+        ? "Producto actualizado; quedó un archivo anterior pendiente de limpieza."
+        : "Producto actualizado correctamente.",
+      product: mapProduct(updated),
     });
-
   } catch (error) {
-
-    return NextResponse.json({
-      success: false,
-      message: error.message,
-    });
-
+    console.error("Error actualizando producto:", error);
+    return NextResponse.json(
+      { success: false, message: "No se pudo actualizar el producto." },
+      { status: 500 }
+    );
   }
-
 }

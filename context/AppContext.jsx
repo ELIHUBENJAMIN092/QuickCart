@@ -1,9 +1,9 @@
 "use client";
-import { useAuth, useUser } from "@clerk/nextjs";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export const AppContext = createContext();
 
@@ -14,14 +14,28 @@ export const useAppContext = () => {
 export const AppContextProvider = (props) => {
   const currency = process.env.NEXT_PUBLIC_CURRENCY;
   const router = useRouter();
-
-  const { user } = useUser();
-  const { getToken } = useAuth();
+  const supabase = createSupabaseBrowserClient();
+  const [user, setUser] = useState(null);
 
   const [products, setProducts] = useState([]);
   const [userData, setUserData] = useState(false);
   const [isSeller, setIsSeller] = useState(false);
   const [cartItems, setCartItems] = useState({});
+
+  const getToken = async () => {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    return data.session?.access_token || null;
+  };
+
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    router.push("/");
+  };
 
   // Obtener todos los productos disponibles
   const fetchProductData = async () => {
@@ -41,11 +55,8 @@ export const AppContextProvider = (props) => {
   // Obtener datos del usuario actual
   const fetchUserData = async () => {
     try {
-      if (user?.publicMetadata?.role === "seller") {
-        setIsSeller(true);
-      }
-
       const token = await getToken();
+      if (!token) return;
 
       const { data } = await axios.get("/api/user/data", {
         headers: { Authorization: `Bearer ${token}` },
@@ -54,6 +65,7 @@ export const AppContextProvider = (props) => {
       if (data.success) {
         setUserData(data.user);
         setCartItems(data.user.cartItems || {});
+        setIsSeller(data.user.role === "seller");
       } else {
         toast.error(data.message);
       }
@@ -63,17 +75,24 @@ export const AppContextProvider = (props) => {
   };
 
   // Agregar producto al carrito
-  const addToCart = async (itemId) => {
+  const addToCart = async (itemId, quantity = 1) => {
     if (!user) {
       return toast("Por Favor Registrarse", { icon: "⚠️" });
     }
 
-    let cartData = structuredClone(cartItems);
-    if (cartData[itemId]) {
-      cartData[itemId] += 1;
-    } else {
-      cartData[itemId] = 1;
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      return toast.error("La cantidad seleccionada no es válida.");
     }
+
+    let cartData = structuredClone(cartItems);
+    const nextQuantity = (cartData[itemId] || 0) + quantity;
+    const product = products.find((item) => item._id === itemId);
+    const stock = Number(product?.stock || 0);
+
+    if (!product || stock < nextQuantity) {
+      return toast.error(stock === 0 ? "Este producto no tiene stock disponible." : `Solo hay ${stock} unidades disponibles.`);
+    }
+    cartData[itemId] = nextQuantity;
     setCartItems(cartData);
 
     try {
@@ -163,21 +182,42 @@ export const AppContextProvider = (props) => {
     fetchProductData();
   }, []);
 
-  // Manejar sesión de usuario
   useEffect(() => {
-    if (user) {
-      fetchUserData();
-    } else {
-      // Cuando no hay usuario, limpiar datos
+    let mounted = true;
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      if (mounted) setUser(data.session?.user || null);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  useEffect(() => {
+    if (!user) {
       setIsSeller(false);
       setUserData(false);
       setCartItems({});
+      return;
     }
+    fetchUserData();
   }, [user]);
 
   // Valor global del contexto
   const value = {
     user,
+    signOut,
     getToken,
     currency,
     router,

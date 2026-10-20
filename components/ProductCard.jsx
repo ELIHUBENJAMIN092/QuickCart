@@ -1,81 +1,48 @@
-import React from 'react'
-import { assets } from '@/assets/assets'
-import Image from 'next/image';
-import ScrollToTopFloat from "@/components/ScrollToTopFloat";
-import { useAppContext } from '@/context/AppContext';
+"use client";
 
-const ProductCard = ({ product }) => {
+import Image from "next/image";
+import Link from "next/link";
+import { useAppContext } from "@/context/AppContext";
+import { getCategoryName, getSubcategoryName } from "@/lib/categories";
+import Badge from "@/components/ui/Badge";
+import Price from "@/components/ui/Price";
 
-    const { currency, router } = useAppContext()
+export default function ProductCard({ product }) {
+  const { currency, addToCart } = useAppContext();
+  const hasOffer = Number(product.offerPrice) < Number(product.price);
+  const image = product.image?.[0];
+  const secondaryImage = product.image?.[1] || image;
+  const soldOut = Number(product.stock) <= 0;
+  const isNew = Number(product.date) > Date.now() - 30 * 24 * 60 * 60 * 1000;
 
-    return (
-        <>
-            <div
-                onClick={() => { 
-                    router.push('/product/' + product._id); 
-                    scrollTo(0, 0) 
-                }}
-                className="flex flex-col items-start gap-0.5 max-w-[200px] w-full cursor-pointer"
-            >
-                <div className="cursor-pointer group relative bg-gray-500/10 rounded-lg w-full h-52 flex items-center justify-center">
-                    <Image
-                        src={product.image[0]}
-                        alt={product.name}
-                        className="group-hover:scale-105 transition object-cover w-4/5 h-4/5 md:w-full md:h-full"
-                        width={800}
-                        height={800}
-                    />
-
-                    <button className="absolute top-2 right-2 bg-white p-2 rounded-full shadow-md">
-                        <Image
-                            className="h-3 w-3"
-                            src={assets.heart_icon}
-                            alt="heart_icon"
-                        />
-                    </button>
-                </div>
-
-                <p className="md:text-base font-medium pt-2 w-full truncate">
-                    {product.name}
-                </p>
-
-                <p className="w-full text-xs text-gray-500/70 max-sm:hidden truncate">
-                    {product.description}
-                </p>
-
-                <div className="flex items-center gap-2">
-                    <p className="text-xs">{4.9}</p>
-
-                    <div className="flex items-center gap-0.5">
-                        {Array.from({ length: 5 }).map((_, index) => (
-                            <Image
-                                key={index}
-                                className="h-3 w-3"
-                                src={
-                                    index < Math.floor(4)
-                                        ? assets.star_icon
-                                        : assets.star_dull_icon
-                                }
-                                alt="star_icon"
-                            />
-                        ))}
-                    </div>
-                </div>
-
-                <div className="flex items-end justify-between w-full mt-1">
-                    <p className="text-base font-medium">
-                        {currency}{product.offerPrice}
-                    </p>
-
-                    <button className="max-sm:hidden px-4 py-1.5 text-gray-500 border border-gray-500/20 rounded-full text-xs hover:bg-slate-50 transition">
-                        Comprar ahora
-                    </button>
-                </div>
-            </div>
-
-            <ScrollToTopFloat />
-        </>
-    )
+  return (
+    <article className="group min-w-0">
+      <Link href={`/product/${product._id}`} className="block">
+        <div className="relative aspect-square overflow-hidden bg-brand-sand">
+          {image && (
+            <>
+              <Image src={image} alt={product.name} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className={`object-contain p-5 transition duration-500 group-hover:scale-105 ${product.image?.[1] ? "group-hover:opacity-0" : ""}`} />
+              {product.image?.[1] && <Image src={secondaryImage} alt="" fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-contain p-5 opacity-0 transition duration-500 group-hover:scale-105 group-hover:opacity-100" />}
+            </>
+          )}
+          <div className="absolute left-3 top-3 flex flex-col items-start gap-2">
+            {soldOut ? <Badge variant="sold-out">Agotado</Badge> : hasOffer ? <Badge variant="sale">Oferta</Badge> : isNew ? <Badge variant="new">Nuevo</Badge> : null}
+          </div>
+        </div>
+        <p className="mt-4 truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-muted">{getCategoryName(product.category)}{product.subcategory ? ` · ${getSubcategoryName(product.category, product.subcategory)}` : ""}</p>
+        <h3 className="mt-1 line-clamp-2 min-h-10 text-sm font-medium leading-5 text-brand-ink transition group-hover:text-brand-accent">{product.name}</h3>
+      </Link>
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <Price price={product.price} offerPrice={product.offerPrice} currency={currency} className="text-sm" />
+        <button
+          type="button"
+          onClick={() => addToCart(product._id)}
+          disabled={soldOut}
+          className="rounded-full border border-brand-line px-3 py-2 text-[11px] font-semibold text-brand-ink transition hover:border-brand-accent hover:bg-brand-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-40 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100"
+        >
+          {soldOut ? "Agotado" : "Añadir"}
+        </button>
+      </div>
+    </article>
+  );
 }
-
-export default ProductCard

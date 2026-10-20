@@ -5,62 +5,74 @@ import Image from "next/image";
 import { useAppContext } from "@/context/AppContext";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { categories } from "@/lib/categories";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { uploadProductFile } from "@/lib/supabase/storage";
+import { optimizeImages } from "@/lib/imageOptimize";
+
+const inputClass = "w-full rounded-lg border border-brand-line bg-white px-4 py-3 text-sm text-brand-ink outline-none transition placeholder:text-brand-muted focus:border-brand-accent";
 
 const AddProduct = () => {
 
-  const { getToken } = useAppContext()
+  const { getToken, fetchProductData, user } = useAppContext()
 
   const [files, setFiles] = useState([]);
   const [video, setVideo] = useState(null);
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('Código de Barras');
+  const [category, setCategory] = useState(categories[0].slug);
+  const [subcategory, setSubcategory] = useState('');
 
   const [price, setPrice] = useState('');
   const [offerPrice, setOfferPrice] = useState('');
 
   // 🔥 NUEVO STOCK
   const [stock, setStock] = useState('');
+  const [saving, setSaving] = useState(false);
 
   // ENVIAR PRODUCTO
   const handleSubmit = async (e) => {
 
     e.preventDefault();
 
+    if (Number(offerPrice) > Number(price)) {
+      toast.error("El precio de oferta no puede superar el precio normal.");
+      return;
+    }
+    const selectedImages = await optimizeImages(files.filter(Boolean));
+    if (selectedImages.length === 0 || selectedImages.length > 4) {
+      toast.error("Añade entre 1 y 4 imágenes del producto.");
+      return;
+    }
+    if (selectedImages.some((file) => !file.type.startsWith("image/") || file.size > 8 * 1024 * 1024)) {
+      toast.error("Cada imagen debe ser válida y pesar máximo 8 MB.");
+      return;
+    }
+    if (video && (!video.type.startsWith("video/") || video.size > 100 * 1024 * 1024)) {
+      toast.error("El video debe ser válido y pesar máximo 100 MB.");
+      return;
+    }
+
+    setSaving(true);
     try {
 
-      const formData = new FormData()
-
-      formData.append('name', name)
-      formData.append('description', description)
-      formData.append('category', category)
-
-      formData.append('price', price)
-      formData.append('offerPrice', offerPrice)
-
-      // 🔥 AGREGAR STOCK
-      formData.append('stock', stock)
-
-      // IMÁGENES
-      for (let i = 0; i < files.length; i++) {
-
-        if (files[i]) {
-          formData.append('images', files[i])
-        }
-
-      }
-
-      // VIDEO
-      if (video) {
-        formData.append('video', video)
-      }
-
       const token = await getToken()
+      if (!token || !user) {
+        toast.error("Inicia sesión como vendedor para agregar productos.");
+        return;
+      }
+      const supabase = createSupabaseBrowserClient();
+      const imagePaths = await Promise.all(
+        selectedImages.map((file) => uploadProductFile(supabase, user.id, file, "images"))
+      );
+      const videoPath = video
+        ? await uploadProductFile(supabase, user.id, video, "videos")
+        : "";
 
       const { data } = await axios.post(
         '/api/product/add',
-        formData,
+        { name, description, category, subcategory, price, offerPrice, stock, imagePaths, videoPath },
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -71,6 +83,7 @@ const AddProduct = () => {
       if (data.success) {
 
         toast.success(data.message)
+        fetchProductData()
 
         // LIMPIAR FORMULARIO
         setFiles([])
@@ -78,7 +91,8 @@ const AddProduct = () => {
 
         setName('')
         setDescription('')
-        setCategory('Código de Barras')
+        setCategory(categories[0].slug)
+        setSubcategory('')
 
         setPrice('')
         setOfferPrice('')
@@ -96,25 +110,31 @@ const AddProduct = () => {
 
       toast.error(error.message)
 
+    } finally {
+    setSaving(false)
     }
 
   };
 
   return (
 
-    <div className="flex-1 min-h-screen flex flex-col justify-between">
+    <main className="min-h-screen flex-1 bg-brand-cream p-4 md:p-8">
 
       <form
         onSubmit={handleSubmit}
-        className="md:p-10 p-4 space-y-5 max-w-2xl"
+        className="mx-auto max-w-5xl space-y-7 rounded-2xl border border-brand-line bg-white p-5 shadow-sm md:p-8"
       >
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-muted">Administración · Catálogo</p>
+          <h1 className="mt-2 font-display text-3xl text-brand-ink md:text-4xl">Añadir producto</h1>
+          <p className="mt-2 text-sm text-brand-muted">Completa los datos para publicar un nuevo artículo en la tienda.</p>
+        </div>
 
         {/* IMÁGENES */}
-        <div>
+        <section className="border-t border-brand-line pt-6">
 
-          <p className="text-base font-medium">
-            Imagen del Producto
-          </p>
+          <p className="text-sm font-semibold text-brand-ink">Imágenes del producto</p>
+          <p className="mt-1 text-xs text-brand-muted">Añade entre 1 y 4 imágenes, máximo 8 MB por imagen.</p>
 
           <div className="flex flex-wrap items-center gap-3 mt-2">
 
@@ -133,6 +153,7 @@ const AddProduct = () => {
 
                   }}
                   type="file"
+                  accept="image/*"
                   id={`image${index}`}
                   hidden
                 />
@@ -144,7 +165,7 @@ const AddProduct = () => {
                       ? URL.createObjectURL(files[index])
                       : assets.upload_area
                   }
-                  alt=""
+                  alt={files[index]?.name || "Seleccionar imagen"}
                   width={100}
                   height={100}
                 />
@@ -155,14 +176,12 @@ const AddProduct = () => {
 
           </div>
 
-        </div>
+        </section>
 
         {/* VIDEO */}
-        <div>
+        <section className="border-t border-brand-line pt-6">
 
-          <p className="text-base font-medium">
-            Video del Producto
-          </p>
+          <p className="text-sm font-semibold text-brand-ink">Video del producto <span className="font-normal text-brand-muted">(opcional, máximo 100 MB)</span></p>
 
           <label htmlFor="videoUpload">
 
@@ -176,7 +195,7 @@ const AddProduct = () => {
               }
             />
 
-            <div className="mt-2 w-40 h-24 flex items-center justify-center border border-dashed border-gray-400 rounded cursor-pointer overflow-hidden">
+            <div className="mt-3 flex h-24 w-52 items-center justify-center overflow-hidden rounded-lg border border-dashed border-brand-line bg-brand-cream">
 
               {video ? (
 
@@ -187,54 +206,41 @@ const AddProduct = () => {
 
               ) : (
 
-                <span className="text-gray-400 text-sm">
-                  Subir video
-                </span>
+                <span className="text-xs text-brand-muted">Seleccionar video</span>
 
               )}
 
             </div>
+            {video && <p className="mt-2 text-xs text-brand-muted">{video.name}</p>}
 
           </label>
 
-        </div>
+        </section>
 
         {/* NOMBRE */}
-        <div className="flex flex-col gap-1 max-w-md">
-
-          <label
-            className="text-base font-medium"
-            htmlFor="product-name"
-          >
-            Nombre del Producto
-          </label>
+        <label htmlFor="product-name" className="flex max-w-3xl flex-col gap-2 text-xs font-medium text-brand-charcoal">
+          Nombre del producto
 
           <input
             id="product-name"
             type="text"
             placeholder="Ingresar nombre"
-            className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40"
+            className={inputClass}
             onChange={(e) => setName(e.target.value)}
             value={name}
             required
           />
 
-        </div>
+        </label>
 
         {/* DESCRIPCIÓN */}
-        <div className="flex flex-col gap-1 max-w-xl">
-
-          <label
-            className="text-base font-medium"
-            htmlFor="product-description"
-          >
-            Descripción del Producto
-          </label>
+        <label htmlFor="product-description" className="flex max-w-3xl flex-col gap-2 text-xs font-medium text-brand-charcoal">
+          Descripción del producto
 
           <textarea
             id="product-description"
             rows={4}
-            className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40 resize-none"
+            className={`${inputClass} resize-y`}
             placeholder="Ingresar descripción"
             onChange={(e) =>
               setDescription(e.target.value)
@@ -242,90 +248,54 @@ const AddProduct = () => {
             value={description}
             required
           ></textarea>
-
-        </div>
+        </label>
 
         {/* CATEGORÍA + PRECIOS + STOCK */}
-        <div className="flex items-end gap-5 flex-wrap">
+        <section className="grid gap-4 border-t border-brand-line pt-6 sm:grid-cols-2 xl:grid-cols-5">
 
           {/* CATEGORÍA */}
-          <div className="flex flex-col gap-1 w-48">
-
-            <label
-              className="text-base font-medium"
-              htmlFor="category"
-            >
-              Categoría
-            </label>
+          <label htmlFor="category" className="flex flex-col gap-2 text-xs font-medium text-brand-charcoal">
+            Categoría principal
 
             <select
               id="category"
-              className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40"
-              onChange={(e) =>
+              className={inputClass}
+              onChange={(e) => {
                 setCategory(e.target.value)
-              }
+                setSubcategory('')
+              }}
               value={category}
             >
 
-              <option value="Código de Barras">
-                Código de Barras
-              </option>
-
-              <option value="Identificación PVC">
-                Identificación PVC
-              </option>
-
-              <option value="RFID">
-                RFID
-              </option>
-
-              <option value="Lectores">
-                Lectores
-              </option>
-
-              <option value="Suministros">
-                Suministros
-              </option>
-
-              <option value="Etiquetas">
-                Etiquetas
-              </option>
-
-              <option value="Cordones">
-                Cordones
-              </option>
-
-              <option value="Etiquetas RFID Tags">
-                Etiquetas RFID Tags
-              </option>
-
-              <option value="Brazaletes">
-                Brazaletes
-              </option>
-
-              <option value="PDA">
-                PDA
-              </option>
+              {categories.map((item) => (
+                <option key={item.slug} value={item.slug}>{item.name}</option>
+              ))}
 
             </select>
 
-          </div>
+          </label>
+
+          <label className="flex flex-col gap-2 text-xs font-medium text-brand-charcoal">
+            <span>Subcategoría</span>
+            <select id="subcategory" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} className={inputClass}>
+              <option value="">Sin subcategoría</option>
+              {categories.find((item) => item.slug === category)?.subcategories.map((item) => (
+                <option key={item.slug} value={item.slug}>{item.name}</option>
+              ))}
+            </select>
+          </label>
 
           {/* PRECIO */}
-          <div className="flex flex-col gap-1 w-32">
-
-            <label
-              className="text-base font-medium"
-              htmlFor="product-price"
-            >
-              Precio
-            </label>
+          <label htmlFor="product-price" className="flex flex-col gap-2 text-xs font-medium text-brand-charcoal">
+            Precio normal
 
             <input
               id="product-price"
               type="number"
               placeholder="0"
-              className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40"
+              className={inputClass}
+              min="0.01"
+              step="0.01"
               onChange={(e) =>
                 setPrice(e.target.value)
               }
@@ -333,23 +303,19 @@ const AddProduct = () => {
               required
             />
 
-          </div>
+          </label>
 
           {/* PRECIO OFERTA */}
-          <div className="flex flex-col gap-1 w-32">
-
-            <label
-              className="text-base font-medium"
-              htmlFor="offer-price"
-            >
-              Precio Oferta
-            </label>
+          <label htmlFor="offer-price" className="flex flex-col gap-2 text-xs font-medium text-brand-charcoal">
+            Precio de oferta
 
             <input
               id="offer-price"
               type="number"
               placeholder="0"
-              className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40"
+              className={inputClass}
+              min="0"
+              step="0.01"
               onChange={(e) =>
                 setOfferPrice(e.target.value)
               }
@@ -357,23 +323,19 @@ const AddProduct = () => {
               required
             />
 
-          </div>
+          </label>
 
           {/* 🔥 STOCK */}
-          <div className="flex flex-col gap-1 w-32">
-
-            <label
-              className="text-base font-medium"
-              htmlFor="stock"
-            >
-              Stock
-            </label>
+          <label htmlFor="stock" className="flex flex-col gap-2 text-xs font-medium text-brand-charcoal">
+            Unidades en stock
 
             <input
               id="stock"
               type="number"
               placeholder="0"
-              className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40"
+              className={inputClass}
+              min="0"
+              step="1"
               onChange={(e) =>
                 setStock(e.target.value)
               }
@@ -381,21 +343,19 @@ const AddProduct = () => {
               required
             />
 
-          </div>
+          </label>
 
+        </section>
+
+        <div className="border-t border-brand-line pt-6">
+          <button type="submit" disabled={saving} className="w-full rounded-full bg-brand-accent px-8 py-3 text-sm font-semibold text-white transition hover:bg-brand-accent-hover disabled:cursor-wait disabled:opacity-60 sm:w-auto">
+            {saving ? "Publicando..." : "Publicar producto"}
+          </button>
         </div>
-
-        {/* BOTÓN */}
-        <button
-          type="submit"
-          className="px-8 py-3 bg-blue-600 hover:bg-blue-700 transition text-white font-medium rounded"
-        >
-          Añadir Producto
-        </button>
 
       </form>
 
-    </div>
+    </main>
   );
 };
 

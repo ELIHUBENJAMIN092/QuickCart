@@ -1,33 +1,33 @@
-import connectDB from "@/config/db"
-import User from "@/models/User"
-import { getAuth } from "@clerk/nextjs/server"
-import { clerkClient } from "@clerk/clerk-sdk-node" // ✅ este sí funciona
-import { NextResponse } from "next/server"
+import { NextResponse } from "next/server";
+import { getAuthenticatedSupabase } from "@/lib/supabase/server";
 
 export async function GET(request) {
-  try {
-    const { userId } = getAuth(request)
-    if (!userId) {
-      return NextResponse.json({ success: false, message: "Not authenticated" }, { status: 401 })
-    }
-
-    await connectDB()
-    let user = await User.findById(userId)
-
-    if (!user) {
-      const clerkUser = await clerkClient.users.getUser(userId)
-
-      user = await User.create({
-        _id: userId,
-        name: clerkUser.firstName + " " + clerkUser.lastName,
-        email: clerkUser.emailAddresses[0].emailAddress,
-        imageUrl: clerkUser.imageUrl,
-        cartItems: {},
-      })
-    }
-
-    return NextResponse.json({ success: true, user })
-  } catch (error) {
-    return NextResponse.json({ success: false, message: error.message })
+  const { supabase, user } = await getAuthenticatedSupabase(request);
+  if (!user) {
+    return NextResponse.json({ success: false, message: "Inicia sesión." }, { status: 401 });
   }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, name, email, avatar_url, role, cart_items")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Error cargando perfil:", error);
+    return NextResponse.json({ success: false, message: "No se pudo cargar el perfil." }, { status: 500 });
+  }
+  if (!data) {
+    return NextResponse.json({ success: false, message: "No existe el perfil de usuario." }, { status: 404 });
+  }
+
+  return NextResponse.json({
+    success: true,
+    user: {
+      ...data,
+      _id: data.id,
+      imageUrl: data.avatar_url,
+      cartItems: data.cart_items,
+    },
+  });
 }

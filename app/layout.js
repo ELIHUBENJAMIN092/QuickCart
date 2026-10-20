@@ -1,74 +1,24 @@
-import { Montserrat } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { AppContextProvider } from "@/context/AppContext";
 import { Toaster } from "react-hot-toast";
-import { ClerkProvider } from "@clerk/nextjs";
-import WhatsappFloat from "@/components/seller/WhatsappFloat";
-import BannerOferta from "@/components/BannerOferta";
-import ChatWidget from "@/components/ChatWidget";
 
-const montserrat = Montserrat({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "700"],
+  variable: "--font-sans",
 });
-
 export const metadata = {
-  title: "Ecommerce_Compel",
-  description: "E-Commerce with Next.js",
-};
-
-const localization = {
-  signIn: {
-    start: {
-      title: "Inicia sesión en Ecommerce_Compel",
-      subtitle: "Accede con tu cuenta o correo electrónico",
-      emailLabel: "Correo electrónico",
-      continueButton: "Continuar",
-      noAccount: "¿No tienes cuenta?",
-      signUpLink: "Regístrate aquí",
-    },
-  },
-  signUp: {
-    start: {
-      title: "Crea tu cuenta",
-      subtitle: "Regístrate para comenzar",
-      emailLabel: "Correo electrónico",
-      continueButton: "Continuar",
-    },
-  },
+  title: "COMPEL | Tecnología para identificar y optimizar tu negocio",
+  description: "Soluciones profesionales de código de barras, RFID, identificación PVC y cómputo móvil en Ecuador.",
 };
 
 export default function RootLayout({ children }) {
-
   return (
-    <ClerkProvider localization={localization}>
-
-      <html lang="es">
-
-        <body className={`${montserrat.className} antialiased text-gray-700`}>
-
-          <Toaster />
-
-          <AppContextProvider>
-
-            {/* Banner */}
-            <BannerOferta />
-
-            {/* CONTENIDO */}
-            {children}
-
-            {/* WHATSAPP */}
-            <WhatsappFloat />
-
-            {/* CHATBOT */}
-            <ChatWidget />
-
-          </AppContextProvider>
-
-        </body>
-
-      </html>
-
-    </ClerkProvider>
+    <html lang="es" data-scroll-behavior="smooth">
+      <body className={`${inter.variable} font-sans antialiased`}>
+        <Toaster />
+        <AppContextProvider>{children}</AppContextProvider>
+      </body>
+    </html>
   );
 }

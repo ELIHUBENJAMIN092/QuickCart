@@ -1,65 +1,48 @@
 import { NextResponse } from "next/server";
-import { getAuth } from "@clerk/nextjs/server";
 import authSeller from "@/lib/authSeller";
-import connectDB from "@/config/db";
-import Product from "@/models/Product";
-import { v2 as cloudinary } from "cloudinary";
-
-// Configuración de Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { getAuthenticatedSupabase } from "@/lib/supabase/server";
+import { removeProductMedia } from "@/lib/supabase/storage";
 
 export async function DELETE(request, context) {
   try {
-    const params = await context.params;
-    const { userId } = getAuth(request);
-    const isSeller = await authSeller(userId);
-
-    if (!isSeller) {
-      return NextResponse.json({ success: false, message: "No autorizado" });
+    const { supabase, user } = await getAuthenticatedSupabase(request);
+    if (!user || !(await authSeller(supabase, user.id))) {
+      return NextResponse.json({ success: false, message: "No autorizado." }, { status: 401 });
     }
 
-    await connectDB();
-
-    // Buscar el producto antes de eliminarlo
-    const product = await Product.findOne({
-      _id: params.id,
-      userId,
-    });
-
+    const { id } = await context.params;
+    const { data: product, error: readError } = await supabase
+      .from("products")
+      .select("id, image_urls, video")
+      .eq("id", id)
+      .maybeSingle();
+    if (readError) throw readError;
     if (!product) {
-      return NextResponse.json({
-        success: false,
-        message: "Producto no encontrado o no te pertenece",
-      });
+      return NextResponse.json({ success: false, message: "Producto no encontrado." }, { status: 404 });
     }
 
-    // Eliminar imágenes de Cloudinary (si las URLs tienen public_id)
-    for (const imageUrl of product.image) {
-      // Extraer public_id de la URL
-      const parts = imageUrl.split('/');
-      const fileName = parts[parts.length - 1];
-      const publicId = fileName.split('.')[0]; // quita .jpg, .png, etc.
+    const { error } = await supabase.from("products").delete().eq("id", id);
+    if (error) throw error;
 
-      try {
-        await cloudinary.uploader.destroy(publicId, {
-          resource_type: 'image',
-        });
-      } catch (error) {
-        console.warn(`Error eliminando imagen Cloudinary (${publicId}):`, error.message);
-      }
+    let cleanupPending = false;
+    try {
+      await removeProductMedia(supabase, [...(product.image_urls || []), product.video].filter(Boolean));
+    } catch (cleanupError) {
+      cleanupPending = true;
+      console.error("No se pudieron eliminar algunos archivos del producto:", cleanupError);
     }
 
-    // Eliminar el producto de la base de datos
-    await Product.findByIdAndDelete(product._id);
-
-    return NextResponse.json({ success: true, message: "Producto e imágenes eliminadas correctamente" });
-
+    return NextResponse.json({
+      success: true,
+      message: cleanupPending
+        ? "Producto eliminado; algunos archivos requieren limpieza."
+        : "Producto e imágenes eliminados correctamente.",
+    });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ success: false, message: error.message });
+    console.error("Error eliminando producto:", error);
+    return NextResponse.json(
+      { success: false, message: "No se pudo eliminar el producto." },
+      { status: 500 }
+    );
   }
 }

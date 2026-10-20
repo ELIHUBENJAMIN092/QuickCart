@@ -1,249 +1,241 @@
-'use client'
+"use client";
 
-import React, { useEffect, useState } from 'react'
-import axios from 'axios'
-import toast from 'react-hot-toast'
-import { useParams } from 'next/navigation'
-import { useAppContext } from '@/context/AppContext'
+import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { ArrowLeft, ImagePlus, Video } from "lucide-react";
+import { useParams } from "next/navigation";
+import { useAppContext } from "@/context/AppContext";
+import { categories, normalizeProductCategory } from "@/lib/categories";
+import Loading from "@/components/Loading";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { uploadProductFile } from "@/lib/supabase/storage";
+import { optimizeImages } from "@/lib/imageOptimize";
 
-const EditProduct = () => {
+const inputClass =
+  "w-full rounded-lg border border-brand-line bg-white px-4 py-3 text-sm text-brand-ink outline-none transition placeholder:text-brand-muted focus:border-brand-accent";
 
-  const { id } = useParams()
-
-  const { getToken, router } = useAppContext()
-
-  // Categorías disponibles
-  const categories = [
-    'Código de Barras',
-    'Identificación PVC',
-    'RFID',
-    'Lectores',
-    'Suministros',
-    'Etiquetas',
-    'Etiquetas RFID Tags',
-    'Brazaletes',
-    'PDA'
-  ]
-
-  // Estado del producto
+export default function EditProduct() {
+  const { id } = useParams();
+  const { getToken, router, fetchProductData, user } = useAppContext();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [files, setFiles] = useState([]);
+  const [videoFile, setVideoFile] = useState(null);
+  const [removeVideo, setRemoveVideo] = useState(false);
   const [product, setProduct] = useState({
-    name: '',
-    category: '',
-    offerPrice: '',
-    stock: '',
-  })
+    name: "",
+    description: "",
+    category: "",
+    subcategory: "",
+    price: "",
+    offerPrice: "",
+    stock: "",
+    image: [],
+    video: "",
+  });
 
-  // Obtener producto
-  const fetchProduct = async () => {
-
-    try {
-
-      const token = await getToken()
-
-      const { data } = await axios.get(
-        `/api/product/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      )
-
-      if (data.success) {
-
-        setProduct({
-          name: data.product.name || '',
-          category: data.product.category || '',
-          offerPrice: data.product.offerPrice || '',
-          stock: data.product.stock || '',
-        })
-
-      }
-
-    } catch (error) {
-
-      toast.error(error.message)
-
-    }
-
-  }
-
-  // Guardar cambios
-  const handleSubmit = async (e) => {
-
-    e.preventDefault()
-
-    try {
-
-      const token = await getToken()
-
-      const { data } = await axios.put(
-        `/api/product/update/${id}`,
-        {
-          name: product.name,
-          category: product.category,
-          offerPrice: Number(product.offerPrice),
-          stock: Number(product.stock),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      )
-
-      if (data.success) {
-
-        toast.success('Producto actualizado')
-
-        router.push('/seller/product-list')
-
-      }
-
-    } catch (error) {
-
-      toast.error(
-        error.response?.data?.message ||
-        error.message
-      )
-
-    }
-
-  }
+  const subcategories = useMemo(
+    () => categories.find((category) => category.slug === product.category)?.subcategories || [],
+    [product.category]
+  );
+  const selectedCategoryIsValid = categories.some((category) => category.slug === product.category);
 
   useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const token = await getToken();
+        const { data } = await axios.get(`/api/product/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!data.success || !data.product) {
+          toast.error(data.message || "No se encontró el producto.");
+          router.push("/seller/product-list");
+          return;
+        }
+        const normalized = normalizeProductCategory(data.product.category, data.product.subcategory);
+        setProduct({
+          name: data.product.name || "",
+          description: data.product.description || "",
+          category: normalized.category,
+          subcategory: normalized.subcategory,
+          price: data.product.price ?? "",
+          offerPrice: data.product.offerPrice ?? "",
+          stock: data.product.stock ?? 0,
+          image: data.product.image || [],
+          video: data.product.video || "",
+        });
+      } catch (error) {
+        toast.error(error.response?.data?.message || error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [getToken, id, router]);
 
-    fetchProduct()
+  const updateField = (field, value) =>
+    setProduct((current) => ({ ...current, [field]: value }));
 
-  }, [])
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (Number(product.offerPrice) > Number(product.price)) {
+      toast.error("El precio de oferta no puede superar el precio normal.");
+      return;
+    }
+    const optimizedFiles = await optimizeImages(files);
+    if (optimizedFiles.length > 4 || optimizedFiles.some((file) => !file.type.startsWith("image/") || file.size > 8 * 1024 * 1024)) {
+      toast.error("Cada imagen debe ser válida y pesar máximo 8 MB; puedes subir hasta 4.");
+      return;
+    }
+    if (videoFile && (!videoFile.type.startsWith("video/") || videoFile.size > 100 * 1024 * 1024)) {
+      toast.error("El video debe ser válido y pesar máximo 100 MB.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const token = await getToken();
+      if (!token || !user) {
+        toast.error("Inicia sesión como vendedor para editar productos.");
+        return;
+      }
+      const supabase = createSupabaseBrowserClient();
+      const imagePaths = await Promise.all(
+        optimizedFiles.map((file) => uploadProductFile(supabase, user.id, file, "images"))
+      );
+      const videoPath = videoFile
+        ? await uploadProductFile(supabase, user.id, videoFile, "videos")
+        : "";
+      const { data } = await axios.put(`/api/product/update/${id}`, {
+        name: product.name,
+        description: product.description,
+        category: product.category,
+        subcategory: product.subcategory,
+        price: product.price,
+        offerPrice: product.offerPrice,
+        stock: product.stock,
+        imagePaths,
+        videoPath,
+        removeVideo,
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!data.success) {
+        toast.error(data.message || "No se pudo actualizar el producto.");
+        return;
+      }
+      toast.success(data.message);
+      await fetchProductData();
+      router.push("/seller/product-list");
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <div className="flex-1"><Loading /></div>;
 
   return (
-
-    <div className="p-4 md:p-10">
-
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">
-        Editar Producto
-      </h1>
-
-      <form
-        onSubmit={handleSubmit}
-        className="max-w-xl bg-white border rounded-2xl shadow-sm p-6 flex flex-col gap-5"
-      >
-
-        {/* Nombre */}
-        <div className="flex flex-col gap-2">
-
-          <label className="font-medium text-gray-700">
-            Nombre
-          </label>
-
-          <input
-            type="text"
-            value={product.name}
-            onChange={(e) =>
-              setProduct({
-                ...product,
-                name: e.target.value
-              })
-            }
-            className="border rounded-lg p-3 outline-none focus:border-blue-500"
-          />
-
+    <main className="min-h-screen flex-1 bg-brand-cream px-4 py-7 md:px-8 md:py-10">
+      <div className="mx-auto max-w-4xl">
+        <Link href="/seller/product-list" className="mb-6 inline-flex items-center gap-2 text-sm text-brand-muted hover:text-brand-accent">
+          <ArrowLeft size={16} /> Volver a productos
+        </Link>
+        <div className="mb-7">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-muted">Administración · Catálogo</p>
+          <h1 className="mt-2 font-display text-3xl text-brand-ink md:text-4xl">Editar producto</h1>
+          <p className="mt-2 text-sm text-brand-muted">Actualiza la información que verán tus clientes en la tienda.</p>
         </div>
 
-        {/* Categoría */}
-        <div className="flex flex-col gap-2">
+        <form onSubmit={handleSubmit} className="space-y-7 rounded-2xl border border-brand-line bg-white p-5 shadow-sm md:p-8">
+          <section>
+            <h2 className="mb-4 text-sm font-semibold text-brand-ink">Información del producto</h2>
+            <div className="grid gap-5 md:grid-cols-2">
+              <label className="space-y-2 text-xs font-medium text-brand-charcoal md:col-span-2">
+                Nombre del producto
+                <input required maxLength={160} value={product.name} onChange={(event) => updateField("name", event.target.value)} className={inputClass} />
+              </label>
+              <label className="space-y-2 text-xs font-medium text-brand-charcoal md:col-span-2">
+                Descripción
+                <textarea required rows={5} maxLength={5000} value={product.description} onChange={(event) => updateField("description", event.target.value)} className={`${inputClass} resize-y`} />
+              </label>
+              <label className="space-y-2 text-xs font-medium text-brand-charcoal">
+                Categoría principal
+                <select required value={product.category} onChange={(event) => setProduct((current) => ({ ...current, category: event.target.value, subcategory: "" }))} className={inputClass}>
+                  <option value="">Selecciona una categoría</option>
+                  {categories.map((category) => <option key={category.slug} value={category.slug}>{category.name}</option>)}
+                </select>
+              </label>
+              <label className="space-y-2 text-xs font-medium text-brand-charcoal">
+                Subcategoría
+                <select value={product.subcategory} onChange={(event) => updateField("subcategory", event.target.value)} className={inputClass}>
+                  <option value="">Sin subcategoría</option>
+                  {subcategories.map((subcategory) => <option key={subcategory.slug} value={subcategory.slug}>{subcategory.name}</option>)}
+                </select>
+              </label>
+            </div>
+            {!selectedCategoryIsValid && (
+              <p role="status" className="mt-3 rounded-lg bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800">
+                La categoría anterior ({product.category || "sin categoría"}) ya no forma parte del catálogo. Selecciona una de las nuevas categorías para guardar este producto.
+              </p>
+            )}
+          </section>
 
-          <label className="font-medium text-gray-700">
-            Categoría
-          </label>
+          <section className="border-t border-brand-line pt-6">
+            <h2 className="mb-4 text-sm font-semibold text-brand-ink">Precio e inventario</h2>
+            <div className="grid gap-5 sm:grid-cols-3">
+              <label className="space-y-2 text-xs font-medium text-brand-charcoal">
+                Precio normal
+                <input required type="number" min="0.01" step="0.01" value={product.price} onChange={(event) => updateField("price", event.target.value)} className={inputClass} />
+              </label>
+              <label className="space-y-2 text-xs font-medium text-brand-charcoal">
+                Precio de oferta
+                <input required type="number" min="0" step="0.01" value={product.offerPrice} onChange={(event) => updateField("offerPrice", event.target.value)} className={inputClass} />
+              </label>
+              <label className="space-y-2 text-xs font-medium text-brand-charcoal">
+                Unidades en stock
+                <input required type="number" min="0" step="1" value={product.stock} onChange={(event) => updateField("stock", event.target.value)} className={inputClass} />
+              </label>
+            </div>
+          </section>
 
-          <select
-            value={product.category}
-            onChange={(e) =>
-              setProduct({
-                ...product,
-                category: e.target.value
-              })
-            }
-            className="border rounded-lg p-3 outline-none focus:border-blue-500"
-          >
+          <section className="border-t border-brand-line pt-6">
+            <h2 className="mb-1 text-sm font-semibold text-brand-ink">Imágenes y video</h2>
+            <p className="mb-4 text-xs leading-5 text-brand-muted">Si seleccionas imágenes nuevas, reemplazarán las actuales. Puedes cargar hasta 4 imágenes de 8 MB máximo cada una.</p>
+            {product.image.length > 0 && (
+              <div className="mb-4 flex flex-wrap gap-3">
+                {product.image.map((image, index) => (
+                  <div key={`${image}-${index}`} className="relative h-20 w-20 overflow-hidden border border-brand-line bg-brand-cream">
+                    <Image src={image} alt={`Imagen actual ${index + 1}`} fill sizes="80px" className="object-contain p-1" />
+                  </div>
+                ))}
+              </div>
+            )}
+            <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-brand-line p-4 text-sm text-brand-muted transition hover:border-brand-accent">
+              <ImagePlus size={20} className="text-brand-accent" />
+              <span>{files.length ? `${files.length} imagen(es) nueva(s) seleccionada(s)` : "Seleccionar imágenes nuevas"}</span>
+              <input type="file" accept="image/*" multiple className="sr-only" onChange={(event) => setFiles(Array.from(event.target.files || []).slice(0, 4))} />
+            </label>
+            {product.video && !removeVideo && <video src={product.video} controls preload="metadata" className="mt-4 max-h-48 w-full rounded-lg bg-brand-ink" />}
+            <div className="mt-4 flex flex-wrap items-center gap-4">
+              <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-brand-accent">
+                <Video size={17} /> {videoFile ? videoFile.name : "Reemplazar video"}
+                <input type="file" accept="video/*" className="sr-only" onChange={(event) => { setVideoFile(event.target.files?.[0] || null); setRemoveVideo(false); }} />
+              </label>
+              {product.video && !removeVideo && <button type="button" onClick={() => { setRemoveVideo(true); setVideoFile(null); }} className="text-xs text-brand-sale hover:underline">Quitar video actual</button>}
+              {removeVideo && <button type="button" onClick={() => setRemoveVideo(false)} className="text-xs text-brand-accent hover:underline">Deshacer</button>}
+            </div>
+          </section>
 
-            <option value="">
-              Seleccionar categoría
-            </option>
-
-            {categories.map((category, index) => (
-
-              <option
-                key={index}
-                value={category}
-              >
-                {category}
-              </option>
-
-            ))}
-
-          </select>
-
-        </div>
-
-        {/* Precio */}
-        <div className="flex flex-col gap-2">
-
-          <label className="font-medium text-gray-700">
-            Precio
-          </label>
-
-          <input
-            type="number"
-            value={product.offerPrice}
-            onChange={(e) =>
-              setProduct({
-                ...product,
-                offerPrice: e.target.value
-              })
-            }
-            className="border rounded-lg p-3 outline-none focus:border-blue-500"
-          />
-
-        </div>
-
-        {/* Stock */}
-        <div className="flex flex-col gap-2">
-
-          <label className="font-medium text-gray-700">
-            Stock
-          </label>
-
-          <input
-            type="number"
-            value={product.stock}
-            onChange={(e) =>
-              setProduct({
-                ...product,
-                stock: e.target.value
-              })
-            }
-            className="border rounded-lg p-3 outline-none focus:border-blue-500"
-          />
-
-        </div>
-
-        {/* Botón */}
-        <button
-          type="submit"
-          className="bg-blue-600 hover:bg-blue-700 transition text-white py-3 rounded-lg font-medium"
-        >
-          Guardar Cambios
-        </button>
-
-      </form>
-
-    </div>
-
-  )
-
+          <div className="flex flex-col-reverse gap-3 border-t border-brand-line pt-6 sm:flex-row sm:justify-end">
+            <Link href="/seller/product-list" className="rounded-full border border-brand-line px-6 py-3 text-center text-sm font-medium text-brand-charcoal hover:bg-brand-cream">Cancelar</Link>
+            <button type="submit" disabled={saving} className="rounded-full bg-brand-accent px-7 py-3 text-sm font-semibold text-white transition hover:bg-brand-accent-hover disabled:cursor-wait disabled:opacity-60">{saving ? "Guardando..." : "Guardar cambios"}</button>
+          </div>
+        </form>
+      </div>
+    </main>
+  );
 }
-
-export default EditProduct

@@ -36,7 +36,7 @@ const ScrollToTopFloat = () => {
     >
       <button
         onClick={scrollToTop}
-        className="w-14 h-14 flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white rounded-full shadow-lg transition duration-300"
+        className="w-14 h-14 flex items-center justify-center bg-brand-accent hover:bg-brand-accent-hover text-white rounded-full shadow-lg transition duration-300"
         aria-label="Subir al inicio"
       >
         <FaArrowUp size={26} />
