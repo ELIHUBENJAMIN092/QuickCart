@@ -204,7 +204,7 @@ export default function Navbar() {
                   {openMenu === category.slug && (
                     <div className="absolute left-0 top-full z-50 min-w-60 border border-brand-line bg-white py-2 shadow-xl">
                       {category.subcategories.map((subcategory) => (
-                        <Link key={subcategory.slug} href={categoryHref(category.slug, subcategory.slug)} onClick={() => setOpenMenu(null)} className="block px-5 py-2.5 text-sm font-normal hover:bg-brand-sand hover:text-brand-accent">{subcategory.name}</Link>
+                        <Link key={subcategory.slug} href={subcategory.href || categoryHref(category.slug, subcategory.slug)} onClick={() => setOpenMenu(null)} className={`block py-2.5 text-sm font-normal hover:bg-brand-sand hover:text-brand-accent ${subcategory.parent ? "pl-9 pr-5 text-brand-muted" : "px-5"}`}>{subcategory.name}</Link>
                       ))}
                       <Link href={categoryHref(category.slug)} onClick={() => setOpenMenu(null)} className="block px-5 py-2.5 text-sm font-semibold text-brand-accent hover:bg-brand-sand">Ver todo</Link>
                     </div>
@@ -228,7 +228,7 @@ export default function Navbar() {
                   <div className="space-y-2 pb-2 pl-3 pt-3">
                     <Link className="block text-sm text-brand-muted" href={categoryHref(category.slug)} onClick={() => setMobileOpen(false)}>Ver categoría</Link>
                     {category.subcategories.map((subcategory) => (
-                      <Link key={subcategory.slug} className="block text-sm text-brand-muted" href={categoryHref(category.slug, subcategory.slug)} onClick={() => setMobileOpen(false)}>{subcategory.name}</Link>
+                      <Link key={subcategory.slug} className={`block text-sm text-brand-muted ${subcategory.parent ? "pl-4" : ""}`} href={subcategory.href || categoryHref(category.slug, subcategory.slug)} onClick={() => setMobileOpen(false)}>{subcategory.name}</Link>
                     ))}
                   </div>
                 </details>

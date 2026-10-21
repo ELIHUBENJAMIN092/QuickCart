@@ -8,6 +8,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { useAppContext } from "@/context/AppContext";
 import Loading from "@/components/Loading";
+import { useConfirm } from "@/components/ui/ConfirmProvider";
 import { categories, getCategoryName, getSubcategoryName, matchesCategoryFilter } from "@/lib/categories";
 
 const stockFilters = [
@@ -19,6 +20,7 @@ const stockFilters = [
 
 export default function ProductList() {
   const { router, getToken, user, fetchProductData, currency } = useAppContext();
+  const confirm = useConfirm();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -78,7 +80,12 @@ export default function ProductList() {
   }), [products]);
 
   const handleDelete = async (productId) => {
-    if (!window.confirm("¿Eliminar este producto del catálogo? Esta acción no se puede deshacer.")) return;
+    const accepted = await confirm({
+      title: "¿Eliminar este producto?",
+      message: "Se quitará del catálogo y esta acción no se puede deshacer.",
+      confirmText: "Sí, eliminar",
+    });
+    if (!accepted) return;
     setDeletingId(productId);
     try {
       const token = await getToken();
@@ -167,7 +174,7 @@ export default function ProductList() {
                 {categories.map((category) => (
                   <optgroup key={category.slug} label={category.name}>
                     <option value={category.slug}>{category.name}</option>
-                    {category.subcategories.map((subcategory) => <option key={subcategory.slug} value={`${category.slug}/${subcategory.slug}`}>{subcategory.name}</option>)}
+                    {category.subcategories.map((subcategory) => <option key={subcategory.slug} value={`${category.slug}/${subcategory.slug}`}>{subcategory.label || subcategory.name}</option>)}
                   </optgroup>
                 ))}
               </select>

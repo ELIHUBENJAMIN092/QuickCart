@@ -9,11 +9,11 @@ import Price from "@/components/ui/Price";
 
 export default function ProductCard({ product }) {
   const { currency, addToCart } = useAppContext();
-  const hasOffer = Number(product.offerPrice) < Number(product.price);
+  const hasOffer = product.is_offer === true;
   const image = product.image?.[0];
   const secondaryImage = product.image?.[1] || image;
   const soldOut = Number(product.stock) <= 0;
-  const isNew = Number(product.date) > Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const isNew = product.is_new === true;
 
   return (
     <article className="group min-w-0">

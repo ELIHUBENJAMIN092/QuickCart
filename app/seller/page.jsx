@@ -8,7 +8,8 @@ import toast from "react-hot-toast";
 import { categories } from "@/lib/categories";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { uploadProductFile } from "@/lib/supabase/storage";
-import { optimizeImages } from "@/lib/imageOptimize";
+import { processProductImage } from "@/lib/imageOptimize";
+import ProductExtraFields, { ProductBadgeFields, validateCatalogFile } from "@/components/seller/ProductExtraFields";
 
 const inputClass = "w-full rounded-lg border border-brand-line bg-white px-4 py-3 text-sm text-brand-ink outline-none transition placeholder:text-brand-muted focus:border-brand-accent";
 
@@ -29,6 +30,13 @@ const AddProduct = () => {
 
   // 🔥 NUEVO STOCK
   const [stock, setStock] = useState('');
+  const [processingImage, setProcessingImage] = useState(null);
+  const [isOffer, setIsOffer] = useState(false);
+  const [isNew, setIsNew] = useState(false);
+  const [catalogFile, setCatalogFile] = useState(null);
+  const [model3dUrl, setModel3dUrl] = useState('');
+  const [printerType, setPrinterType] = useState('');
+  const [specsText, setSpecsText] = useState('');
   const [saving, setSaving] = useState(false);
 
   // ENVIAR PRODUCTO
@@ -40,9 +48,9 @@ const AddProduct = () => {
       toast.error("El precio de oferta no puede superar el precio normal.");
       return;
     }
-    const selectedImages = await optimizeImages(files.filter(Boolean));
-    if (selectedImages.length === 0 || selectedImages.length > 4) {
-      toast.error("Añade entre 1 y 4 imágenes del producto.");
+    const selectedImages = files.filter(Boolean);
+    if (selectedImages.length === 0 || selectedImages.length > 3) {
+      toast.error("Añade entre 1 y 3 imágenes del producto.");
       return;
     }
     if (selectedImages.some((file) => !file.type.startsWith("image/") || file.size > 8 * 1024 * 1024)) {
@@ -51,6 +59,10 @@ const AddProduct = () => {
     }
     if (video && (!video.type.startsWith("video/") || video.size > 100 * 1024 * 1024)) {
       toast.error("El video debe ser válido y pesar máximo 100 MB.");
+      return;
+    }
+    if (!validateCatalogFile(catalogFile)) {
+      toast.error("El catálogo debe ser un PDF de máximo 25 MB.");
       return;
     }
 
@@ -69,10 +81,13 @@ const AddProduct = () => {
       const videoPath = video
         ? await uploadProductFile(supabase, user.id, video, "videos")
         : "";
+      const catalogPath = catalogFile
+        ? await uploadProductFile(supabase, user.id, catalogFile, "catalogs")
+        : "";
 
       const { data } = await axios.post(
         '/api/product/add',
-        { name, description, category, subcategory, price, offerPrice, stock, imagePaths, videoPath },
+        { name, description, category, subcategory, price, offerPrice, stock, imagePaths, videoPath, catalogPath, specificationsText: specsText, model3dUrl, printerType, isOffer, isNew },
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -99,6 +114,11 @@ const AddProduct = () => {
 
         // 🔥 LIMPIAR STOCK
         setStock('')
+        setCatalogFile(null)
+        setIsOffer(false)
+        setIsNew(false)
+        setModel3dUrl('')
+        setPrinterType('')
 
       } else {
 
@@ -134,22 +154,28 @@ const AddProduct = () => {
         <section className="border-t border-brand-line pt-6">
 
           <p className="text-sm font-semibold text-brand-ink">Imágenes del producto</p>
-          <p className="mt-1 text-xs text-brand-muted">Añade entre 1 y 4 imágenes, máximo 8 MB por imagen.</p>
+          <p className="mt-1 text-xs text-brand-muted">Añade entre 1 y 3 imágenes, máximo 8 MB por imagen, más un video opcional. Se optimizan automáticamente y, si el fondo es blanco, se quita y se guarda como PNG transparente.</p>
 
           <div className="flex flex-wrap items-center gap-3 mt-2">
 
-            {[...Array(4)].map((_, index) => (
+            {[...Array(3)].map((_, index) => (
 
               <label key={index} htmlFor={`image${index}`}>
 
                 <input
                   onChange={(e) => {
 
-                    const updatedFiles = [...files];
+                    const selected = e.target.files[0];
+                    if (!selected) return;
 
-                    updatedFiles[index] = e.target.files[0];
-
-                    setFiles(updatedFiles);
+                    setProcessingImage(index);
+                    processProductImage(selected)
+                      .then((processed) => setFiles((current) => {
+                        const updatedFiles = [...current];
+                        updatedFiles[index] = processed;
+                        return updatedFiles;
+                      }))
+                      .finally(() => setProcessingImage(null));
 
                   }}
                   type="file"
@@ -159,7 +185,7 @@ const AddProduct = () => {
                 />
 
                 <Image
-                  className="max-w-24 cursor-pointer rounded border"
+                  className="max-w-24 cursor-pointer rounded border bg-[repeating-conic-gradient(#e5e7eb_0_25%,#fff_0_50%)] bg-[length:12px_12px]"
                   src={
                     files[index]
                       ? URL.createObjectURL(files[index])
@@ -268,7 +294,7 @@ const AddProduct = () => {
             >
 
               {categories.map((item) => (
-                <option key={item.slug} value={item.slug}>{item.name}</option>
+                <option key={item.slug} value={item.slug}>{item.label || item.name}</option>
               ))}
 
             </select>
@@ -277,7 +303,7 @@ const AddProduct = () => {
 
           <label className="flex flex-col gap-2 text-xs font-medium text-brand-charcoal">
             <span>Subcategoría</span>
-            <select id="subcategory" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} className={inputClass}>
+            <select id="subcategory" value={subcategory} onChange={(e) => { setSubcategory(e.target.value); setPrinterType('') }} className={inputClass}>
               <option value="">Sin subcategoría</option>
               {categories.find((item) => item.slug === category)?.subcategories.map((item) => (
                 <option key={item.slug} value={item.slug}>{item.name}</option>
@@ -347,8 +373,23 @@ const AddProduct = () => {
 
         </section>
 
+        <ProductBadgeFields isOffer={isOffer} isNew={isNew} onIsOffer={setIsOffer} onIsNew={setIsNew} />
+
+        <ProductExtraFields
+          category={category}
+          subcategory={subcategory}
+          printerType={printerType}
+          onPrinterType={setPrinterType}
+          model3dUrl={model3dUrl}
+          onModel3dUrl={setModel3dUrl}
+          catalogFile={catalogFile}
+          onCatalogFile={setCatalogFile}
+          specsText={specsText}
+          onSpecsText={setSpecsText}
+        />
+
         <div className="border-t border-brand-line pt-6">
-          <button type="submit" disabled={saving} className="w-full rounded-full bg-brand-accent px-8 py-3 text-sm font-semibold text-white transition hover:bg-brand-accent-hover disabled:cursor-wait disabled:opacity-60 sm:w-auto">
+          <button type="submit" disabled={saving || processingImage !== null} className="w-full rounded-full bg-brand-accent px-8 py-3 text-sm font-semibold text-white transition hover:bg-brand-accent-hover disabled:cursor-wait disabled:opacity-60 sm:w-auto">
             {saving ? "Publicando..." : "Publicar producto"}
           </button>
         </div>

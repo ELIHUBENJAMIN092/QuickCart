@@ -75,7 +75,7 @@ export default function AllProducts() {
                     <ul className="mt-2 space-y-2 pl-3">
                       {category.subcategories.map((subcategory) => {
                         const value = `${category.slug}/${subcategory.slug}`;
-                        return <li key={value}><button onClick={() => chooseCategory(value)} className={`text-left text-xs ${selectedCategory === value ? "font-semibold text-brand-accent" : "text-brand-muted hover:text-brand-ink"}`}>{subcategory.name}</button></li>;
+                        return <li key={value} className={subcategory.parent ? "pl-3" : ""}><button onClick={() => chooseCategory(value)} className={`text-left text-xs ${selectedCategory === value ? "font-semibold text-brand-accent" : "text-brand-muted hover:text-brand-ink"}`}>{subcategory.name}</button></li>;
                       })}
                     </ul>
                   </div>
@@ -92,7 +92,7 @@ export default function AllProducts() {
               <div className="mb-6 flex flex-col gap-3 sm:flex-row">
                 <select aria-label="Filtrar por categoría" value={selectedCategory} onChange={(event) => chooseCategory(event.target.value)} className="rounded-full border border-brand-line bg-transparent px-4 py-3 text-sm outline-none lg:hidden">
                   <option value="">Todas las categorías</option>
-                  {categories.map((category) => <optgroup key={category.slug} label={category.name}><option value={category.slug}>{category.name}</option>{category.subcategories.map((subcategory) => <option key={subcategory.slug} value={`${category.slug}/${subcategory.slug}`}>{subcategory.name}</option>)}</optgroup>)}
+                  {categories.map((category) => <optgroup key={category.slug} label={category.name}><option value={category.slug}>{category.name}</option>{category.subcategories.map((subcategory) => <option key={subcategory.slug} value={`${category.slug}/${subcategory.slug}`}>{subcategory.label || subcategory.name}</option>)}</optgroup>)}
                 </select>
                 <div className="relative flex-1">
                   <Search size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-muted" />

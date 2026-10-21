@@ -1,5 +1,6 @@
 "use client";
 
+import { specificationsToText } from "@/lib/specsText";
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,7 +13,8 @@ import { categories, normalizeProductCategory } from "@/lib/categories";
 import Loading from "@/components/Loading";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { uploadProductFile } from "@/lib/supabase/storage";
-import { optimizeImages } from "@/lib/imageOptimize";
+import { processProductImages } from "@/lib/imageOptimize";
+import ProductExtraFields, { ProductBadgeFields, validateCatalogFile } from "@/components/seller/ProductExtraFields";
 
 const inputClass =
   "w-full rounded-lg border border-brand-line bg-white px-4 py-3 text-sm text-brand-ink outline-none transition placeholder:text-brand-muted focus:border-brand-accent";
@@ -25,6 +27,8 @@ export default function EditProduct() {
   const [files, setFiles] = useState([]);
   const [videoFile, setVideoFile] = useState(null);
   const [removeVideo, setRemoveVideo] = useState(false);
+  const [catalogFile, setCatalogFile] = useState(null);
+  const [removeCatalog, setRemoveCatalog] = useState(false);
   const [product, setProduct] = useState({
     name: "",
     description: "",
@@ -35,6 +39,12 @@ export default function EditProduct() {
     stock: "",
     image: [],
     video: "",
+    catalogPdf: "",
+    specsText: "",
+    isOffer: false,
+    isNew: false,
+    model3dUrl: "",
+    printerType: "",
   });
 
   const subcategories = useMemo(
@@ -66,6 +76,12 @@ export default function EditProduct() {
           stock: data.product.stock ?? 0,
           image: data.product.image || [],
           video: data.product.video || "",
+          catalogPdf: data.product.catalog_pdf || "",
+          specsText: specificationsToText(data.product.specifications),
+          isOffer: data.product.is_offer === true,
+          isNew: data.product.is_new === true,
+          model3dUrl: data.product.model_3d_url || "",
+          printerType: data.product.printer_type || "",
         });
       } catch (error) {
         toast.error(error.response?.data?.message || error.message);
@@ -85,13 +101,17 @@ export default function EditProduct() {
       toast.error("El precio de oferta no puede superar el precio normal.");
       return;
     }
-    const optimizedFiles = await optimizeImages(files);
-    if (optimizedFiles.length > 4 || optimizedFiles.some((file) => !file.type.startsWith("image/") || file.size > 8 * 1024 * 1024)) {
-      toast.error("Cada imagen debe ser válida y pesar máximo 8 MB; puedes subir hasta 4.");
+    const optimizedFiles = await processProductImages(files);
+    if (optimizedFiles.length > 3 || optimizedFiles.some((file) => !file.type.startsWith("image/") || file.size > 8 * 1024 * 1024)) {
+      toast.error("Cada imagen debe ser válida y pesar máximo 8 MB; puedes subir hasta 3.");
       return;
     }
     if (videoFile && (!videoFile.type.startsWith("video/") || videoFile.size > 100 * 1024 * 1024)) {
       toast.error("El video debe ser válido y pesar máximo 100 MB.");
+      return;
+    }
+    if (!validateCatalogFile(catalogFile)) {
+      toast.error("El catálogo debe ser un PDF de máximo 25 MB.");
       return;
     }
     setSaving(true);
@@ -108,6 +128,9 @@ export default function EditProduct() {
       const videoPath = videoFile
         ? await uploadProductFile(supabase, user.id, videoFile, "videos")
         : "";
+      const catalogPath = catalogFile
+        ? await uploadProductFile(supabase, user.id, catalogFile, "catalogs")
+        : "";
       const { data } = await axios.put(`/api/product/update/${id}`, {
         name: product.name,
         description: product.description,
@@ -119,6 +142,13 @@ export default function EditProduct() {
         imagePaths,
         videoPath,
         removeVideo,
+        catalogPath,
+        removeCatalog,
+        specificationsText: product.specsText,
+        isOffer: product.isOffer,
+        isNew: product.isNew,
+        model3dUrl: product.model3dUrl,
+        printerType: product.printerType,
       }, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -164,16 +194,16 @@ export default function EditProduct() {
               </label>
               <label className="space-y-2 text-xs font-medium text-brand-charcoal">
                 Categoría principal
-                <select required value={product.category} onChange={(event) => setProduct((current) => ({ ...current, category: event.target.value, subcategory: "" }))} className={inputClass}>
+                <select required value={product.category} onChange={(event) => setProduct((current) => ({ ...current, category: event.target.value, subcategory: "", printerType: "" }))} className={inputClass}>
                   <option value="">Selecciona una categoría</option>
                   {categories.map((category) => <option key={category.slug} value={category.slug}>{category.name}</option>)}
                 </select>
               </label>
               <label className="space-y-2 text-xs font-medium text-brand-charcoal">
                 Subcategoría
-                <select value={product.subcategory} onChange={(event) => updateField("subcategory", event.target.value)} className={inputClass}>
+                <select value={product.subcategory} onChange={(event) => setProduct((current) => ({ ...current, subcategory: event.target.value, printerType: "" }))} className={inputClass}>
                   <option value="">Sin subcategoría</option>
-                  {subcategories.map((subcategory) => <option key={subcategory.slug} value={subcategory.slug}>{subcategory.name}</option>)}
+                  {subcategories.map((subcategory) => <option key={subcategory.slug} value={subcategory.slug}>{subcategory.label || subcategory.name}</option>)}
                 </select>
               </label>
             </div>
@@ -204,7 +234,7 @@ export default function EditProduct() {
 
           <section className="border-t border-brand-line pt-6">
             <h2 className="mb-1 text-sm font-semibold text-brand-ink">Imágenes y video</h2>
-            <p className="mb-4 text-xs leading-5 text-brand-muted">Si seleccionas imágenes nuevas, reemplazarán las actuales. Puedes cargar hasta 4 imágenes de 8 MB máximo cada una.</p>
+            <p className="mb-4 text-xs leading-5 text-brand-muted">Si seleccionas imágenes nuevas, reemplazarán las actuales. Puedes cargar hasta 3 imágenes de 8 MB máximo cada una.</p>
             {product.image.length > 0 && (
               <div className="mb-4 flex flex-wrap gap-3">
                 {product.image.map((image, index) => (
@@ -217,7 +247,7 @@ export default function EditProduct() {
             <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-brand-line p-4 text-sm text-brand-muted transition hover:border-brand-accent">
               <ImagePlus size={20} className="text-brand-accent" />
               <span>{files.length ? `${files.length} imagen(es) nueva(s) seleccionada(s)` : "Seleccionar imágenes nuevas"}</span>
-              <input type="file" accept="image/*" multiple className="sr-only" onChange={(event) => setFiles(Array.from(event.target.files || []).slice(0, 4))} />
+              <input type="file" accept="image/*" multiple className="sr-only" onChange={(event) => setFiles(Array.from(event.target.files || []).slice(0, 3))} />
             </label>
             {product.video && !removeVideo && <video src={product.video} controls preload="metadata" className="mt-4 max-h-48 w-full rounded-lg bg-brand-ink" />}
             <div className="mt-4 flex flex-wrap items-center gap-4">
@@ -229,6 +259,24 @@ export default function EditProduct() {
               {removeVideo && <button type="button" onClick={() => setRemoveVideo(false)} className="text-xs text-brand-accent hover:underline">Deshacer</button>}
             </div>
           </section>
+
+          <ProductBadgeFields isOffer={product.isOffer} isNew={product.isNew} onIsOffer={(value) => updateField("isOffer", value)} onIsNew={(value) => updateField("isNew", value)} />
+
+          <ProductExtraFields
+            category={product.category}
+            subcategory={product.subcategory}
+            printerType={product.printerType}
+            onPrinterType={(value) => updateField("printerType", value)}
+            model3dUrl={product.model3dUrl}
+            onModel3dUrl={(value) => updateField("model3dUrl", value)}
+            catalogFile={catalogFile}
+            onCatalogFile={(file) => { setCatalogFile(file); if (file) setRemoveCatalog(false); }}
+            currentCatalog={product.catalogPdf}
+            specsText={product.specsText}
+            onSpecsText={(value) => updateField("specsText", value)}
+            removeCatalog={removeCatalog}
+            onRemoveCatalog={(value) => { setRemoveCatalog(value); if (value) setCatalogFile(null); }}
+          />
 
           <div className="flex flex-col-reverse gap-3 border-t border-brand-line pt-6 sm:flex-row sm:justify-end">
             <Link href="/seller/product-list" className="rounded-full border border-brand-line px-6 py-3 text-center text-sm font-medium text-brand-charcoal hover:bg-brand-cream">Cancelar</Link>

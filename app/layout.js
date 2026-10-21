@@ -1,6 +1,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AppContextProvider } from "@/context/AppContext";
+import { ConfirmProvider } from "@/components/ui/ConfirmProvider";
 import { Toaster } from "react-hot-toast";
 
 const inter = Inter({
@@ -17,7 +18,7 @@ export default function RootLayout({ children }) {
     <html lang="es" data-scroll-behavior="smooth">
       <body className={`${inter.variable} font-sans antialiased`}>
         <Toaster />
-        <AppContextProvider>{children}</AppContextProvider>
+        <AppContextProvider><ConfirmProvider>{children}</ConfirmProvider></AppContextProvider>
       </body>
     </html>
   );
