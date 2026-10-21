@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { BarChart3, CreditCard, GalleryHorizontal, List, Megaphone, PackagePlus, ShoppingBag } from 'lucide-react';
+import { BarChart3, CreditCard, GalleryHorizontal, LayoutGrid, List, Megaphone, PackagePlus, ShoppingBag } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 const SideBar = () => {
@@ -9,6 +9,7 @@ const SideBar = () => {
         { name: 'Resumen', path: '/seller/dashboard', icon: BarChart3 },
         { name: 'Añadir producto', path: '/seller', icon: PackagePlus },
         { name: 'Productos', path: '/seller/product-list', icon: List },
+        { name: 'Categorías', path: '/seller/categories', icon: LayoutGrid },
         { name: 'Carrusel', path: '/seller/carousel', icon: GalleryHorizontal },
         { name: 'Banner', path: '/seller/banner', icon: Megaphone },
         { name: 'Órdenes', path: '/seller/orders', icon: ShoppingBag },

@@ -24,7 +24,7 @@ export default {
         },
       },
       fontFamily: {
-        display: ['var(--font-sans)', 'Arial', 'sans-serif'],
+        display: ['var(--font-display)', 'var(--font-sans)', 'Arial', 'sans-serif'],
         sans: ['var(--font-sans)', 'Arial', 'sans-serif'],
       },
       keyframes: {

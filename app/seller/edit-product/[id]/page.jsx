@@ -13,7 +13,7 @@ import { categories, normalizeProductCategory } from "@/lib/categories";
 import Loading from "@/components/Loading";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { uploadProductFile } from "@/lib/supabase/storage";
-import { processProductImages } from "@/lib/imageOptimize";
+import { processProductImage } from "@/lib/imageOptimize";
 import ProductExtraFields, { ProductBadgeFields, validateCatalogFile } from "@/components/seller/ProductExtraFields";
 
 const inputClass =
@@ -24,7 +24,8 @@ export default function EditProduct() {
   const { getToken, router, fetchProductData, user } = useAppContext();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [files, setFiles] = useState([]);
+  const [slots, setSlots] = useState([]);
+  const [processingSlot, setProcessingSlot] = useState(null);
   const [videoFile, setVideoFile] = useState(null);
   const [removeVideo, setRemoveVideo] = useState(false);
   const [catalogFile, setCatalogFile] = useState(null);
@@ -83,6 +84,7 @@ export default function EditProduct() {
           model3dUrl: data.product.model_3d_url || "",
           printerType: data.product.printer_type || "",
         });
+        setSlots((data.product.image || []).map((url) => ({ url })));
       } catch (error) {
         toast.error(error.response?.data?.message || error.message);
       } finally {
@@ -95,15 +97,38 @@ export default function EditProduct() {
   const updateField = (field, value) =>
     setProduct((current) => ({ ...current, [field]: value }));
 
+  const replaceSlot = async (index, file) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/") || file.size > 20 * 1024 * 1024) {
+      toast.error("La imagen debe ser válida y pesar máximo 8 MB.");
+      return;
+    }
+    setProcessingSlot(index);
+    try {
+      const processed = await processProductImage(file);
+      if (processed.size > 8 * 1024 * 1024) {
+        toast.error("La imagen debe pesar máximo 8 MB.");
+        return;
+      }
+      setSlots((current) => current.map((slot, i) => i === index ? { file: processed, preview: URL.createObjectURL(processed) } : slot));
+    } catch {
+      toast.error("No se pudo procesar la imagen.");
+    } finally {
+      setProcessingSlot(null);
+    }
+  };
+
+  const removeSlot = (index) => setSlots((current) => current.filter((_, i) => i !== index));
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (Number(product.offerPrice) > Number(product.price)) {
       toast.error("El precio de oferta no puede superar el precio normal.");
       return;
     }
-    const optimizedFiles = await processProductImages(files);
-    if (optimizedFiles.length > 3 || optimizedFiles.some((file) => !file.type.startsWith("image/") || file.size > 8 * 1024 * 1024)) {
-      toast.error("Cada imagen debe ser válida y pesar máximo 8 MB; puedes subir hasta 3.");
+    const visibleSlots = slots.filter((slot) => slot.url || slot.file);
+    if (!visibleSlots.length) {
+      toast.error("El producto debe tener al menos una imagen.");
       return;
     }
     if (videoFile && (!videoFile.type.startsWith("video/") || videoFile.size > 100 * 1024 * 1024)) {
@@ -122,8 +147,10 @@ export default function EditProduct() {
         return;
       }
       const supabase = createSupabaseBrowserClient();
-      const imagePaths = await Promise.all(
-        optimizedFiles.map((file) => uploadProductFile(supabase, user.id, file, "images"))
+      const imageSlots = await Promise.all(
+        visibleSlots.map(async (slot) => slot.file
+          ? { path: await uploadProductFile(supabase, user.id, slot.file, "images") }
+          : { keep: slot.url })
       );
       const videoPath = videoFile
         ? await uploadProductFile(supabase, user.id, videoFile, "videos")
@@ -139,7 +166,7 @@ export default function EditProduct() {
         price: product.price,
         offerPrice: product.offerPrice,
         stock: product.stock,
-        imagePaths,
+        imageSlots,
         videoPath,
         removeVideo,
         catalogPath,
@@ -234,21 +261,32 @@ export default function EditProduct() {
 
           <section className="border-t border-brand-line pt-6">
             <h2 className="mb-1 text-sm font-semibold text-brand-ink">Imágenes y video</h2>
-            <p className="mb-4 text-xs leading-5 text-brand-muted">Si seleccionas imágenes nuevas, reemplazarán las actuales. Puedes cargar hasta 3 imágenes de 8 MB máximo cada una.</p>
-            {product.image.length > 0 && (
-              <div className="mb-4 flex flex-wrap gap-3">
-                {product.image.map((image, index) => (
-                  <div key={`${image}-${index}`} className="relative h-20 w-20 overflow-hidden border border-brand-line bg-brand-cream">
-                    <Image src={image} alt={`Imagen actual ${index + 1}`} fill sizes="80px" className="object-contain p-1" />
+            <p className="mb-4 text-xs leading-5 text-brand-muted">Cambia o quita cada foto por separado. Máximo 3 imágenes de 8 MB; se optimizan y se les quita el fondo blanco automáticamente.</p>
+            <div className="flex flex-wrap gap-4">
+              {slots.map((slot, index) => (
+                <div key={index} className="w-28 space-y-2">
+                  <div className="relative h-28 w-28 overflow-hidden border border-brand-line bg-brand-cream">
+                    {processingSlot === index ? (
+                      <span className="flex h-full items-center justify-center text-xs text-brand-muted">Procesando...</span>
+                    ) : slot.url || slot.preview ? (
+                      <Image src={slot.preview || slot.url} alt={`Imagen ${index + 1}`} fill unoptimized={Boolean(slot.preview)} sizes="112px" className="object-contain p-1" />
+                    ) : (
+                      <span className="flex h-full items-center justify-center text-xs text-brand-muted">Sin imagen</span>
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
-            <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-brand-line p-4 text-sm text-brand-muted transition hover:border-brand-accent">
-              <ImagePlus size={20} className="text-brand-accent" />
-              <span>{files.length ? `${files.length} imagen(es) nueva(s) seleccionada(s)` : "Seleccionar imágenes nuevas"}</span>
-              <input type="file" accept="image/*" multiple className="sr-only" onChange={(event) => setFiles(Array.from(event.target.files || []).slice(0, 3))} />
-            </label>
+                  <label className="block cursor-pointer text-center text-xs font-medium text-brand-accent hover:underline">
+                    {slot.url || slot.file ? "Reemplazar" : "Subir foto"}
+                    <input type="file" accept="image/*" className="sr-only" onChange={(event) => { replaceSlot(index, event.target.files?.[0]); event.target.value = ""; }} />
+                  </label>
+                  {(slot.url || slot.file) && <button type="button" onClick={() => removeSlot(index)} className="block w-full text-center text-xs text-brand-sale hover:underline">Quitar</button>}
+                </div>
+              ))}
+              {slots.length < 3 && (
+                <button type="button" onClick={() => setSlots((current) => [...current, {}])} className="flex h-28 w-28 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-brand-line text-xs text-brand-muted transition hover:border-brand-accent">
+                  <ImagePlus size={20} className="text-brand-accent" /> Añadir foto
+                </button>
+              )}
+            </div>
             {product.video && !removeVideo && <video src={product.video} controls preload="metadata" className="mt-4 max-h-48 w-full rounded-lg bg-brand-ink" />}
             <div className="mt-4 flex flex-wrap items-center gap-4">
               <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-brand-accent">

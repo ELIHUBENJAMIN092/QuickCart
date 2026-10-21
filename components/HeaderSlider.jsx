@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { buildSlides, slideImage } from "@/lib/carousel";
 
 const SLIDE_DURATION = 6000;
@@ -29,7 +29,9 @@ export default function HeaderSlider() {
       SLIDE_DURATION
     );
     return () => window.clearInterval(interval);
-  }, [paused]);
+  }, [paused, currentSlide, slides.length]);
+
+  const go = (step) => setCurrentSlide((current) => (current + step + slides.length) % slides.length);
 
   return (
     <section
@@ -70,6 +72,16 @@ export default function HeaderSlider() {
           </div>
         </div>
       ))}
+      {slides.length > 1 && (
+        <>
+          <button type="button" onClick={() => go(-1)} aria-label="Imagen anterior" className="absolute left-3 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/30 md:left-6 md:h-12 md:w-12">
+            <ChevronLeft size={26} />
+          </button>
+          <button type="button" onClick={() => go(1)} aria-label="Imagen siguiente" className="absolute right-3 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/30 md:right-6 md:h-12 md:w-12">
+            <ChevronRight size={26} />
+          </button>
+        </>
+      )}
       <div className="absolute bottom-8 left-6 right-6 z-10 mx-auto flex max-w-7xl gap-3 md:left-12 md:right-12">
         {slides.map((slide, index) => (
           <button key={slide.position} onClick={() => setCurrentSlide(index)} className="group h-8 flex-1 py-3" aria-label={`Mostrar diapositiva ${index + 1}`} aria-current={index === currentSlide}>

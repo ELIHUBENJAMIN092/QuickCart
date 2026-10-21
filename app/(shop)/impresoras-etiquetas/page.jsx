@@ -27,36 +27,40 @@ export default function LabelPrintersPage() {
 
   return (
     <main>
-      <Container className="py-8 md:py-12">
-        <nav aria-label="Breadcrumb" className="mb-8 flex flex-wrap gap-2 text-xs text-brand-muted">
-          <Link href="/" className="hover:text-brand-accent">Inicio</Link><span>/</span>
-          <Link href="/all-products?category=codigo-de-barras" className="hover:text-brand-accent">Código de Barras</Link><span>/</span>
-          <span className="text-brand-ink">Impresoras de etiquetas</span>
-        </nav>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-muted">Código de barras</p>
-        <h1 className="mt-3 font-display text-3xl text-brand-ink md:text-5xl">Impresoras de etiquetas</h1>
-        <div className="mt-8 flex flex-wrap gap-3">
-          {grouped.map((type) => (
-            <a key={type.slug} href={`#${type.slug}`} className="rounded-full border border-brand-line px-5 py-2.5 text-sm font-medium text-brand-ink transition hover:border-brand-accent hover:text-brand-accent">
-              {type.name} <span className="text-brand-muted">({type.items.length})</span>
-            </a>
-          ))}
-        </div>
-      </Container>
+      <div className="bg-gray-100">
+        <Container className="py-8 md:py-10">
+          <nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap gap-2 text-xs text-brand-muted">
+            <Link href="/" className="hover:text-brand-accent">Inicio</Link><span>»</span>
+            <Link href="/all-products?category=codigo-de-barras" className="hover:text-brand-accent">Código de Barras</Link><span>»</span>
+            <span className="text-brand-ink">Impresoras de etiquetas</span>
+          </nav>
+          <h1 className="font-display text-3xl font-semibold text-brand-ink md:text-5xl">Impresoras de etiquetas</h1>
+          <p className="mt-3 max-w-2xl text-sm text-brand-muted md:text-base">Impresoras portátiles, de escritorio e industriales para identificar, etiquetar y rastrear en tu operación.</p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            {grouped.map((type) => (
+              <a key={type.slug} href={`#${type.slug}`} className="inline-flex items-center gap-2 rounded-md border border-brand-line bg-white px-4 py-2.5 text-sm font-medium text-brand-ink transition hover:border-brand-accent hover:text-brand-accent">
+                {type.name}
+              </a>
+            ))}
+          </div>
+        </Container>
+      </div>
 
-      {grouped.map((type, i) => (
-        <section key={type.slug} id={type.slug} className={`scroll-mt-20 border-t-2 border-brand-ink/80 py-12 md:py-16 ${i === 1 ? "bg-sky-50" : "bg-white"}`}>
+      {grouped.map((type) => (
+        <section key={type.slug} id={type.slug} className="scroll-mt-20 pb-10 md:pb-14">
+          <div className="bg-slate-200">
+            <Container className="py-5 md:py-6">
+              <h2 className="font-display text-2xl font-semibold text-brand-ink md:text-3xl">{type.name}</h2>
+              <p className="mt-1 text-sm text-slate-600">{type.description}</p>
+            </Container>
+          </div>
           <Container>
-            <div className="border-b border-brand-line pb-5">
-              <h2 className="font-display text-2xl text-brand-ink md:text-4xl">{type.name}</h2>
-              <p className="mt-2 text-sm text-brand-muted">{type.description}</p>
-            </div>
             {type.items.length ? (
-              <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
+              <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
                 {type.items.map((product) => <ProductCard key={product._id} product={product} />)}
               </div>
             ) : (
-              <p className="mt-6 rounded-lg bg-brand-sand px-5 py-6 text-sm text-brand-muted">Próximamente tendremos modelos en esta categoría.</p>
+              <p className="mt-8 rounded-lg bg-gray-100 px-5 py-6 text-sm text-brand-muted">Próximamente tendremos modelos en esta categoría.</p>
             )}
           </Container>
         </section>

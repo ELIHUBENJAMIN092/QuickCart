@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
+  User,
+  ChevronRight,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -32,6 +34,11 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [banner, setBanner] = useState(defaultBanner);
   const [openMenu, setOpenMenu] = useState(null);
+  const [menuLeft, setMenuLeft] = useState(0);
+  const openAt = (slug, element) => {
+    setMenuLeft(element.getBoundingClientRect().left + 10);
+    setOpenMenu(slug);
+  };
   const [suggestOpen, setSuggestOpen] = useState(false);
   const searchRef = useRef(null);
   const router = useRouter();
@@ -84,7 +91,7 @@ export default function Navbar() {
   }, [suggestOpen]);
 
   const categoryHref = (slug, subcategory) =>
-    `/all-products?category=${slug}${subcategory ? `/${subcategory}` : ""}`;
+    `/categoria/${slug}${subcategory ? `/${subcategory}` : ""}`;
 
   return (
     <>
@@ -98,42 +105,33 @@ export default function Navbar() {
             </div>
           </div>
         )}
-        <nav className="border-b border-brand-line bg-white/95 backdrop-blur">
-          <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between gap-5 px-4 md:px-8 lg:px-12">
+        <nav className="relative border-b border-brand-line bg-white" onMouseLeave={() => setOpenMenu(null)}>
+          <div className="flex h-[76px] w-full items-center gap-5 px-4 md:px-6 lg:gap-4 xl:px-5">
             <Link href="/" aria-label="COMPEL, inicio" className="shrink-0">
               <Image className="w-28 md:w-32" src={assets.logo} alt="COMPEL" priority />
             </Link>
 
-            <div className="relative mx-auto hidden w-full max-w-2xl md:block" ref={searchRef}>
-              <form onSubmit={submitSearch} role="search" className="flex items-center gap-3 rounded-full border border-brand-line bg-white px-5 py-2.5 focus-within:border-brand-accent">
-                <button type="submit" aria-label="Buscar" className="text-brand-ink"><Search size={18} /></button>
-                <input
-                  value={search}
-                  onChange={(event) => { setSearch(event.target.value); setSuggestOpen(true); }}
-                  onFocus={() => setSuggestOpen(true)}
-                  placeholder="¿Qué producto estás buscando?"
-                  className="w-full bg-transparent text-sm outline-none placeholder:text-brand-muted"
-                />
-              </form>
-              {suggestOpen && search.trim() && (
-                <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-brand-line bg-white shadow-xl">
-                  {matches.map((product) => (
-                    <Link key={product._id} href={`/product/${product._id}`} onClick={() => { setSuggestOpen(false); setSearch(""); }} className="flex items-center gap-3 border-b border-brand-line px-4 py-2.5 text-sm hover:bg-brand-sand">
-                      <span className="relative h-10 w-10 shrink-0 bg-brand-sand">
-                        {product.image?.[0] && <Image src={product.image[0]} alt="" fill sizes="40px" className="object-contain p-1" />}
-                      </span>
-                      <span className="line-clamp-1">{product.name}</span>
-                    </Link>
-                  ))}
-                  {matches.length === 0 && <p className="px-4 py-3 text-sm text-brand-muted">No encontramos productos con ese nombre.</p>}
-                  <Link href={`/all-products?search=${encodeURIComponent(search.trim())}`} onClick={() => setSuggestOpen(false)} className="block px-4 py-3 text-sm font-medium text-brand-accent hover:bg-brand-sand">Ver todos los resultados →</Link>
-                </div>
-              )}
+            <div className="mr-auto hidden items-center gap-1 text-[15px] font-medium text-brand-accent xl:flex xl:gap-1">
+              {categories.map((category) => (
+                <button
+                  key={category.slug}
+                  type="button"
+                  onMouseEnter={(event) => openAt(category.slug, event.currentTarget)}
+                  onClick={(event) => (openMenu === category.slug ? setOpenMenu(null) : openAt(category.slug, event.currentTarget))}
+                  aria-expanded={openMenu === category.slug}
+                  className={`flex items-center gap-1 whitespace-nowrap border-b-2 px-2 py-6 transition hover:text-sky-500 xl:px-2.5 ${openMenu === category.slug ? "border-sky-500 text-sky-500" : "border-transparent"}`}
+                >
+                  {category.name} <ChevronDown size={14} />
+                </button>
+              ))}
+              <Link href="/Acerca" onMouseEnter={() => setOpenMenu(null)} className="whitespace-nowrap px-2 py-6 hover:text-sky-500 xl:px-2.5">Nosotros</Link>
+              <Link href="/Contactos" onMouseEnter={() => setOpenMenu(null)} className="whitespace-nowrap px-2 py-6 hover:text-sky-500 xl:px-2.5">Contacto</Link>
             </div>
+            <div className="flex-1 xl:hidden" />
 
-            <div className="flex items-center gap-4 text-brand-ink">
-              <button onClick={() => setSearchOpen(true)} aria-label="Buscar" className="hover:text-brand-accent md:hidden">
-                <Search size={20} />
+            <div className="flex shrink-0 items-center gap-4 text-brand-ink">
+              <button onClick={() => setSearchOpen(true)} aria-label="Buscar" className="flex items-center gap-2 text-[15px] font-medium text-brand-accent hover:text-sky-500">
+                <span className="hidden xl:inline">Buscar</span><Search size={20} />
               </button>
               <button onClick={() => setCartOpen(true)} aria-label="Abrir carrito" className="relative hover:text-brand-accent">
                 <ShoppingCart size={20} />
@@ -176,64 +174,78 @@ export default function Navbar() {
                     )}
                   </div>
                 ) : (
-                  <Link href="/sign-in" className="text-sm hover:text-brand-accent">Cuenta</Link>
+                  <Link href="/sign-in" className="flex items-center gap-2 text-[15px] font-medium text-brand-accent hover:text-sky-500">Cuenta <User size={20} /></Link>
                 )}
               </div>
-              <button className="lg:hidden" onClick={() => setMobileOpen((open) => !open)} aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}>
+              <button className="xl:hidden" onClick={() => setMobileOpen((open) => !open)} aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}>
                 {mobileOpen ? <X size={22} /> : <Menu size={22} />}
               </button>
             </div>
           </div>
 
-          <div className="hidden border-t border-brand-line lg:block">
-            <div className="mx-auto flex max-w-7xl items-center justify-center gap-8 px-8 text-sm font-medium text-brand-charcoal">
-              {categories.map((category) => (
-                <div
-                  key={category.slug}
-                  className="relative"
-                  onMouseEnter={() => setOpenMenu(category.slug)}
-                  onMouseLeave={() => setOpenMenu(null)}
-                >
-                  <button
-                    onClick={() => setOpenMenu((current) => (current === category.slug ? null : category.slug))}
-                    aria-expanded={openMenu === category.slug}
-                    className={`flex items-center gap-1 border-b-2 py-3 hover:text-brand-accent ${openMenu === category.slug ? "border-brand-accent text-brand-accent" : "border-transparent"}`}
-                  >
-                    {category.name} <ChevronDown size={14} />
-                  </button>
-                  {openMenu === category.slug && (
-                    <div className="absolute left-0 top-full z-50 min-w-60 border border-brand-line bg-white py-2 shadow-xl">
-                      {category.subcategories.map((subcategory) => (
-                        <Link key={subcategory.slug} href={subcategory.href || categoryHref(category.slug, subcategory.slug)} onClick={() => setOpenMenu(null)} className={`block py-2.5 text-sm font-normal hover:bg-brand-sand hover:text-brand-accent ${subcategory.parent ? "pl-9 pr-5 text-brand-muted" : "px-5"}`}>{subcategory.name}</Link>
+          {categories.map((category) => openMenu === category.slug && (
+            <div key={category.slug} className="absolute inset-x-0 top-full z-50 hidden border-t border-brand-line bg-white shadow-xl xl:block">
+              <div className="flex flex-wrap gap-x-16 gap-y-8 py-8 pr-6" style={{ paddingLeft: menuLeft }}>
+                {(() => {
+                  const leaves = category.subcategories.filter((item) => !item.parent && !category.subcategories.some((child) => child.parent === item.slug));
+                  const parents = category.subcategories.filter((item) => category.subcategories.some((child) => child.parent === item.slug));
+                  return (
+                    <>
+                      {leaves.length > 0 && (
+                        <div>
+                          <Link href={categoryHref(category.slug)} onClick={() => setOpenMenu(null)} className="text-base font-semibold text-brand-ink hover:text-brand-accent">{category.name}</Link>
+                          <ul className="mt-4 space-y-3">
+                            {leaves.map((item) => (
+                              <li key={item.slug}><Link href={item.href || categoryHref(category.slug, item.slug)} onClick={() => setOpenMenu(null)} className="text-sm font-semibold text-brand-accent hover:text-sky-500">{item.name}</Link></li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {parents.map((parent) => (
+                        <div key={parent.slug}>
+                          <Link href={categoryHref(category.slug, parent.slug)} onClick={() => setOpenMenu(null)} className="text-base font-semibold text-brand-ink hover:text-brand-accent">{parent.name}</Link>
+                          <ul className="mt-4 space-y-3">
+                            {category.subcategories.filter((child) => child.parent === parent.slug).map((child) => (
+                              <li key={child.slug}><Link href={categoryHref(category.slug, child.slug)} onClick={() => setOpenMenu(null)} className="text-sm font-semibold text-brand-accent hover:text-sky-500">{child.name}</Link></li>
+                            ))}
+                          </ul>
+                        </div>
                       ))}
-                      <Link href={categoryHref(category.slug)} onClick={() => setOpenMenu(null)} className="block px-5 py-2.5 text-sm font-semibold text-brand-accent hover:bg-brand-sand">Ver todo</Link>
-                    </div>
-                  )}
-                </div>
-              ))}
-              <Link href="/Productos" className="py-3 hover:text-brand-accent">Soluciones</Link>
-              <Link href="/Acerca" className="py-3 hover:text-brand-accent">Nosotros</Link>
-              <Link href="/Contactos" className="py-3 hover:text-brand-accent">Contacto</Link>
-              {isSeller && <Link href="/seller" className="py-3 text-xs font-semibold text-brand-accent">Administración</Link>}
+                    </>
+                  );
+                })()}
+              </div>
             </div>
-          </div>
+          ))}
 
           {mobileOpen && (
-            <div className="max-h-[calc(100vh-100px)] overflow-y-auto border-t border-brand-line bg-white px-5 py-5 lg:hidden">
+            <div className="max-h-[calc(100vh-100px)] overflow-y-auto border-t border-brand-line bg-white px-5 py-5 xl:hidden">
               <Link className="block border-b border-brand-line py-3" href="/" onClick={() => setMobileOpen(false)}>Inicio</Link>
               <Link className="block border-b border-brand-line py-3" href="/all-products" onClick={() => setMobileOpen(false)}>Todo el catálogo</Link>
               {categories.map((category) => (
                 <details key={category.slug} className="border-b border-brand-line py-3">
                   <summary className="cursor-pointer list-none font-medium text-brand-ink">{category.name}</summary>
                   <div className="space-y-2 pb-2 pl-3 pt-3">
-                    <Link className="block text-sm text-brand-muted" href={categoryHref(category.slug)} onClick={() => setMobileOpen(false)}>Ver categoría</Link>
-                    {category.subcategories.map((subcategory) => (
-                      <Link key={subcategory.slug} className={`block text-sm text-brand-muted ${subcategory.parent ? "pl-4" : ""}`} href={subcategory.href || categoryHref(category.slug, subcategory.slug)} onClick={() => setMobileOpen(false)}>{subcategory.name}</Link>
-                    ))}
+                    {category.subcategories.filter((item) => !item.parent).map((subcategory) => {
+                      const children = category.subcategories.filter((item) => item.parent === subcategory.slug);
+                      const href = subcategory.href || categoryHref(category.slug, subcategory.slug);
+                      if (!children.length) {
+                        return <Link key={subcategory.slug} className="block text-sm text-brand-muted" href={href} onClick={() => setMobileOpen(false)}>{subcategory.name}</Link>;
+                      }
+                      return (
+                        <details key={subcategory.slug} className="text-sm text-brand-muted">
+                          <summary className="flex cursor-pointer list-none items-center justify-between pr-1">{subcategory.name} <ChevronDown size={14} /></summary>
+                          <div className="space-y-2 pl-4 pt-2">
+                            {children.map((child) => (
+                              <Link key={child.slug} className="block" href={categoryHref(category.slug, child.slug)} onClick={() => setMobileOpen(false)}>{child.name}</Link>
+                            ))}
+                          </div>
+                        </details>
+                      );
+                    })}
                   </div>
                 </details>
               ))}
-              <Link className="block border-b border-brand-line py-3" href="/Productos" onClick={() => setMobileOpen(false)}>Soluciones</Link>
               <Link className="block border-b border-brand-line py-3" href="/Acerca" onClick={() => setMobileOpen(false)}>Nosotros</Link>
               <Link className="block py-3" href="/Contactos" onClick={() => setMobileOpen(false)}>Contacto</Link>
               {user ? (

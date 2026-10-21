@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import authSeller from "@/lib/authSeller";
+import { syncCategories } from "@/lib/categoryServer";
 import { categories, isLabelPrinterSubcategory, isValidHttpsUrl, printerTypes } from "@/lib/categories";
 import { getAuthenticatedSupabase } from "@/lib/supabase/server";
 import { mapProduct } from "@/lib/supabase/records";
@@ -22,11 +23,12 @@ export async function PUT(request, context) {
     const price = Number(body.price);
     const offerPrice = Number(body.offerPrice);
     const stock = Number(body.stock);
+    await syncCategories(supabase);
     const selectedCategory = categories.find((item) => item.slug === category);
     const validSubcategory =
       !subcategory ||
       selectedCategory?.subcategories.some((item) => item.slug === subcategory);
-    const imagePaths = body.imagePaths || [];
+    const imageSlots = Array.isArray(body.imageSlots) ? body.imageSlots : null;
     const videoPath = body.videoPath || "";
     const removeVideo = body.removeVideo === true;
     const catalogPath = body.catalogPath || "";
@@ -48,7 +50,7 @@ export async function PUT(request, context) {
     if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(offerPrice) || offerPrice < 0 || offerPrice > price || !Number.isInteger(stock) || stock < 0) {
       return NextResponse.json({ success: false, message: "Revisa los precios y el stock del producto." }, { status: 400 });
     }
-    if (!Array.isArray(imagePaths) || imagePaths.length > 3) {
+    if (!imageSlots || imageSlots.length < 1 || imageSlots.length > 3) {
       return NextResponse.json({ success: false, message: "Cada imagen debe ser válida y pesar máximo 8 MB; puedes subir hasta 3." }, { status: 400 });
     }
 
@@ -62,11 +64,14 @@ export async function PUT(request, context) {
       return NextResponse.json({ success: false, message: "Producto no encontrado." }, { status: 404 });
     }
 
-    const imageUrls = imagePaths.length
-      ? await Promise.all(imagePaths.map((path) =>
-          validateProductFile(supabase, user.id, path, "images", 8 * 1024 * 1024, "image/")
-        ))
-      : current.image_urls;
+    const currentImages = current.image_urls || [];
+    const imageUrls = await Promise.all(imageSlots.map(async (slot) => {
+      if (slot?.keep) {
+        if (!currentImages.includes(slot.keep)) throw new Error("Imagen no pertenece al producto.");
+        return slot.keep;
+      }
+      return validateProductFile(supabase, user.id, String(slot?.path || ""), "images", 8 * 1024 * 1024, "image/");
+    }));
     let videoUrl = removeVideo ? "" : current.video || "";
     if (videoPath) videoUrl = await validateProductFile(supabase, user.id, videoPath, "videos", 100 * 1024 * 1024, "video/");
     let catalogUrl = removeCatalog ? "" : current.catalog_pdf || "";
@@ -98,7 +103,7 @@ export async function PUT(request, context) {
     if (error) throw error;
 
     const oldMedia = [
-      ...(imagePaths.length ? current.image_urls || [] : []),
+      ...currentImages.filter((url) => !imageUrls.includes(url)),
       ...(videoUrl !== current.video && current.video ? [current.video] : []),
       ...(catalogUrl !== current.catalog_pdf && current.catalog_pdf ? [current.catalog_pdf] : []),
     ];

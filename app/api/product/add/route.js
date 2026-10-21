@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import authSeller from "@/lib/authSeller";
+import { syncCategories } from "@/lib/categoryServer";
 import { categories, isLabelPrinterSubcategory, isValidHttpsUrl, printerTypes } from "@/lib/categories";
 import { getAuthenticatedSupabase } from "@/lib/supabase/server";
 import { mapProduct } from "@/lib/supabase/records";
@@ -21,6 +22,7 @@ export async function POST(request) {
     const price = Number(body.price);
     const offerPrice = Number(body.offerPrice);
     const stock = Number(body.stock);
+    await syncCategories(supabase);
     const selectedCategory = categories.find((item) => item.slug === category);
     const validSubcategory =
       !subcategory ||

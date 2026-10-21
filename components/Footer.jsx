@@ -6,9 +6,11 @@ import { useState } from "react";
 import { FaWhatsapp } from "react-icons/fa";
 import { assets } from "@/assets/assets";
 import { categories } from "@/lib/categories";
+import { useAppContext } from "@/context/AppContext";
 import toast from "react-hot-toast";
 
 export default function Footer() {
+  useAppContext();
   const [showPDF, setShowPDF] = useState(false);
   const [email, setEmail] = useState("");
   const [accepted, setAccepted] = useState(false);
@@ -30,7 +32,7 @@ export default function Footer() {
 
   return (
     <>
-      <footer className="border-t border-brand-line bg-white">
+      <footer className="border-t border-brand-line bg-gray-100">
         <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-4 lg:px-12">
           <div>
             <Link href="/" aria-label="COMPEL, inicio"><Image className="w-32" src={assets.logo} alt="COMPEL" /></Link>
@@ -75,7 +77,7 @@ export default function Footer() {
             </form>
           </div>
         </div>
-        <div className="border-t border-brand-line px-5 py-5 text-center text-xs text-brand-muted">
+        <div className="bg-brand-ink px-5 py-5 text-center text-xs text-white">
           <p>© {new Date().getFullYear()} COMPEL · Tecnología e identificación en Ecuador. Todos los derechos reservados.</p>
           <p className="mt-2">Pago contra entrega y confirmación manual · Consulta condiciones con nuestro equipo.</p>
         </div>

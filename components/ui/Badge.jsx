@@ -8,7 +8,7 @@ const styles = {
 
 export default function Badge({ children, variant = "limited", className = "" }) {
   return (
-    <span className={`inline-flex rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wider ${styles[variant]} ${className}`}>
+    <span className={`inline-flex rounded-md px-2.5 py-1 text-[11px] font-semibold tracking-wide ${styles[variant]} ${className}`}>
       {children}
     </span>
   );

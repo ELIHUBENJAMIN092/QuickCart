@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { applyCategories } from "@/lib/categories";
 
 export const AppContext = createContext();
 
@@ -21,6 +22,8 @@ export const AppContextProvider = (props) => {
   const [userData, setUserData] = useState(false);
   const [isSeller, setIsSeller] = useState(false);
   const [cartItems, setCartItems] = useState({});
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
+  const [categoriesVersion, setCategoriesVersion] = useState(0);
 
   const getToken = async () => {
     const { data, error } = await supabase.auth.getSession();
@@ -49,6 +52,20 @@ export const AppContextProvider = (props) => {
       }
     } catch (error) {
       toast.error(error.message);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const { data } = await axios.get("/api/categories");
+      if (data.success) {
+        applyCategories(data.categories);
+        setCategoriesVersion((version) => version + 1);
+      }
+    } catch (error) {
+      console.error("No se pudieron cargar las categorías:", error);
+    } finally {
+      setCategoriesLoaded(true);
     }
   };
 
@@ -180,6 +197,7 @@ export const AppContextProvider = (props) => {
   // Cargar productos al iniciar
   useEffect(() => {
     fetchProductData();
+    fetchCategories();
   }, []);
 
   useEffect(() => {
@@ -227,6 +245,9 @@ export const AppContextProvider = (props) => {
     fetchUserData,
     products,
     fetchProductData,
+    fetchCategories,
+    categoriesLoaded,
+    categoriesVersion,
     cartItems,
     setCartItems,
     addToCart,

@@ -17,7 +17,7 @@ export default function BrandCarousel() {
       <p className="mb-5 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-muted">Marcas de confianza</p>
       <div className="animate-scroll flex w-max items-center gap-12 whitespace-nowrap px-6">
         {[...brandLogos, ...brandLogos].map((logo, index) => (
-          <div key={`${logo.alt}-${index}`} className="brand-logo grayscale transition duration-300 hover:grayscale-0">
+          <div key={`${logo.alt}-${index}`} className="brand-logo">
             <Image src={logo.src} alt={index < brandLogos.length ? logo.alt : ""} width={120} height={60} className="max-h-12 w-auto object-contain" />
           </div>
         ))}

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BadgeCheck, Headset, Layers3, Truck } from "lucide-react";
-import { assets } from "@/assets/assets";
+import familia from "@/assets/familia.jpg";
 import Container from "@/components/ui/Container";
 
 const benefits = [
@@ -20,25 +20,25 @@ const testimonials = [
 export default function HomeEditorial() {
   return (
     <>
-      <section className="py-14 md:py-24">
+      <section className="bg-gray-100 py-14 md:py-20">
         <Container>
           <div className="grid items-center gap-12 lg:grid-cols-3">
             <div className="space-y-7 lg:pr-4">
               {benefits.slice(0, 2).map(({ icon: Icon, title, text }) => (
                 <article key={title} className="flex gap-4">
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-sand text-brand-accent"><Icon size={20} /></span>
-                  <div><h3 className="font-semibold text-brand-ink">{title}</h3><p className="mt-1 text-sm leading-6 text-brand-muted">{text}</p></div>
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-brand-ink ring-1 ring-gray-300"><Icon size={20} /></span>
+                  <div><h3 className="text-xl font-bold text-gray-900">{title}</h3><p className="mt-1 text-base leading-7 text-gray-700">{text}</p></div>
                 </article>
               ))}
             </div>
-            <div className="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-full bg-brand-sand p-10">
-              <Image src={assets.rfid_rfd40} alt="Lector RFID profesional" fill sizes="(max-width: 1024px) 80vw, 30vw" className="object-contain p-8" />
+            <div className="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-full bg-white ring-1 ring-gray-200">
+              <Image src={familia} alt="Familia de productos COMPEL" fill sizes="(max-width: 1024px) 80vw, 30vw" className="object-contain p-4" />
             </div>
             <div className="space-y-7 lg:pl-4">
               {benefits.slice(2).map(({ icon: Icon, title, text }) => (
                 <article key={title} className="flex gap-4">
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-sand text-brand-accent"><Icon size={20} /></span>
-                  <div><h3 className="font-semibold text-brand-ink">{title}</h3><p className="mt-1 text-sm leading-6 text-brand-muted">{text}</p></div>
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-brand-ink ring-1 ring-gray-300"><Icon size={20} /></span>
+                  <div><h3 className="text-xl font-bold text-gray-900">{title}</h3><p className="mt-1 text-base leading-7 text-gray-700">{text}</p></div>
                 </article>
               ))}
             </div>
