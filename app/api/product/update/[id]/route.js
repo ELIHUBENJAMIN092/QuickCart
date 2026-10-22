@@ -76,6 +76,8 @@ export async function PUT(request, context) {
     if (videoPath) videoUrl = await validateProductFile(supabase, user.id, videoPath, "videos", 100 * 1024 * 1024, "video/");
     let catalogUrl = removeCatalog ? "" : current.catalog_pdf || "";
     if (catalogPath) catalogUrl = await validateProductFile(supabase, user.id, catalogPath, "catalogs", 25 * 1024 * 1024, "application/pdf");
+    let brandLogoUrl = body.removeBrandLogo ? "" : current.brand_logo || "";
+    if (body.brandLogoPath) brandLogoUrl = await validateProductFile(supabase, user.id, body.brandLogoPath, "brands", 2 * 1024 * 1024, "image/");
     const specifications = textToSpecifications(body.specificationsText);
     const { data: updated, error } = await supabase
       .from("products")
@@ -90,6 +92,7 @@ export async function PUT(request, context) {
         image_urls: imageUrls,
         video: videoUrl,
         catalog_pdf: catalogUrl,
+        brand_logo: brandLogoUrl,
         specifications,
         is_offer: isOffer,
         is_new: isNew,
@@ -105,6 +108,7 @@ export async function PUT(request, context) {
     const oldMedia = [
       ...currentImages.filter((url) => !imageUrls.includes(url)),
       ...(videoUrl !== current.video && current.video ? [current.video] : []),
+      ...(brandLogoUrl !== current.brand_logo && current.brand_logo ? [current.brand_logo] : []),
       ...(catalogUrl !== current.catalog_pdf && current.catalog_pdf ? [current.catalog_pdf] : []),
     ];
     let cleanupPending = false;

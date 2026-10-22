@@ -28,6 +28,8 @@ export default function EditProduct() {
   const [processingSlot, setProcessingSlot] = useState(null);
   const [videoFile, setVideoFile] = useState(null);
   const [removeVideo, setRemoveVideo] = useState(false);
+  const [brandLogoFile, setBrandLogoFile] = useState(null);
+  const [removeBrandLogo, setRemoveBrandLogo] = useState(false);
   const [catalogFile, setCatalogFile] = useState(null);
   const [removeCatalog, setRemoveCatalog] = useState(false);
   const [product, setProduct] = useState({
@@ -78,6 +80,7 @@ export default function EditProduct() {
           image: data.product.image || [],
           video: data.product.video || "",
           catalogPdf: data.product.catalog_pdf || "",
+          brandLogo: data.product.brand_logo || "",
           specsText: specificationsToText(data.product.specifications),
           isOffer: data.product.is_offer === true,
           isNew: data.product.is_new === true,
@@ -155,6 +158,9 @@ export default function EditProduct() {
       const videoPath = videoFile
         ? await uploadProductFile(supabase, user.id, videoFile, "videos")
         : "";
+      const brandLogoPath = brandLogoFile
+        ? await uploadProductFile(supabase, user.id, brandLogoFile, "brands")
+        : "";
       const catalogPath = catalogFile
         ? await uploadProductFile(supabase, user.id, catalogFile, "catalogs")
         : "";
@@ -171,6 +177,8 @@ export default function EditProduct() {
         removeVideo,
         catalogPath,
         removeCatalog,
+        brandLogoPath,
+        removeBrandLogo,
         specificationsText: product.specsText,
         isOffer: product.isOffer,
         isNew: product.isNew,
@@ -296,6 +304,28 @@ export default function EditProduct() {
               {product.video && !removeVideo && <button type="button" onClick={() => { setRemoveVideo(true); setVideoFile(null); }} className="text-xs text-brand-sale hover:underline">Quitar video actual</button>}
               {removeVideo && <button type="button" onClick={() => setRemoveVideo(false)} className="text-xs text-brand-accent hover:underline">Deshacer</button>}
             </div>
+            <div className="mt-6 border-t border-brand-line pt-4">
+              <p className="text-sm font-semibold text-brand-ink">Logo de la marca <span className="font-normal text-brand-muted">(máximo 2 MB)</span></p>
+              <div className="mt-3 flex flex-wrap items-center gap-4">
+                {(brandLogoFile || (product.brandLogo && !removeBrandLogo)) && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={brandLogoFile ? URL.createObjectURL(brandLogoFile) : product.brandLogo} alt="Logo de la marca" className="h-14 w-28 rounded-lg border border-brand-line object-contain p-1" />
+                )}
+                <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-brand-accent">
+                  <ImagePlus size={17} /> {processingSlot === "brand" ? "Procesando..." : brandLogoFile ? brandLogoFile.name : product.brandLogo ? "Reemplazar logo" : "Subir logo"}
+                  <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="sr-only" onChange={async (event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    setRemoveBrandLogo(false);
+                    if (!file) return setBrandLogoFile(null);
+                    setProcessingSlot("brand");
+                    try { setBrandLogoFile(await processProductImage(file)); } finally { setProcessingSlot(null); }
+                  }} />
+                </label>
+                {product.brandLogo && !removeBrandLogo && <button type="button" onClick={() => { setRemoveBrandLogo(true); setBrandLogoFile(null); }} className="text-xs text-brand-sale hover:underline">Quitar logo actual</button>}
+                {removeBrandLogo && <button type="button" onClick={() => setRemoveBrandLogo(false)} className="text-xs text-brand-accent hover:underline">Deshacer</button>}
+              </div>
+            </div>
           </section>
 
           <ProductBadgeFields isOffer={product.isOffer} isNew={product.isNew} onIsOffer={(value) => updateField("isOffer", value)} onIsNew={(value) => updateField("isNew", value)} />
@@ -318,7 +348,7 @@ export default function EditProduct() {
 
           <div className="flex flex-col-reverse gap-3 border-t border-brand-line pt-6 sm:flex-row sm:justify-end">
             <Link href="/seller/product-list" className="rounded-full border border-brand-line px-6 py-3 text-center text-sm font-medium text-brand-charcoal hover:bg-brand-cream">Cancelar</Link>
-            <button type="submit" disabled={saving} className="rounded-full bg-brand-accent px-7 py-3 text-sm font-semibold text-white transition hover:bg-brand-accent-hover disabled:cursor-wait disabled:opacity-60">{saving ? "Guardando..." : "Guardar cambios"}</button>
+            <button type="submit" disabled={saving || processingSlot !== null} className="rounded-full bg-brand-accent px-7 py-3 text-sm font-semibold text-white transition hover:bg-brand-accent-hover disabled:cursor-wait disabled:opacity-60">{saving ? "Guardando..." : "Guardar cambios"}</button>
           </div>
         </form>
       </div>

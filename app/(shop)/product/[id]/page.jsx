@@ -23,6 +23,7 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [show3d, setShow3d] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
+  const [zoom, setZoom] = useState({ active: false, x: 50, y: 50 });
 
   const product = useMemo(() => products.find((item) => item._id === id), [id, products]);
   const related = useMemo(
@@ -36,6 +37,7 @@ export default function ProductPage() {
     setQuantity(1);
     setShow3d(false);
     setCatalogOpen(false);
+    setZoom({ active: false, x: 50, y: 50 });
   }, [id]);
 
   if (!product) {
@@ -53,7 +55,12 @@ export default function ProductPage() {
   const imageCount = product.image?.length || 0;
   const mediaCount = imageCount + (product.video ? 1 : 0);
   const currentMedia = showVideo ? imageCount : selectedImage;
+  const moveZoom = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setZoom((current) => ({ ...current, x: ((event.clientX - rect.left) / rect.width) * 100, y: ((event.clientY - rect.top) / rect.height) * 100 }));
+  };
   const goToMedia = (index) => {
+    setZoom((current) => ({ ...current, active: false }));
     const next = (index + mediaCount) % mediaCount;
     if (product.video && next === imageCount) setShowVideo(true);
     else { setShowVideo(false); setSelectedImage(next); }
@@ -82,31 +89,42 @@ export default function ProductPage() {
 
           <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
             <div className="min-w-0">
-              <div className="relative aspect-square overflow-hidden bg-white">
+              <div className="flex h-16 items-center justify-between gap-3 px-2">
+                <div className="flex h-14 min-w-0 flex-1 items-center">
+                  {product.brand_logo && <Image src={product.brand_logo} alt="Marca" width={240} height={56} className="h-14 w-auto max-w-full object-contain object-left" />}
+                </div>
+                <div className="shrink-0">
+                  {product.is_offer === true ? <Badge variant="sale" className="!px-4 !py-2 !text-sm">Oferta</Badge> : product.is_new === true ? <Badge variant="new" className="!px-4 !py-2 !text-sm">Nuevo</Badge> : null}
+                </div>
+              </div>
+              <div
+                className={`relative aspect-square overflow-hidden bg-white ${!showVideo && product.image?.[selectedImage] ? (zoom.active ? "cursor-zoom-out" : "cursor-zoom-in") : ""}`}
+                onClick={() => { if (!showVideo && product.image?.[selectedImage]) setZoom((current) => ({ ...current, active: !current.active })); }}
+                onMouseMove={zoom.active ? moveZoom : undefined}
+                onMouseLeave={() => setZoom((current) => ({ ...current, active: false }))}
+              >
                 {showVideo && product.video ? (
                   <video src={product.video} controls playsInline preload="metadata" className="h-full w-full object-contain" />
                 ) : product.image?.[selectedImage] ? (
-                  <Image src={product.image[selectedImage]} alt={product.name} fill priority sizes="(max-width: 1024px) 100vw, 50vw" className="object-contain p-7 md:p-12" />
+                  <Image src={product.image[selectedImage]} alt={product.name} fill priority sizes="(max-width: 1024px) 100vw, 50vw" className="object-contain p-7 transition-transform duration-200 ease-out md:p-12" style={{ transform: zoom.active ? "scale(2.2)" : "scale(1)", transformOrigin: `${zoom.x}% ${zoom.y}%` }} />
                 ) : (
                   <div className="grid h-full place-items-center text-sm text-brand-muted">Imagen no disponible</div>
                 )}
-                {product.is_offer === true && <Badge variant="sale" className="absolute left-4 top-4">Oferta</Badge>}
-                {product.is_offer !== true && product.is_new === true && <Badge variant="new" className="absolute left-4 top-4">Nuevo</Badge>}
                 {mediaCount > 1 && (
                   <>
-                    <button onClick={() => goToMedia(currentMedia - 1)} aria-label="Anterior" className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-brand-line bg-white/90 p-2 text-brand-ink shadow transition hover:bg-white"><ChevronLeft size={20} /></button>
-                    <button onClick={() => goToMedia(currentMedia + 1)} aria-label="Siguiente" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-brand-line bg-white/90 p-2 text-brand-ink shadow transition hover:bg-white"><ChevronRight size={20} /></button>
+                    <button onClick={(event) => { event.stopPropagation(); goToMedia(currentMedia - 1); }} aria-label="Anterior" className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-brand-line bg-white/90 p-2 text-brand-ink shadow transition hover:bg-white"><ChevronLeft size={20} /></button>
+                    <button onClick={(event) => { event.stopPropagation(); goToMedia(currentMedia + 1); }} aria-label="Siguiente" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-brand-line bg-white/90 p-2 text-brand-ink shadow transition hover:bg-white"><ChevronRight size={20} /></button>
                   </>
                 )}
               </div>
-              <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
+              <div className="mx-auto mt-4 grid max-w-[27rem] grid-cols-4 gap-3">
                 {product.image?.map((image, index) => (
-                  <button key={`${image}-${index}`} onClick={() => { setSelectedImage(index); setShowVideo(false); }} className={`relative box-border block h-24 w-24 shrink-0 overflow-hidden border-2 bg-white ${selectedImage === index && !showVideo ? "border-brand-accent" : "border-brand-line"}`} aria-label={`Ver imagen ${index + 1}`}>
+                  <button key={`${image}-${index}`} onClick={() => { setSelectedImage(index); setShowVideo(false); setZoom((current) => ({ ...current, active: false })); }} className={`relative box-border block aspect-square w-full overflow-hidden border-2 bg-white ${selectedImage === index && !showVideo ? "border-brand-accent" : "border-brand-line"}`} aria-label={`Ver imagen ${index + 1}`}>
                     <Image src={image} alt="" fill sizes="96px" className="object-contain p-2" />
                   </button>
                 ))}
                 {product.video && (
-                  <button onClick={() => setShowVideo(true)} aria-label="Reproducir video" className={`relative box-border block h-24 w-24 shrink-0 overflow-hidden border-2 bg-brand-ink ${showVideo ? "border-brand-accent" : "border-brand-line"}`}>
+                  <button onClick={() => setShowVideo(true)} aria-label="Reproducir video" className={`relative box-border block aspect-square w-full overflow-hidden border-2 bg-brand-ink ${showVideo ? "border-brand-accent" : "border-brand-line"}`}>
                     <video src={`${product.video}#t=0.5`} preload="metadata" muted playsInline tabIndex={-1} className="pointer-events-none absolute inset-0 h-full w-full object-cover" />
                     <span className="absolute inset-0 grid place-items-center bg-black/30"><span className="grid h-8 w-8 place-items-center rounded-full bg-white/90 text-brand-ink"><Play size={14} fill="currentColor" /></span></span>
                   </button>

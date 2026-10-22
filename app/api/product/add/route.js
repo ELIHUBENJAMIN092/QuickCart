@@ -60,6 +60,9 @@ export async function POST(request) {
     const catalogUrl = catalogPath
       ? await validateProductFile(supabase, user.id, catalogPath, "catalogs", 25 * 1024 * 1024, "application/pdf")
       : "";
+    const brandLogoUrl = body.brandLogoPath
+      ? await validateProductFile(supabase, user.id, body.brandLogoPath, "brands", 2 * 1024 * 1024, "image/")
+      : "";
     const specifications = textToSpecifications(body.specificationsText);
 
     const { data, error } = await supabase
@@ -76,6 +79,7 @@ export async function POST(request) {
         image_urls: imageUrls,
         video: videoUrl,
         catalog_pdf: catalogUrl,
+        brand_logo: brandLogoUrl,
         specifications,
         is_offer: isOffer,
         is_new: isNew,

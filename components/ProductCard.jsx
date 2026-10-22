@@ -21,6 +21,16 @@ export default function ProductCard({ product }) {
 
   return (
     <article className="group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-brand-line bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+      <div className="flex h-14 items-center justify-between gap-2 bg-gray-100 px-4 pt-3">
+        <div className="flex h-9 min-w-0 flex-1 items-center">
+          {product.brand_logo && (
+            <Image src={product.brand_logo} alt="Marca" width={160} height={36} className="h-9 w-auto max-w-full object-contain object-left" />
+          )}
+        </div>
+        <div className="shrink-0">
+          {soldOut ? <Badge variant="sold-out">Agotado</Badge> : hasOffer ? <Badge variant="sale">Oferta</Badge> : isNew ? <Badge variant="new">Nuevo</Badge> : null}
+        </div>
+      </div>
       <Link href={href} className="relative block aspect-square overflow-hidden bg-gray-100">
         {image && (
           <>
@@ -28,9 +38,6 @@ export default function ProductCard({ product }) {
             {product.image?.[1] && <Image src={secondaryImage} alt="" fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-contain p-6 opacity-0 transition duration-500 group-hover:scale-105 group-hover:opacity-100" />}
           </>
         )}
-        <div className="absolute right-3 top-3">
-          {soldOut ? <Badge variant="sold-out">Agotado</Badge> : hasOffer ? <Badge variant="sale">Oferta</Badge> : isNew ? <Badge variant="new">Nuevo</Badge> : null}
-        </div>
         <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-white px-5 py-2 text-sm font-medium text-brand-ink opacity-0 shadow-md transition group-hover:opacity-100 max-lg:hidden">
           Ver producto
         </span>

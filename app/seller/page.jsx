@@ -34,6 +34,7 @@ const AddProduct = () => {
   const [isOffer, setIsOffer] = useState(false);
   const [isNew, setIsNew] = useState(false);
   const [catalogFile, setCatalogFile] = useState(null);
+  const [brandLogo, setBrandLogo] = useState(null);
   const [model3dUrl, setModel3dUrl] = useState('');
   const [printerType, setPrinterType] = useState('');
   const [specsText, setSpecsText] = useState('');
@@ -81,13 +82,16 @@ const AddProduct = () => {
       const videoPath = video
         ? await uploadProductFile(supabase, user.id, video, "videos")
         : "";
+      const brandLogoPath = brandLogo
+        ? await uploadProductFile(supabase, user.id, brandLogo, "brands")
+        : "";
       const catalogPath = catalogFile
         ? await uploadProductFile(supabase, user.id, catalogFile, "catalogs")
         : "";
 
       const { data } = await axios.post(
         '/api/product/add',
-        { name, description, category, subcategory, price, offerPrice, stock, imagePaths, videoPath, catalogPath, specificationsText: specsText, model3dUrl, printerType, isOffer, isNew },
+        { name, description, category, subcategory, price, offerPrice, stock, imagePaths, videoPath, catalogPath, brandLogoPath, specificationsText: specsText, model3dUrl, printerType, isOffer, isNew },
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -115,6 +119,7 @@ const AddProduct = () => {
         // 🔥 LIMPIAR STOCK
         setStock('')
         setCatalogFile(null)
+        setBrandLogo(null)
         setIsOffer(false)
         setIsNew(false)
         setModel3dUrl('')
@@ -241,6 +246,32 @@ const AddProduct = () => {
 
           </label>
 
+        </section>
+
+        {/* MARCA */}
+        <section className="border-t border-brand-line pt-6">
+          <p className="text-sm font-semibold text-brand-ink">Logo de la marca <span className="font-normal text-brand-muted">(opcional, máximo 2 MB)</span></p>
+          <label htmlFor="brandLogoUpload" className="mt-3 flex h-20 w-40 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-dashed border-brand-line bg-brand-cream">
+            <input
+              type="file"
+              id="brandLogoUpload"
+              accept="image/jpeg,image/png,image/webp,image/avif"
+              hidden
+              onChange={async (e) => {
+                const file = e.target.files[0];
+                e.target.value = '';
+                if (!file) return setBrandLogo(null);
+                setProcessingImage('brand');
+                try { setBrandLogo(await processProductImage(file)); } finally { setProcessingImage(null); }
+              }}
+            />
+            {brandLogo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={URL.createObjectURL(brandLogo)} alt="Logo de la marca" className="h-full w-full object-contain p-2" />
+            ) : (
+              <span className="text-xs text-brand-muted">{processingImage === 'brand' ? 'Procesando...' : 'Seleccionar logo'}</span>
+            )}
+          </label>
         </section>
 
         {/* NOMBRE */}
