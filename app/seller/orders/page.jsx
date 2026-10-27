@@ -1,65 +1,59 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { Clock3, Package, RefreshCw, Search, ShoppingBag, Wallet } from "lucide-react";
 
-import { assets } from "@/assets/assets";
 import { useAppContext } from "@/context/AppContext";
 import Loading from "@/components/Loading";
+import PageHeader from "@/components/seller/PageHeader";
+import OrderCard from "@/components/seller/OrderCard";
+import { useConfirm } from "@/components/ui/ConfirmProvider";
 
-import { FaWhatsapp } from "react-icons/fa";
-
-const Orders = () => {
+export default function Orders() {
   const { currency, getToken, user } = useAppContext();
-
+  const confirm = useConfirm();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState("");
   const [confirmingId, setConfirmingId] = useState("");
 
-  const fetchSellerOrders = async () => {
+  const fetchSellerOrders = async (manual = false) => {
+    if (manual) setRefreshing(true);
     try {
       const token = await getToken();
       const { data } = await axios.get("/api/order/seller-orders", {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (data.success) {
-        const ordersPendientes = data.orders.filter(
-          (order) => !order.isPaid
-        );
-        setOrders(ordersPendientes);
-      } else {
-        toast.error(data.message || "Error al obtener las órdenes.");
-      }
+      if (!data.success) throw new Error(data.message || "Error al obtener las órdenes.");
+      setOrders(data.orders.filter((order) => !order.isPaid));
     } catch (error) {
-      toast.error(
-        error.message || "Ocurrió un error al obtener las órdenes."
-      );
+      toast.error(error.response?.data?.message || error.message || "Ocurrió un error al obtener las órdenes.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
   const handleConfirmPayment = async (orderId) => {
+    const accepted = await confirm({
+      title: "¿Confirmar este pago?",
+      message: "La orden pasará a pagos confirmados y dejará de aparecer como pendiente.",
+      confirmText: "Sí, confirmar",
+    });
+    if (!accepted) return;
+
     setConfirmingId(orderId);
     try {
       const token = await getToken();
-      const { data } = await axios.put(
-        `/api/order/update-payment/${orderId}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (data.success) {
-        toast.success("Pago confirmado.");
-        setOrders((prev) =>
-          prev.filter((order) => order._id !== orderId)
-        );
-      } else {
-        toast.error("No se pudo confirmar el pago.");
-      }
+      const { data } = await axios.put(`/api/order/update-payment/${orderId}`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!data.success) throw new Error(data.message || "No se pudo confirmar el pago.");
+      toast.success("Pago confirmado.");
+      setOrders((current) => current.filter((order) => order._id !== orderId));
     } catch (error) {
       toast.error(error.response?.data?.message || error.message || "Error al confirmar el pago.");
     } finally {
@@ -71,140 +65,100 @@ const Orders = () => {
     if (user) fetchSellerOrders();
   }, [user]);
 
+  const stats = useMemo(() => ({
+    count: orders.length,
+    amount: orders.reduce((sum, order) => sum + Number(order.amount || 0), 0),
+    units: orders.reduce((sum, order) => sum + (order.items || []).reduce((total, item) => total + Number(item.quantity || 0), 0), 0),
+  }), [orders]);
+
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return orders;
+    return orders.filter((order) => {
+      const address = order.address || {};
+      const items = (order.items || []).map((item) => item.product?.name || "").join(" ");
+      return [order._id, address.fullName, address.idNumber, address.email, address.phoneNumber, items]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query));
+    });
+  }, [orders, search]);
+
   return (
-    <main className="min-h-[calc(100vh-4rem)] flex-1 bg-brand-cream p-4 text-sm md:p-8">
-      {loading ? (
-        <Loading />
-      ) : (
-        <div className="mx-auto max-w-6xl space-y-5">
-          <div className="mb-7">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-muted">Administración · Ventas</p>
-            <h1 className="mt-2 font-display text-3xl text-brand-ink">Órdenes pendientes</h1>
-            <p className="mt-2 text-sm text-brand-muted">Revisa la información del cliente y confirma los pagos recibidos.</p>
+    <main className="min-h-[calc(100vh-4rem)] flex-1 p-4 md:p-8">
+      {loading ? <Loading /> : (
+        <div className="mx-auto max-w-6xl">
+          <PageHeader
+            eyebrow="Administración · Ventas"
+            title="Órdenes pendientes"
+            description="Revisa la información del cliente y confirma los pagos recibidos."
+            actions={(
+              <button
+                type="button"
+                onClick={() => fetchSellerOrders(true)}
+                disabled={refreshing}
+                className="inline-flex items-center gap-2 rounded-full border border-brand-line bg-white px-4 py-2.5 text-xs font-semibold text-brand-charcoal transition hover:border-brand-accent disabled:opacity-60"
+              >
+                <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} /> Actualizar
+              </button>
+            )}
+          />
+
+          <section className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3">
+            <article className="rounded-xl border border-brand-line bg-white p-4">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs text-brand-muted">Órdenes pendientes</p>
+                <ShoppingBag size={16} className="text-brand-accent" />
+              </div>
+              <p className="mt-2 font-display text-3xl text-brand-ink">{stats.count}</p>
+            </article>
+            <article className="rounded-xl border border-brand-line bg-white p-4">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs text-brand-muted">Por confirmar</p>
+                <Wallet size={16} className="text-brand-accent" />
+              </div>
+              <p className="mt-2 break-words font-display text-2xl text-brand-ink">{currency}{stats.amount.toFixed(2)}</p>
+            </article>
+            <article className="col-span-2 rounded-xl border border-brand-line bg-white p-4 md:col-span-1">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs text-brand-muted">Unidades comprometidas</p>
+                <Package size={16} className="text-brand-accent" />
+              </div>
+              <p className="mt-2 font-display text-3xl text-brand-ink">{stats.units}</p>
+            </article>
+          </section>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <label className="relative w-full sm:max-w-sm">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-muted" />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar por cliente, cédula, teléfono o producto"
+                aria-label="Buscar órdenes"
+                className="w-full rounded-full border border-brand-line bg-white py-2.5 pl-9 pr-4 text-xs outline-none focus:border-brand-accent"
+              />
+            </label>
+            <p className="inline-flex items-center gap-1.5 text-xs text-brand-muted">
+              <Clock3 size={13} /> {filtered.length} de {orders.length} órdenes
+            </p>
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-brand-line bg-white">
-            {orders.length === 0 ? (
-              <p className="px-6 py-14 text-center text-sm text-brand-muted">No hay órdenes pendientes.</p>
+          <div className="mt-4 space-y-4">
+            {filtered.length === 0 ? (
+              <div className="rounded-2xl border border-brand-line bg-white px-6 py-16 text-center">
+                <ShoppingBag size={30} className="mx-auto text-brand-muted" />
+                <p className="mt-3 font-display text-xl text-brand-ink">{orders.length ? "No hay coincidencias." : "No hay órdenes pendientes."}</p>
+                <p className="mt-1 text-sm text-brand-muted">{orders.length ? "Prueba con otra búsqueda." : "Cuando un cliente compre, la orden aparecerá aquí para confirmar el pago."}</p>
+              </div>
             ) : (
-              orders.map((order, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col justify-between gap-5 border-b border-brand-line p-5 last:border-b-0 md:flex-row md:items-center"
-                >
-                  {/* Columna 1: Productos */}
-                  <div className="flex-1 flex gap-5 max-w-80">
-                    <Image
-                      className="w-16 h-16 object-cover"
-                      src={assets.box_icon}
-                      alt="box_icon"
-                    />
-                    <div className="flex flex-col gap-3">
-                      <span className="font-medium">
-                        {order.items
-                          .map((item) => {
-                            const nombre =
-                              item?.product?.name ||
-                              "Producto eliminado";
-                            return `${nombre} x ${item.quantity}`;
-                          })
-                          .join(", ")}
-                      </span>
-                      <span>Items: {order.items.length}</span>
-                    </div>
-                  </div>
-
-                  {/* Columna 2: Datos del cliente */}
-                  <div className="text-sm text-brand-charcoal">
-                    {/* Nombre */}
-                    <span className="font-medium block">
-                      {order.address?.fullName || "Sin nombre"}
-                    </span>
-
-                    {/* Cédula / RUC */}
-                    {order.address?.idNumber && (
-                      <span className="block text-sm text-brand-charcoal">
-                        C.I:{" "}
-                        <span className="font-medium">
-                          {order.address.idNumber}
-                        </span>
-                      </span>
-                    )}
-
-                    {/* Dirección */}
-                    <span className="block mt-1">
-                      {order.address?.area || "Sin dirección"}
-                    </span>
-
-                    <span className="block">
-                      {order.address?.city},{" "}
-                      {order.address?.state}
-                    </span>
-
-                    {/* 📧 Correo electrónico */}
-                    {order.address?.email && (
-                      <span className="block text-sm text-brand-accent mt-1">
-                        {" "}
-                        <span className="font-medium">
-                          {order.address.email}
-                        </span>
-                      </span>
-                    )}
-
-                    {/* 📱 WhatsApp (sin cambios) */}
-                    {order.address?.phoneNumber ? (
-                      <a
-                        href={`https://wa.me/593${order.address.phoneNumber.replace(
-                          /^0/,
-                          ""
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-green-600 hover:underline mt-1"
-                      >
-                        <FaWhatsapp size={16} />
-                        {order.address.phoneNumber}
-                      </a>
-                    ) : (
-                      <span className="text-red-500 text-xs mt-1 block">
-                        No dejó teléfono
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Columna 3: Monto */}
-                  <div className="font-medium my-auto whitespace-nowrap">
-                    {currency}
-                    {order.amount}
-                  </div>
-
-                  {/* Columna 4: Datos adicionales */}
-                  <div className="my-auto">
-                    <div className="flex flex-col gap-1">
-                      <span>Detalles:</span>
-                      <span>
-                        Fecha:{" "}
-                        {new Date(order.date).toLocaleDateString()}
-                      </span>
-                      <span>Pago: Pendiente</span>
-
-                      <button
-                        onClick={() =>
-                          handleConfirmPayment(order._id)
-                        }
-                        disabled={confirmingId === order._id}
-                        className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-brand-accent px-4 py-2 text-xs font-semibold text-white transition hover:bg-brand-accent-hover disabled:cursor-wait disabled:opacity-60 md:w-auto"
-                      >
-                        <span>{confirmingId === order._id ? "Confirmando..." : "Confirmar pago"}</span>
-                        <Image
-                          className="h-4 w-auto"
-                          src={assets.redirect_icon}
-                          alt="redirect_icon"
-                        />
-                      </button>
-                    </div>
-                </div>
-                </div>
+              filtered.map((order) => (
+                <OrderCard
+                  key={order._id}
+                  order={order}
+                  currency={currency}
+                  confirming={confirmingId === order._id}
+                  onConfirm={handleConfirmPayment}
+                />
               ))
             )}
           </div>
@@ -212,6 +166,4 @@ const Orders = () => {
       )}
     </main>
   );
-};
-
-export default Orders;
+}

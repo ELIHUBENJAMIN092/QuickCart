@@ -233,7 +233,7 @@ const OrderSummary = () => {
 
       <button
         onClick={createOrder}
-        className="mt-5 w-full rounded-full bg-brand-accent py-3 text-sm font-semibold text-white transition hover:bg-brand-accent-hover"
+        className="mt-6 w-full bg-brand-accent py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink"
       >
         Finalizar Compra
       </button>

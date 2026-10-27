@@ -79,32 +79,32 @@ export default function AuthForm({ mode }) {
 
   return (
     <main className="mx-auto flex min-h-[70vh] max-w-md items-center px-5 py-12">
-      <form onSubmit={handleSubmit} className="w-full space-y-5 rounded-xl border border-brand-line bg-white p-7 shadow-sm">
+      <form onSubmit={handleSubmit} className="w-full space-y-5 border border-brand-line bg-white p-7 md:p-9">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">Cuenta COMPEL</p>
-          <h1 className="mt-2 font-display text-3xl text-brand-ink">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-accent">Cuenta COMPEL</p>
+          <h1 className="mt-3 font-display text-3xl leading-[0.98] text-brand-ink md:text-4xl">
             {isSignUp ? "Crear cuenta" : isForgotPassword ? "Recuperar contraseña" : isUpdatePassword ? "Elegir contraseña nueva" : "Iniciar sesión"}
           </h1>
         </div>
         {isSignUp && (
           <label className="block text-sm text-brand-charcoal">
             Nombre
-            <input required autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} className="mt-2 w-full rounded-md border border-brand-line px-3 py-2 outline-none focus:border-brand-accent" />
+            <input required autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} className="mt-2 w-full border border-brand-line bg-transparent px-3 py-3 text-sm outline-none focus:border-brand-accent" />
           </label>
         )}
         {!isUpdatePassword && (
           <label className="block text-sm text-brand-charcoal">
             Correo electrónico
-            <input required type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} className="mt-2 w-full rounded-md border border-brand-line px-3 py-2 outline-none focus:border-brand-accent" />
+            <input required type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} className="mt-2 w-full border border-brand-line bg-transparent px-3 py-3 text-sm outline-none focus:border-brand-accent" />
           </label>
         )}
         {!isForgotPassword && (
           <label className="block text-sm text-brand-charcoal">
             Contraseña
-            <input required type="password" minLength={8} autoComplete={isSignUp || isUpdatePassword ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} className="mt-2 w-full rounded-md border border-brand-line px-3 py-2 outline-none focus:border-brand-accent" />
+            <input required type="password" minLength={8} autoComplete={isSignUp || isUpdatePassword ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} className="mt-2 w-full border border-brand-line bg-transparent px-3 py-3 text-sm outline-none focus:border-brand-accent" />
           </label>
         )}
-        <button disabled={submitting} className="w-full rounded-full bg-brand-accent py-3 text-sm font-semibold text-white transition hover:bg-brand-accent-hover disabled:opacity-60">
+        <button disabled={submitting} className="w-full bg-brand-accent py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink disabled:opacity-60">
           {submitting ? "Procesando..." : isSignUp ? "Crear cuenta" : isForgotPassword ? "Enviar enlace" : isUpdatePassword ? "Actualizar contraseña" : "Entrar"}
         </button>
         {showGoogle && (
@@ -112,7 +112,7 @@ export default function AuthForm({ mode }) {
             <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-brand-muted">
               <span className="h-px flex-1 bg-brand-line" /> o <span className="h-px flex-1 bg-brand-line" />
             </div>
-            <button type="button" onClick={handleGoogle} disabled={submitting} className="flex w-full items-center justify-center gap-3 rounded-full border border-brand-line bg-white py-3 text-sm font-semibold text-brand-charcoal transition hover:border-brand-accent disabled:opacity-60">
+            <button type="button" onClick={handleGoogle} disabled={submitting} className="flex w-full items-center justify-center gap-3 border border-brand-line bg-white py-3.5 text-sm font-semibold text-brand-charcoal transition hover:border-brand-ink disabled:opacity-60">
               <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
                 <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.4 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z" />
                 <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.2 5.5-4.7 7.2l7.6 5.9c4.4-4.1 6.9-10.1 6.9-17.6z" />

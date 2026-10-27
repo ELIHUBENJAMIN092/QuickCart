@@ -19,18 +19,33 @@ export async function PUT(request, { params }) {
     const { values, error: invalid } = validateCategoryBody(body);
     if (invalid) return NextResponse.json({ success: false, message: invalid }, { status: 400 });
 
+    // Si la categoría aún no está guardada en la base (usa valores por defecto), se crea.
+    const { data: existing, error: readError } = await supabase.from("categories").select("*").eq("slug", slug).maybeSingle();
+    if (readError) throw readError;
+    if (!existing && !defaultCategoryRows().some((row) => row.slug === slug)) {
+      return NextResponse.json({ success: false, message: "Categoría no encontrada." }, { status: 404 });
+    }
+
     const update = { ...values, updated_at: new Date().toISOString() };
     if (body.imagePath) {
       update.image_url = await validateProductFile(supabase, user.id, body.imagePath, "categories", 8 * 1024 * 1024, "image/");
     } else if (body.resetImage) {
       update.image_url = "";
     }
-
-    // Si la categoría aún no está guardada en la base (usa valores por defecto), se crea.
-    const { data: existing, error: readError } = await supabase.from("categories").select("slug").eq("slug", slug).maybeSingle();
-    if (readError) throw readError;
-    if (!existing && !defaultCategoryRows().some((row) => row.slug === slug)) {
-      return NextResponse.json({ success: false, message: "Categoría no encontrada." }, { status: 404 });
+    if (body.resetHeroImage) {
+      update.hero = { ...(values.hero || existing?.hero || {}), image_url: "" };
+    }
+    if (body.heroImagePath) {
+      update.hero = {
+        ...(update.hero || values.hero || existing?.hero || {}),
+        image_url: await validateProductFile(supabase, user.id, body.heroImagePath, "categories", 8 * 1024 * 1024, "image/"),
+      };
+    }
+    if (body.videoPath) {
+      update.hero = {
+        ...(update.hero || values.hero || existing?.hero || {}),
+        video_url: await validateProductFile(supabase, user.id, body.videoPath, "categories", 100 * 1024 * 1024, "video/"),
+      };
     }
     const { error } = existing
       ? await supabase.from("categories").update(update).eq("slug", slug)
@@ -39,6 +54,12 @@ export async function PUT(request, { params }) {
     return NextResponse.json({ success: true, message: "Categoría guardada." });
   } catch (error) {
     console.error("Error guardando categoría:", error);
+    if (String(error?.message || "").toLowerCase().includes("hero")) {
+      return NextResponse.json({
+        success: false,
+        message: "Aplica la migración 20261027160000_category_heroes.sql para guardar la portada con video.",
+      }, { status: 500 });
+    }
     return NextResponse.json({ success: false, message: "No se pudo guardar la categoría." }, { status: 500 });
   }
 }

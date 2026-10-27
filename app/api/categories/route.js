@@ -25,6 +25,21 @@ export async function POST(request) {
     const imageUrl = body.imagePath
       ? await validateProductFile(supabase, user.id, body.imagePath, "categories", 8 * 1024 * 1024, "image/")
       : "";
+    if (body.resetHeroImage) {
+      values.hero = { ...(values.hero || {}), image_url: "" };
+    }
+    if (body.heroImagePath) {
+      values.hero = {
+        ...(values.hero || {}),
+        image_url: await validateProductFile(supabase, user.id, body.heroImagePath, "categories", 8 * 1024 * 1024, "image/"),
+      };
+    }
+    if (body.videoPath) {
+      values.hero = {
+        ...(values.hero || {}),
+        video_url: await validateProductFile(supabase, user.id, body.videoPath, "categories", 100 * 1024 * 1024, "video/"),
+      };
+    }
 
     const { error } = await supabase.from("categories").insert({ slug, ...values, image_url: imageUrl });
     if (error) {
@@ -37,6 +52,12 @@ export async function POST(request) {
     return NextResponse.json({ success: true, message: "Categoría creada." });
   } catch (error) {
     console.error("Error creando categoría:", error);
+    if (String(error?.message || "").toLowerCase().includes("hero")) {
+      return NextResponse.json({
+        success: false,
+        message: "Aplica la migración 20261027160000_category_heroes.sql para guardar la portada con video.",
+      }, { status: 500 });
+    }
     return NextResponse.json({ success: false, message: "No se pudo crear la categoría." }, { status: 500 });
   }
 }

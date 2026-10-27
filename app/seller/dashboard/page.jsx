@@ -1,12 +1,41 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Boxes, CircleDollarSign, PackageCheck, PackagePlus, TriangleAlert } from "lucide-react";
+import axios from "axios";
+import { ArrowRight, BadgeCheck, Boxes, CircleDollarSign, Clock3, PackageCheck, PackagePlus, TriangleAlert, Wallet } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
+import PageHeader from "@/components/seller/PageHeader";
 import { categories, getCategoryName, getSubcategoryName, matchesCategoryFilter } from "@/lib/categories";
 
 export default function SellerDashboard() {
-  const { products, router } = useAppContext();
+  const { products, router, user, getToken, currency } = useAppContext();
+  const [orders, setOrders] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    if (!user) return undefined;
+    (async () => {
+      try {
+        const token = await getToken();
+        const { data } = await axios.get("/api/order/seller-orders", { headers: { Authorization: `Bearer ${token}` } });
+        if (active && data.success) setOrders(data.orders);
+      } catch {
+        /* El resumen sigue funcionando aunque falle la carga de ventas. */
+      }
+    })();
+    return () => { active = false; };
+  }, [getToken, user]);
+
+  const sales = useMemo(() => {
+    const pending = orders.filter((order) => !order.isPaid);
+    const paid = orders.filter((order) => order.isPaid);
+    return {
+      pendingCount: pending.length,
+      pendingAmount: pending.reduce((sum, order) => sum + Number(order.amount || 0), 0),
+      paidAmount: paid.reduce((sum, order) => sum + Number(order.amount || 0), 0),
+    };
+  }, [orders]);
   const totalUnits = products.reduce((sum, product) => sum + Number(product.stock || 0), 0);
   const lowStock = products.filter((product) => Number(product.stock) > 0 && Number(product.stock) <= 5);
   const outOfStock = products.filter((product) => Number(product.stock) <= 0);
@@ -18,12 +47,12 @@ export default function SellerDashboard() {
     { label: "Productos en catálogo", value: products.length, note: "Registros publicados", icon: Boxes },
     { label: "Unidades disponibles", value: totalUnits.toLocaleString("es-EC"), note: "Suma del inventario actual", icon: PackageCheck },
     { label: "Stock bajo", value: lowStock.length, note: "Cinco o menos unidades", icon: TriangleAlert },
-    { label: "Valor del inventario", value: `$${estimatedValue.toLocaleString("es-EC", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, note: "Estimado según precio actual", icon: CircleDollarSign },
+    { label: "Valor del inventario", value: `${currency}${estimatedValue.toLocaleString("es-EC", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, note: "Estimado según precio actual", icon: CircleDollarSign },
   ];
 
   if (products.length === 0) {
     return (
-      <main className="grid min-h-[70vh] flex-1 place-items-center bg-brand-cream p-6">
+      <main className="grid min-h-[70vh] flex-1 place-items-center p-6">
         <div className="max-w-md text-center">
           <PackagePlus className="mx-auto text-brand-accent" size={38} />
           <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-brand-muted">Administración</p>
@@ -36,18 +65,19 @@ export default function SellerDashboard() {
   }
 
   return (
-    <main className="min-h-screen flex-1 bg-brand-cream p-4 md:p-8">
-      <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-muted">Vista general</p>
-          <h1 className="mt-2 font-display text-3xl text-brand-ink md:text-4xl">Resumen del catálogo.</h1>
-          <p className="mt-2 text-sm text-brand-muted">Una vista rápida de productos, inventario y categorías.</p>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/seller" className="inline-flex items-center gap-2 rounded-full bg-brand-accent px-5 py-3 text-xs font-semibold text-white hover:bg-brand-accent-hover"><PackagePlus size={16} /> Añadir producto</Link>
-          <Link href="/seller/product-list" className="inline-flex items-center gap-2 rounded-full border border-brand-line bg-white px-5 py-3 text-xs font-semibold text-brand-ink hover:border-brand-accent">Gestionar catálogo <ArrowRight size={15} /></Link>
-        </div>
-      </div>
+    <main className="flex-1 p-4 md:p-8">
+      <PageHeader
+        className="mb-7"
+        eyebrow="Vista general"
+        title="Resumen del negocio"
+        description="Una vista rápida de productos, inventario y ventas."
+        actions={(
+          <>
+            <Link href="/seller" className="inline-flex items-center gap-2 rounded-full bg-brand-accent px-5 py-3 text-xs font-semibold text-white hover:bg-brand-accent-hover"><PackagePlus size={16} /> Añadir producto</Link>
+            <Link href="/seller/product-list" className="inline-flex items-center gap-2 rounded-full border border-brand-line bg-white px-5 py-3 text-xs font-semibold text-brand-ink hover:border-brand-accent">Gestionar catálogo <ArrowRight size={15} /></Link>
+          </>
+        )}
+      />
 
       <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {stats.map(({ label, value, note, icon: Icon }) => (
@@ -62,11 +92,44 @@ export default function SellerDashboard() {
         ))}
       </section>
 
+      <section className="mt-6 rounded-xl border border-brand-line bg-white p-4 md:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-muted">Ventas</p>
+            <h2 className="mt-1 font-display text-xl text-brand-ink">Movimiento de órdenes</h2>
+          </div>
+          <Link href="/seller/orders" className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-accent hover:underline">Ver órdenes <ArrowRight size={14} /></Link>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <Link href="/seller/orders" className="flex items-center gap-3 rounded-xl bg-brand-sand px-4 py-3 transition hover:bg-brand-line/50">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-brand-accent"><Clock3 size={18} /></span>
+            <span>
+              <span className="block text-[10px] uppercase tracking-wider text-brand-muted">Por confirmar</span>
+              <span className="block text-lg font-semibold text-brand-ink">{sales.pendingCount} órdenes</span>
+            </span>
+          </Link>
+          <Link href="/seller/orders" className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 ring-1 ring-brand-line transition hover:ring-brand-accent">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-amber-50 text-amber-700"><Wallet size={18} /></span>
+            <span>
+              <span className="block text-[10px] uppercase tracking-wider text-brand-muted">Por cobrar</span>
+              <span className="block text-lg font-semibold text-brand-ink">{currency}{sales.pendingAmount.toFixed(2)}</span>
+            </span>
+          </Link>
+          <Link href="/seller/pagos" className="flex items-center gap-3 rounded-xl bg-brand-success/5 px-4 py-3 ring-1 ring-brand-success/15 transition hover:ring-brand-success/40">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-brand-success"><BadgeCheck size={18} /></span>
+            <span>
+              <span className="block text-[10px] uppercase tracking-wider text-brand-muted">Recaudado</span>
+              <span className="block text-lg font-semibold text-brand-ink">{currency}{sales.paidAmount.toFixed(2)}</span>
+            </span>
+          </Link>
+        </div>
+      </section>
+
       <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_1.2fr]">
         <section className="rounded-xl border border-brand-line bg-white p-5 md:p-6">
           <div className="mb-5 flex items-center justify-between">
             <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-muted">Organización</p><h2 className="mt-1 font-display text-2xl text-brand-ink">Categorías</h2></div>
-            <Link href="/seller/product-list" className="text-xs font-semibold text-brand-accent hover:underline">Administrar</Link>
+            <Link href="/seller/categories" className="text-xs font-semibold text-brand-accent hover:underline">Administrar</Link>
           </div>
           <div className="space-y-4">
             {categories.map((category) => {

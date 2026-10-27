@@ -204,7 +204,7 @@ export default function EditProduct() {
   if (loading) return <div className="flex-1"><Loading /></div>;
 
   return (
-    <main className="min-h-screen flex-1 bg-brand-cream px-4 py-7 md:px-8 md:py-10">
+    <main className="min-h-[calc(100vh-4rem)] flex-1 px-4 py-7 md:px-8 md:py-10">
       <div className="mx-auto max-w-4xl">
         <Link href="/seller/product-list" className="mb-6 inline-flex items-center gap-2 text-sm text-brand-muted hover:text-brand-accent">
           <ArrowLeft size={16} /> Volver a productos

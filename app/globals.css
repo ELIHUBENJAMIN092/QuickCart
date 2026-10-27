@@ -8,11 +8,11 @@ html {
 
 body {
   background: #FFFFFF;
-  color: #333333;
+  color: #3A3A3A;
 }
 
 ::selection {
-  background: #003087;
+  background: #0069FF;
   color: #FFFFFF;
 }
 
@@ -30,8 +30,8 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #B9C5D6;
-  border-radius: 999px;
+  background: #C9D0DB;
+  border-radius: 2px;
 }
 
 ::-webkit-scrollbar-track {
@@ -86,4 +86,5 @@ body {
 
 .font-display {
   font-weight: 700 !important;
+  letter-spacing: -0.035em;
 }

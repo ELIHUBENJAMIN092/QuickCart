@@ -1,130 +1,121 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from "react";
-import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { BadgeCheck, RefreshCw, Search, Wallet } from "lucide-react";
 
-import { assets } from "@/assets/assets";
 import { useAppContext } from "@/context/AppContext";
 import Loading from "@/components/Loading";
-import { FaWhatsapp } from "react-icons/fa";
+import PageHeader from "@/components/seller/PageHeader";
+import OrderCard from "@/components/seller/OrderCard";
 
-const Pagos = () => {
+export default function Pagos() {
   const { currency, getToken, user } = useAppContext();
-
   const [paidOrders, setPaidOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState("");
 
-  const fetchPaidOrders = async () => {
+  const fetchPaidOrders = async (manual = false) => {
+    if (manual) setRefreshing(true);
     try {
       const token = await getToken();
       const { data } = await axios.get("/api/order/seller-orders", {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (data.success) {
-        const pagosConfirmados = data.orders.filter((order) => order.isPaid === true);
-        setPaidOrders(pagosConfirmados);
-      } else {
-        toast.error(data.message || "Error al obtener los pagos.");
-      }
+      if (!data.success) throw new Error(data.message || "Error al obtener los pagos.");
+      setPaidOrders(data.orders.filter((order) => order.isPaid === true));
     } catch (error) {
-      toast.error(error.message || "Ocurrió un error al obtener los pagos.");
+      toast.error(error.response?.data?.message || error.message || "Ocurrió un error al obtener los pagos.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
   useEffect(() => {
-    if (user) {
-      fetchPaidOrders();
-    }
+    if (user) fetchPaidOrders();
   }, [user]);
 
+  const stats = useMemo(() => ({
+    count: paidOrders.length,
+    amount: paidOrders.reduce((sum, order) => sum + Number(order.amount || 0), 0),
+  }), [paidOrders]);
+
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return paidOrders;
+    return paidOrders.filter((order) => {
+      const address = order.address || {};
+      const items = (order.items || []).map((item) => item.product?.name || "").join(" ");
+      return [order._id, address.fullName, address.idNumber, address.email, address.phoneNumber, items]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query));
+    });
+  }, [paidOrders, search]);
+
   return (
-    <main className="min-h-[calc(100vh-4rem)] flex-1 bg-brand-cream p-4 text-sm md:p-8">
-      {loading ? (
-        <Loading />
-      ) : (
-        <div className="mx-auto max-w-6xl space-y-5">
-          <div className="mb-7">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-muted">Administración · Ventas</p>
-            <h1 className="mt-2 font-display text-3xl text-brand-ink">Pagos confirmados</h1>
-            <p className="mt-2 text-sm text-brand-muted">Consulta las órdenes marcadas como pagadas.</p>
+    <main className="min-h-[calc(100vh-4rem)] flex-1 p-4 md:p-8">
+      {loading ? <Loading /> : (
+        <div className="mx-auto max-w-6xl">
+          <PageHeader
+            eyebrow="Administración · Ventas"
+            title="Pagos confirmados"
+            description="Consulta el historial de órdenes marcadas como pagadas."
+            actions={(
+              <button
+                type="button"
+                onClick={() => fetchPaidOrders(true)}
+                disabled={refreshing}
+                className="inline-flex items-center gap-2 rounded-full border border-brand-line bg-white px-4 py-2.5 text-xs font-semibold text-brand-charcoal transition hover:border-brand-accent disabled:opacity-60"
+              >
+                <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} /> Actualizar
+              </button>
+            )}
+          />
+
+          <section className="mt-6 grid gap-3 sm:grid-cols-2">
+            <article className="rounded-xl border border-brand-line bg-white p-4">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs text-brand-muted">Pagos confirmados</p>
+                <BadgeCheck size={16} className="text-brand-success" />
+              </div>
+              <p className="mt-2 font-display text-3xl text-brand-ink">{stats.count}</p>
+            </article>
+            <article className="rounded-xl border border-brand-line bg-white p-4">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs text-brand-muted">Total recaudado</p>
+                <Wallet size={16} className="text-brand-success" />
+              </div>
+              <p className="mt-2 break-words font-display text-2xl text-brand-ink">{currency}{stats.amount.toFixed(2)}</p>
+            </article>
+          </section>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <label className="relative w-full sm:max-w-sm">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-muted" />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar por cliente, cédula, teléfono o producto"
+                aria-label="Buscar pagos"
+                className="w-full rounded-full border border-brand-line bg-white py-2.5 pl-9 pr-4 text-xs outline-none focus:border-brand-accent"
+              />
+            </label>
+            <p className="text-xs text-brand-muted">{filtered.length} de {paidOrders.length} pagos</p>
           </div>
-          <div className="overflow-hidden rounded-xl border border-brand-line bg-white">
-            {paidOrders.length === 0 ? (
-              <p className="px-6 py-14 text-center text-sm text-brand-muted">No hay pagos confirmados aún.</p>
+
+          <div className="mt-4 space-y-4">
+            {filtered.length === 0 ? (
+              <div className="rounded-2xl border border-brand-line bg-white px-6 py-16 text-center">
+                <BadgeCheck size={30} className="mx-auto text-brand-muted" />
+                <p className="mt-3 font-display text-xl text-brand-ink">{paidOrders.length ? "No hay coincidencias." : "No hay pagos confirmados aún."}</p>
+                <p className="mt-1 text-sm text-brand-muted">{paidOrders.length ? "Prueba con otra búsqueda." : "Las órdenes que confirmes aparecerán en este historial."}</p>
+              </div>
             ) : (
-              paidOrders.map((order, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col justify-between gap-5 border-b border-brand-line p-5 last:border-b-0 md:flex-row md:items-center"
-                >
-                  {/* Columna 1: Imagen y productos */}
-                  <div className="flex-1 flex gap-5 max-w-80">
-                    <Image
-                      className="w-16 h-16 object-cover"
-                      src={assets.box_icon}
-                      alt="box_icon"
-                    />
-                    <div className="flex flex-col gap-3">
-                      <span className="font-medium">
-                        {order.items
-                          .map((item) =>
-                            item.product
-                              ? `${item.product.name} x ${item.quantity}`
-                              : `Producto eliminado x ${item.quantity}`
-                          )
-                          .join(", ")}
-                      </span>
-                      <span>Items: {order.items.length}</span>
-                    </div>
-                  </div>
-
-                  {/* Columna 2: Dirección y WhatsApp */}
-                  <div>
-                    <p>
-                      <span className="font-medium">{order.address?.fullName || "Sin nombre"}</span>
-                      <br />
-                      <span>{order.address?.area || "Sin dirección"}</span>
-                      <br />
-                      <span>{`${order.address?.city || ""}, ${order.address?.state || ""}`}</span>
-                      <br />
-                      <span>{order.address?.phoneNumber || "Sin teléfono"}</span>
-                      <br />
-                      {order.address?.phoneNumber ? (
-                        <a
-                          href={`https://wa.me/593${order.address.phoneNumber.replace(/^0/, "")}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-green-600 hover:underline mt-1"
-                        >
-                          <FaWhatsapp size={16} />
-                          {order.address.phoneNumber}
-                        </a>
-                      ) : (
-                        <span className="text-gray-400 italic">Teléfono no disponible</span>
-                      )}
-                    </p>
-                  </div>
-
-                  {/* Columna 3: Monto */}
-                  <p className="font-medium my-auto whitespace-nowrap">
-                    {currency}
-                    {order.amount}
-                  </p>
-
-                  {/* Columna 4: Datos adicionales */}
-                  <div className="my-auto">
-                    <p className="flex flex-col">
-                      <span>Método: COD</span>
-                      <span>Fecha: {new Date(order.date).toLocaleDateString()}</span>
-                      <span className="text-green-600 font-semibold">Pago Confirmado</span>
-                    </p>
-                  </div>
-                </div>
+              filtered.map((order) => (
+                <OrderCard key={order._id} order={order} currency={currency} paid />
               ))
             )}
           </div>
@@ -132,6 +123,4 @@ const Pagos = () => {
       )}
     </main>
   );
-};
-
-export default Pagos;
+}

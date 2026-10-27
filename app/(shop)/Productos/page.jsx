@@ -36,23 +36,23 @@ export default function ProductosPage() {
       <main>
         <section className="bg-brand-sand py-14 md:py-20">
           <Container className="text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-muted">Tecnología de identificación</p>
-            <h1 className="mt-4 font-display text-4xl text-brand-ink md:text-6xl">Soluciones RFID.</h1>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-accent">Tecnología de identificación</p>
+            <h1 className="mt-4 font-display text-4xl leading-[0.96] text-brand-ink md:text-6xl">Soluciones RFID.</h1>
             <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-brand-charcoal">Optimiza la captura de datos, el control de inventarios y la trazabilidad de tus activos con lectores RFID profesionales.</p>
-            <Link href="/all-products?category=rfid" className="mt-7 inline-flex rounded-full bg-brand-accent px-6 py-3 text-sm font-semibold text-white hover:bg-brand-accent-hover">Explorar catálogo RFID</Link>
+            <Link href="/all-products?category=rfid" className="mt-8 inline-flex bg-brand-accent px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink">Explorar catálogo RFID</Link>
           </Container>
         </section>
         <Container className="py-14 md:py-20">
           <div className="grid gap-6 md:grid-cols-3">
             {products.map((product) => (
-              <article key={product.name} className="flex flex-col border border-brand-line bg-white p-5">
-                <div className="relative aspect-[4/3] bg-brand-cream">
+              <article key={product.name} className="flex flex-col border border-brand-line bg-white p-6">
+                <div className="relative aspect-[4/3] border border-brand-line bg-brand-sand/60">
                   <Image src={product.image} alt={product.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-contain p-5" />
                 </div>
                 <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-muted">{product.type}</p>
                 <h2 className="mt-2 font-display text-2xl text-brand-ink">{product.name}</h2>
                 <p className="mt-3 flex-1 text-sm leading-6 text-brand-muted">{product.description}</p>
-                <a href={product.catalog} target="_blank" rel="noreferrer" className="mt-5 border-b border-brand-accent pb-2 text-sm font-semibold text-brand-accent">Ver ficha técnica ↗</a>
+                <a href={product.catalog} target="_blank" rel="noreferrer" className="mt-6 inline-flex items-center border-b border-brand-accent pb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-accent transition hover:text-brand-ink">Ver ficha técnica ↗</a>
               </article>
             ))}
           </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useAppContext } from "@/context/AppContext";
+import PageHeader from "@/components/seller/PageHeader";
 import { defaultBanner } from "@/lib/banner";
 
 const inputClass = "mt-2 w-full rounded-lg border border-brand-line bg-white px-4 py-3 text-sm text-brand-ink outline-none focus:border-brand-accent";
@@ -37,11 +38,12 @@ export default function BannerAdmin() {
   if (!form) return <div className="w-full flex-1 p-8 text-sm text-brand-muted">Cargando...</div>;
 
   return (
-    <div className="w-full flex-1 bg-brand-sand/40 p-5 md:p-8">
-      <h1 className="font-display text-3xl text-brand-ink">Banner superior</h1>
-      <p className="mt-2 max-w-2xl text-sm text-brand-muted">
-        Franja que aparece sobre el menú de toda la tienda. Úsala para ofertas, avisos o promociones. Los enlaces pueden ser internos (/all-products) o externos (https://…).
-      </p>
+    <main className="min-h-[calc(100vh-4rem)] w-full flex-1 p-4 md:p-8">
+      <PageHeader
+        eyebrow="Administración · Contenido"
+        title="Banner superior"
+        description="Franja que aparece sobre el menú de toda la tienda. Úsala para ofertas, avisos o promociones. Los enlaces pueden ser internos (/all-products) o externos (https://…)."
+      />
 
       <div className="mt-6 overflow-hidden rounded-xl border border-brand-line">
         <p className="bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wider text-brand-muted">Vista previa</p>
@@ -70,6 +72,6 @@ export default function BannerAdmin() {
           <button type="button" onClick={() => setForm(defaultBanner)} className="rounded-full border border-brand-line px-6 py-3 text-sm text-brand-charcoal hover:bg-brand-sand">Restaurar valores</button>
         </div>
       </form>
-    </div>
+    </main>
   );
 }

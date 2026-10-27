@@ -112,8 +112,8 @@ export default function ProductPage() {
                 )}
                 {mediaCount > 1 && (
                   <>
-                    <button onClick={(event) => { event.stopPropagation(); goToMedia(currentMedia - 1); }} aria-label="Anterior" className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-brand-line bg-white/90 p-2 text-brand-ink shadow transition hover:bg-white"><ChevronLeft size={20} /></button>
-                    <button onClick={(event) => { event.stopPropagation(); goToMedia(currentMedia + 1); }} aria-label="Siguiente" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-brand-line bg-white/90 p-2 text-brand-ink shadow transition hover:bg-white"><ChevronRight size={20} /></button>
+                    <button onClick={(event) => { event.stopPropagation(); goToMedia(currentMedia - 1); }} aria-label="Anterior" className="absolute left-2 top-1/2 -translate-y-1/2 border border-brand-line bg-white/95 p-2.5 text-brand-ink transition hover:border-brand-ink"><ChevronLeft size={20} /></button>
+                    <button onClick={(event) => { event.stopPropagation(); goToMedia(currentMedia + 1); }} aria-label="Siguiente" className="absolute right-2 top-1/2 -translate-y-1/2 border border-brand-line bg-white/95 p-2.5 text-brand-ink transition hover:border-brand-ink"><ChevronRight size={20} /></button>
                   </>
                 )}
               </div>
@@ -134,15 +134,15 @@ export default function ProductPage() {
 
             <div className="min-w-0 lg:py-4">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-muted">{getCategoryName(product.category)}{product.subcategory ? ` · ${getSubcategoryName(product.category, product.subcategory)}` : ""}</p>
-              <h1 className="mt-3 font-display text-3xl leading-tight text-brand-ink md:text-5xl">{product.name}</h1>
+              <h1 className="mt-3 font-display text-4xl leading-[0.96] text-brand-ink md:text-6xl">{product.name}</h1>
               <div className="mt-6 flex flex-wrap items-center gap-4">
                 <Price price={product.price} offerPrice={product.offerPrice} currency={currency} className="text-2xl" />
                 <span className={`text-xs font-semibold ${stock > 0 ? "text-brand-success" : "text-brand-sale"}`}>{stock > 0 ? `Disponible · ${stock} en stock` : "Agotado"}</span>
               </div>
               <p className="mt-6 whitespace-pre-line text-sm leading-7 text-brand-charcoal">{product.description}</p>
 
-              <div className="mt-8 flex items-center gap-4">
-                <div className="inline-flex items-center rounded-full border border-brand-line">
+              <div className="mt-9 flex items-center gap-4">
+                <div className="inline-flex items-center border border-brand-line">
                   <button onClick={() => setQuantity((value) => Math.max(1, value - 1))} disabled={quantity <= 1} className="p-3 text-brand-ink disabled:opacity-40" aria-label="Disminuir cantidad"><Minus size={15} /></button>
                   <span className="min-w-8 text-center text-sm">{quantity}</span>
                   <button onClick={() => setQuantity((value) => Math.min(stock || 1, value + 1))} disabled={quantity >= stock} className="p-3 text-brand-ink disabled:opacity-40" aria-label="Aumentar cantidad"><Plus size={15} /></button>
@@ -150,18 +150,18 @@ export default function ProductPage() {
                 <span className="text-xs text-brand-muted">{stock > 0 ? "Cantidad" : "Sin disponibilidad"}</span>
               </div>
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                <button onClick={() => addProduct()} disabled={stock <= 0} className="rounded-full bg-brand-accent px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-brand-accent-hover disabled:cursor-not-allowed disabled:opacity-50">Añadir al carrito</button>
-                <button onClick={() => addProduct(true)} disabled={stock <= 0} className="rounded-full border border-brand-ink px-6 py-3.5 text-sm font-semibold text-brand-ink transition hover:bg-brand-ink hover:text-white disabled:cursor-not-allowed disabled:opacity-50">Comprar ahora</button>
+              <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                <button onClick={() => addProduct()} disabled={stock <= 0} className="bg-brand-accent px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink disabled:cursor-not-allowed disabled:opacity-50">Añadir al carrito</button>
+                <button onClick={() => addProduct(true)} disabled={stock <= 0} className="border border-brand-ink px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-brand-ink transition hover:bg-brand-ink hover:text-white disabled:cursor-not-allowed disabled:opacity-50">Comprar ahora</button>
               </div>
 
               {(product.model_3d_url || product.catalog_pdf) && (
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   {product.model_3d_url && (
-                    <button onClick={() => setShow3d(true)} className="inline-flex items-center justify-center gap-2 rounded-full border border-brand-line px-6 py-3 text-sm font-semibold text-brand-accent transition hover:border-brand-accent"><Box size={16} /> Ver en 3D</button>
+                    <button onClick={() => setShow3d(true)} className="inline-flex items-center justify-center gap-2 border border-brand-line px-6 py-3.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-ink transition hover:border-brand-ink hover:bg-brand-ink hover:text-white"><Box size={16} /> Ver en 3D</button>
                   )}
                   {product.catalog_pdf && (
-                    <button onClick={() => setCatalogOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-full border border-brand-line px-6 py-3 text-sm font-semibold text-brand-accent transition hover:border-brand-accent"><FileText size={16} /> Ver catálogo</button>
+                    <button onClick={() => setCatalogOpen(true)} className="inline-flex items-center justify-center gap-2 border border-brand-line px-6 py-3.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-ink transition hover:border-brand-ink hover:bg-brand-ink hover:text-white"><FileText size={16} /> Ver catálogo</button>
                   )}
                 </div>
               )}
@@ -172,7 +172,7 @@ export default function ProductPage() {
                 <div className="text-center"><Headset className="mx-auto mb-2 text-brand-accent" size={20} /><p className="text-[10px] leading-4 text-brand-muted">Soporte especializado</p></div>
               </div>
 
-              <div className="mt-5 divide-y divide-brand-line border-y border-brand-line">
+              <div className="mt-6 divide-y divide-brand-line border-y border-brand-line">
                 <details open className="py-4">
                   <summary className="cursor-pointer text-sm font-semibold text-brand-ink">Especificaciones</summary>
                   <dl className="grid grid-cols-2 gap-3 pt-3 text-sm"><dt className="text-brand-muted">Categoría</dt><dd>{getCategoryName(product.category)}</dd>{product.subcategory && <><dt className="text-brand-muted">Subcategoría</dt><dd>{getSubcategoryName(product.category, product.subcategory)}</dd></>}</dl>
@@ -202,7 +202,7 @@ export default function ProductPage() {
 
           {catalogOpen && product.catalog_pdf && (
             <div role="dialog" aria-modal="true" aria-label={`Catálogo de ${product.name}`} className="fixed inset-0 z-[100] flex flex-col bg-black/70 p-3 md:p-8" onClick={() => setCatalogOpen(false)}>
-              <div className="mx-auto flex h-full w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-white" onClick={(event) => event.stopPropagation()}>
+              <div className="mx-auto flex h-full w-full max-w-5xl flex-col overflow-hidden bg-white" onClick={(event) => event.stopPropagation()}>
                 <div className="flex items-center justify-between gap-3 border-b border-brand-line px-4 py-3">
                   <p className="truncate text-sm font-semibold text-brand-ink">{product.name} · Catálogo</p>
                   <div className="flex items-center gap-4">
@@ -217,7 +217,7 @@ export default function ProductPage() {
 
           {show3d && product.model_3d_url && (
             <div role="dialog" aria-modal="true" aria-label={`Vista 3D de ${product.name}`} className="fixed inset-0 z-[100] flex flex-col bg-black/70 p-3 md:p-8" onClick={() => setShow3d(false)}>
-              <div className="mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white" onClick={(event) => event.stopPropagation()}>
+              <div className="mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden bg-white" onClick={(event) => event.stopPropagation()}>
                 <div className="flex items-center justify-between gap-3 border-b border-brand-line px-4 py-3">
                   <p className="truncate text-sm font-semibold text-brand-ink">{product.name} · Vista 3D</p>
                   <div className="flex items-center gap-4">
@@ -231,7 +231,7 @@ export default function ProductPage() {
           )}
 
           {related.length > 0 && (
-            <section className="pt-20">
+            <section className="border-t border-brand-line pt-16 md:pt-20">
               <SectionHeading eyebrow="Completa tu solución" title="También te puede interesar." />
               <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">{related.map((item) => <ProductCard key={item._id} product={item} />)}</div>
             </section>

@@ -27,18 +27,18 @@ export default function LabelPrintersPage() {
 
   return (
     <main>
-      <div className="bg-gray-100">
+      <div className="border-b border-brand-line bg-brand-sand">
         <Container className="py-8 md:py-10">
           <nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap gap-2 text-xs text-brand-muted">
             <Link href="/" className="hover:text-brand-accent">Inicio</Link><span>»</span>
             <Link href="/all-products?category=codigo-de-barras" className="hover:text-brand-accent">Código de Barras</Link><span>»</span>
             <span className="text-brand-ink">Impresoras de etiquetas</span>
           </nav>
-          <h1 className="font-display text-3xl font-semibold text-brand-ink md:text-5xl">Impresoras de etiquetas</h1>
+          <h1 className="font-display text-3xl leading-[0.96] text-brand-ink md:text-5xl">Impresoras de etiquetas</h1>
           <p className="mt-3 max-w-2xl text-sm text-brand-muted md:text-base">Impresoras portátiles, de escritorio e industriales para identificar, etiquetar y rastrear en tu operación.</p>
           <div className="mt-6 flex flex-wrap gap-3">
             {grouped.map((type) => (
-              <a key={type.slug} href={`#${type.slug}`} className="inline-flex items-center gap-2 rounded-md border border-brand-line bg-white px-4 py-2.5 text-sm font-medium text-brand-ink transition hover:border-brand-accent hover:text-brand-accent">
+              <a key={type.slug} href={`#${type.slug}`} className="inline-flex items-center gap-2 border border-brand-line bg-white px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-ink transition hover:border-brand-ink hover:bg-brand-ink hover:text-white">
                 {type.name}
               </a>
             ))}
@@ -48,10 +48,10 @@ export default function LabelPrintersPage() {
 
       {grouped.map((type) => (
         <section key={type.slug} id={type.slug} className="scroll-mt-20 pb-10 md:pb-14">
-          <div className="bg-slate-200">
+          <div className="border-y border-brand-line bg-brand-sand">
             <Container className="py-5 md:py-6">
-              <h2 className="font-display text-2xl font-semibold text-brand-ink md:text-3xl">{type.name}</h2>
-              <p className="mt-1 text-sm text-slate-600">{type.description}</p>
+              <h2 className="font-display text-2xl text-brand-ink md:text-3xl">{type.name}</h2>
+              <p className="mt-1 text-sm text-brand-muted">{type.description}</p>
             </Container>
           </div>
           <Container>
@@ -60,7 +60,7 @@ export default function LabelPrintersPage() {
                 {type.items.map((product) => <ProductCard key={product._id} product={product} />)}
               </div>
             ) : (
-              <p className="mt-8 rounded-lg bg-gray-100 px-5 py-6 text-sm text-brand-muted">Próximamente tendremos modelos en esta categoría.</p>
+              <p className="mt-8 border border-brand-line bg-brand-sand px-5 py-6 text-sm text-brand-muted">Próximamente tendremos modelos en esta categoría.</p>
             )}
           </Container>
         </section>

@@ -28,23 +28,23 @@ export default function HomeProducts() {
 
   return (
     <section className="bg-white pb-16 md:pb-24">
-      <div className="bg-gray-100 pt-12 md:pt-16">
+      <div className="border-y border-brand-line bg-brand-sand pt-14 md:pt-20">
         <Container>
           <SectionHeading
             eyebrow="Una selección para ti"
             title="Tecnología en la que puedes confiar."
             description="Productos profesionales seleccionados para mejorar la productividad de tu operación."
           />
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-x-8 border-t border-brand-line/70">
             {tabs.map((tab) => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`border-b-2 px-4 py-3 text-sm transition ${activeTab === tab.id ? "border-brand-accent font-semibold text-brand-ink" : "border-transparent text-brand-muted hover:text-brand-ink"}`}>
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`border-b-2 px-1 py-4 text-[11px] font-semibold uppercase tracking-[0.14em] transition ${activeTab === tab.id ? "border-brand-accent text-brand-ink" : "border-transparent text-brand-muted hover:text-brand-ink"}`}>
                 {tab.label}
               </button>
             ))}
           </div>
         </Container>
       </div>
-      <Container className="pt-8">
+      <Container className="pt-10 md:pt-14">
         {visibleProducts.length ? (
           <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
             {visibleProducts.slice(0, 8).map((product) => <ProductCard key={product._id} product={product} />)}
@@ -53,7 +53,7 @@ export default function HomeProducts() {
           <p className="py-12 text-center text-sm text-brand-muted">No hay productos disponibles en esta selección por el momento.</p>
         )}
         <div className="mt-10 text-center">
-          <Button variant="secondary" onClick={() => router.push("/all-products")}>Explorar catálogo</Button>
+          <Button variant="primary" onClick={() => router.push("/all-products")}>Explorar catálogo</Button>
         </div>
       </Container>
     </section>

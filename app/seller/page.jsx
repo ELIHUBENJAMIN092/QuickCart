@@ -2,7 +2,9 @@
 import React, { useState } from "react";
 import { assets } from "@/assets/assets";
 import Image from "next/image";
+import Link from "next/link";
 import { useAppContext } from "@/context/AppContext";
+import PageHeader from "@/components/seller/PageHeader";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { categories } from "@/lib/categories";
@@ -124,6 +126,7 @@ const AddProduct = () => {
         setIsNew(false)
         setModel3dUrl('')
         setPrinterType('')
+        setSpecsText('')
 
       } else {
 
@@ -143,18 +146,25 @@ const AddProduct = () => {
 
   return (
 
-    <main className="min-h-screen flex-1 bg-brand-cream p-4 md:p-8">
+    <main className="flex-1 p-4 md:p-8">
+
+      <div className="mx-auto max-w-5xl">
+        <PageHeader
+          className="mb-7"
+          eyebrow="Administración · Catálogo"
+          title="Añadir producto"
+          description="Completa los datos para publicar un nuevo artículo en la tienda."
+          actions={(
+            <Link href="/seller/product-list" className="inline-flex items-center gap-2 rounded-full border border-brand-line bg-white px-5 py-2.5 text-xs font-semibold text-brand-charcoal transition hover:border-brand-accent hover:text-brand-accent">
+              Gestionar productos
+            </Link>
+          )}
+        />
 
       <form
         onSubmit={handleSubmit}
-        className="mx-auto max-w-5xl space-y-7 rounded-2xl border border-brand-line bg-white p-5 shadow-sm md:p-8"
+        className="space-y-7 rounded-2xl border border-brand-line bg-white p-5 shadow-sm md:p-8"
       >
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-muted">Administración · Catálogo</p>
-          <h1 className="mt-2 font-display text-3xl text-brand-ink md:text-4xl">Añadir producto</h1>
-          <p className="mt-2 text-sm text-brand-muted">Completa los datos para publicar un nuevo artículo en la tienda.</p>
-        </div>
-
         {/* IMÁGENES */}
         <section className="border-t border-brand-line pt-6">
 
@@ -426,6 +436,7 @@ const AddProduct = () => {
         </div>
 
       </form>
+      </div>
 
     </main>
   );

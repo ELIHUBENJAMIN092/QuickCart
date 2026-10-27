@@ -94,7 +94,7 @@ const AddAddress = () => {
 
                     <button
                         type="submit"
-                        className="mt-6 w-full max-w-sm rounded-full bg-brand-accent py-3 uppercase text-white hover:bg-brand-accent-hover"
+                        className="mt-6 w-full max-w-sm bg-brand-accent py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink"
                     >
                         Guardar Dirección
                     </button>

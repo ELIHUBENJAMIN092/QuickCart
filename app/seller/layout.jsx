@@ -1,24 +1,21 @@
-'use client'
-import Navbar from '@/components/seller/Navbar'
-import Sidebar from '@/components/seller/Sidebar'
-import WhatsappFloat from '@/components/seller/WhatsappFloat'
-import ChatWidget from '@/components/ChatWidget'
-import Footer from '@/components/seller/Footer'
-import React from 'react'
+"use client";
 
-const Layout = ({ children }) => {
+import { useState } from "react";
+import Navbar from "@/components/seller/Navbar";
+import Sidebar from "@/components/seller/Sidebar";
+import Footer from "@/components/seller/Footer";
+
+export default function Layout({ children }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
-    <div>
-      <Navbar />
-      <div className='flex w-full'>
-        <Sidebar />
-        {children}
+    <div className="flex min-h-screen flex-col bg-brand-sand/40">
+      <Navbar onMenu={() => setMenuOpen(true)} />
+      <div className="flex flex-1">
+        <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
+        <div className="min-w-0 flex-1">{children}</div>
       </div>
       <Footer />
-      <WhatsappFloat />
-      <ChatWidget />
     </div>
-  )
+  );
 }
-
-export default Layout

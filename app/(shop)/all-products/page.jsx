@@ -57,21 +57,21 @@ export default function AllProducts() {
     <>
       <main>
         <Container className="py-12 md:py-16">
-          <div className="mb-9 border-b border-brand-line pb-8">
+          <div className="mb-10 border-b border-brand-line pb-10">
             <p className="mb-3 text-xs text-brand-muted"><Link href="/" className="hover:text-brand-accent">Inicio</Link> <span className="px-1">/</span> Catálogo</p>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-brand-muted">COMPEL · Catálogo</p>
-            <h1 className="font-display text-4xl text-brand-ink md:text-5xl">Soluciones para tu operación.</h1>
-            <p className="mt-3 text-sm text-brand-muted">{filteredProducts.length} productos disponibles</p>
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-accent">COMPEL · Catálogo</p>
+            <h1 className="font-display text-4xl leading-[0.96] text-brand-ink md:text-6xl">Soluciones para tu operación.</h1>
+            <p className="mt-4 text-sm text-brand-muted">{filteredProducts.length} productos disponibles</p>
           </div>
 
           <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
             <aside className="hidden lg:block">
-              <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink">Categorías</h2>
-              <button onClick={() => chooseCategory("")} className={`mb-3 block text-left text-sm ${!selectedCategory ? "font-semibold text-brand-accent" : "text-brand-muted hover:text-brand-ink"}`}>Todo el catálogo</button>
+              <h2 className="mb-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-ink">Categorías</h2>
+              <button onClick={() => chooseCategory("")} className={`mb-4 block text-left text-sm transition ${!selectedCategory ? "font-semibold text-brand-accent" : "text-brand-muted hover:text-brand-ink"}`}>Todo el catálogo</button>
               <div className="space-y-5">
                 {categories.map((category) => (
                   <div key={category.slug}>
-                    <button onClick={() => chooseCategory(category.slug)} className={`text-left text-sm font-medium ${selectedCategory === category.slug ? "text-brand-accent" : "text-brand-ink hover:text-brand-accent"}`}>{category.name}</button>
+                    <button onClick={() => chooseCategory(category.slug)} className={`text-left text-sm font-medium transition ${selectedCategory === category.slug ? "text-brand-accent" : "text-brand-ink hover:text-brand-accent"}`}>{category.name}</button>
                     <ul className="mt-2 space-y-2 pl-3">
                       {category.subcategories.map((subcategory) => {
                         const value = `${category.slug}/${subcategory.slug}`;
@@ -81,8 +81,8 @@ export default function AllProducts() {
                   </div>
                 ))}
               </div>
-              <div className="mt-8 border-t border-brand-line pt-6">
-                <label htmlFor="price-filter" className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink">Precio máximo</label>
+              <div className="mt-9 border-t border-brand-line pt-7">
+                <label htmlFor="price-filter" className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-ink">Precio máximo</label>
                 <input aria-label="Precio mínimo" type="number" min="0" value={minPrice} onChange={(event) => setMinPrice(event.target.value)} placeholder="Precio mínimo" className="mt-3 w-full border-b border-brand-line bg-transparent py-2 text-sm outline-none focus:border-brand-accent" />
                 <input id="price-filter" type="number" min="0" value={maxPrice} onChange={(event) => setMaxPrice(event.target.value)} placeholder="Precio máximo" className="mt-3 w-full border-b border-brand-line bg-transparent py-2 text-sm outline-none focus:border-brand-accent" />
               </div>
@@ -90,13 +90,13 @@ export default function AllProducts() {
 
             <div>
               <div className="mb-6 flex flex-col gap-3 sm:flex-row">
-                <select aria-label="Filtrar por categoría" value={selectedCategory} onChange={(event) => chooseCategory(event.target.value)} className="rounded-full border border-brand-line bg-transparent px-4 py-3 text-sm outline-none lg:hidden">
+                <select aria-label="Filtrar por categoría" value={selectedCategory} onChange={(event) => chooseCategory(event.target.value)} className="border border-brand-line bg-transparent px-4 py-3 text-sm outline-none lg:hidden">
                   <option value="">Todas las categorías</option>
                   {categories.map((category) => <optgroup key={category.slug} label={category.name}><option value={category.slug}>{category.name}</option>{category.subcategories.map((subcategory) => <option key={subcategory.slug} value={`${category.slug}/${subcategory.slug}`}>{subcategory.label || subcategory.name}</option>)}</optgroup>)}
                 </select>
                 <div className="relative flex-1">
                   <Search size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-muted" />
-                  <input type="search" placeholder="Buscar productos..." value={search} onChange={(event) => setSearch(event.target.value)} className="w-full rounded-full border border-brand-line bg-transparent py-3 pl-11 pr-10 text-sm outline-none focus:border-brand-accent" />
+                  <input type="search" placeholder="Buscar productos..." value={search} onChange={(event) => setSearch(event.target.value)} className="w-full border border-brand-line bg-transparent py-3 pl-11 pr-10 text-sm outline-none focus:border-brand-accent" />
                   {search && <button onClick={() => setSearch("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-muted" aria-label="Limpiar búsqueda"><X size={16} /></button>}
                 </div>
                 <details className="mb-5 border-b border-brand-line pb-4 lg:hidden">
@@ -104,7 +104,7 @@ export default function AllProducts() {
                   <input aria-label="Precio mínimo" type="number" min="0" value={minPrice} onChange={(event) => setMinPrice(event.target.value)} placeholder="Precio mínimo" className="mt-3 w-full border-b border-brand-line bg-transparent py-2 text-sm outline-none focus:border-brand-accent" />
                   <input aria-label="Precio máximo" type="number" min="0" value={maxPrice} onChange={(event) => setMaxPrice(event.target.value)} placeholder="Precio máximo" className="mt-3 w-full border-b border-brand-line bg-transparent py-2 text-sm outline-none focus:border-brand-accent" />
                 </details>
-                <select aria-label="Ordenar productos" value={sortBy} onChange={(event) => setSortBy(event.target.value)} className="rounded-full border border-brand-line bg-transparent px-4 py-3 text-sm outline-none">
+                <select aria-label="Ordenar productos" value={sortBy} onChange={(event) => setSortBy(event.target.value)} className="border border-brand-line bg-transparent px-4 py-3 text-sm outline-none">
                   <option value="recommended">Recomendados</option>
                   <option value="price-asc">Precio: menor a mayor</option>
                   <option value="price-desc">Precio: mayor a menor</option>
@@ -122,7 +122,7 @@ export default function AllProducts() {
               ) : (
                 <p className="bg-white py-20 text-center text-sm text-brand-muted">No hay productos que coincidan con los filtros seleccionados.</p>
               )}
-              {visibleCount < filteredProducts.length && <div className="mt-10 text-center"><button onClick={() => setVisibleCount((count) => count + PAGE_SIZE)} className="rounded-full border border-brand-ink px-7 py-3 text-sm font-medium text-brand-ink hover:bg-brand-ink hover:text-white">Cargar más productos</button></div>}
+              {visibleCount < filteredProducts.length && <div className="mt-12 text-center"><button onClick={() => setVisibleCount((count) => count + PAGE_SIZE)} className="border border-brand-ink px-8 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-brand-ink transition hover:bg-brand-ink hover:text-white">Cargar más productos</button></div>}
             </div>
           </div>
         </Container>

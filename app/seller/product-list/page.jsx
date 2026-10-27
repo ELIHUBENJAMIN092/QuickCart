@@ -8,6 +8,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { useAppContext } from "@/context/AppContext";
 import Loading from "@/components/Loading";
+import PageHeader from "@/components/seller/PageHeader";
 import { useConfirm } from "@/components/ui/ConfirmProvider";
 import { categories, getCategoryName, getSubcategoryName, matchesCategoryFilter } from "@/lib/categories";
 
@@ -133,20 +134,21 @@ export default function ProductList() {
   );
 
   return (
-    <div className="flex min-h-screen flex-1 flex-col justify-between bg-brand-cream">
+    <div className="flex flex-1 flex-col justify-between">
       {loading ? <Loading /> : (
         <main className="w-full p-4 md:p-8">
-          <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-muted">Administración · Inventario</p>
-              <h1 className="mt-2 font-display text-3xl text-brand-ink">Todos los productos</h1>
-              <p className="mt-2 text-sm text-brand-muted">Gestiona el catálogo, el stock y la publicación de tus productos.</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button onClick={exportInventory} className="inline-flex items-center justify-center gap-2 rounded-full border border-brand-line bg-white px-4 py-2.5 text-xs font-semibold text-brand-charcoal hover:border-brand-accent"><Download size={15} /> Exportar CSV</button>
-              <Link href="/seller" className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-accent px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-accent-hover"><Plus size={16} /> Añadir producto</Link>
-            </div>
-          </div>
+          <PageHeader
+            className="mb-7"
+            eyebrow="Administración · Inventario"
+            title="Todos los productos"
+            description="Gestiona el catálogo, el stock y la publicación de tus productos."
+            actions={(
+              <>
+                <button onClick={exportInventory} className="inline-flex items-center justify-center gap-2 rounded-full border border-brand-line bg-white px-4 py-2.5 text-xs font-semibold text-brand-charcoal hover:border-brand-accent"><Download size={15} /> Exportar CSV</button>
+                <Link href="/seller" className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-accent px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-accent-hover"><Plus size={16} /> Añadir producto</Link>
+              </>
+            )}
+          />
 
           <div className="mb-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
             {[

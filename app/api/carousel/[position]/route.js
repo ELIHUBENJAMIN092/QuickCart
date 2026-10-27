@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import authSeller from "@/lib/authSeller";
-import { defaultSlides } from "@/lib/carousel";
+import { validateSlideBody } from "@/lib/carouselServer";
+import { loadCategoryRows } from "@/lib/categoryServer";
 import { getAuthenticatedSupabase } from "@/lib/supabase/server";
 import { validateProductFile } from "@/lib/supabase/storage";
-
-const LIMITS = { eyebrow: 80, title: 140, description: 300, primary_label: 40, secondary_label: 40 };
 
 export async function PUT(request, { params }) {
   try {
@@ -14,19 +13,15 @@ export async function PUT(request, { params }) {
     }
 
     const { position } = await params;
-    const slide = defaultSlides.find((item) => String(item.position) === position);
-    if (!slide) {
+    const target = Number(position);
+    if (!Number.isInteger(target) || target < 1) {
       return NextResponse.json({ success: false, message: "Diapositiva no válida." }, { status: 400 });
     }
 
     const body = await request.json();
-    const values = {};
-    for (const [field, max] of Object.entries(LIMITS)) {
-      const value = String(body[field] ?? "").trim();
-      if (!value || value.length > max) {
-        return NextResponse.json({ success: false, message: `Revisa el campo ${field} (máximo ${max} caracteres).` }, { status: 400 });
-      }
-      values[field] = value;
+    const { values, error: invalid } = validateSlideBody(body, await loadCategoryRows(supabase));
+    if (invalid) {
+      return NextResponse.json({ success: false, message: invalid }, { status: 400 });
     }
 
     if (body.imagePath) {
@@ -38,8 +33,7 @@ export async function PUT(request, { params }) {
     }
 
     const { error } = await supabase.from("carousel_slides").upsert({
-      position: slide.position,
-      category: slide.category,
+      position: target,
       ...values,
       updated_at: new Date().toISOString(),
     });

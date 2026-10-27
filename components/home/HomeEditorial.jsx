@@ -3,6 +3,7 @@ import Link from "next/link";
 import { BadgeCheck, Headset, Layers3, Truck } from "lucide-react";
 import familia from "@/assets/familia.jpg";
 import Container from "@/components/ui/Container";
+import SectionHeading from "@/components/ui/SectionHeading";
 
 const benefits = [
   { icon: Layers3, title: "Tecnología probada", text: "Equipos de alto rendimiento para operaciones profesionales." },
@@ -20,25 +21,27 @@ const testimonials = [
 export default function HomeEditorial() {
   return (
     <>
-      <section className="bg-gray-100 py-14 md:py-20">
+      <section className="bg-white py-16 md:py-24">
         <Container>
-          <div className="grid items-center gap-12 lg:grid-cols-3">
-            <div className="space-y-7 lg:pr-4">
-              {benefits.slice(0, 2).map(({ icon: Icon, title, text }) => (
-                <article key={title} className="flex gap-4">
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-brand-ink ring-1 ring-gray-300"><Icon size={20} /></span>
-                  <div><h3 className="text-xl font-bold text-gray-900">{title}</h3><p className="mt-1 text-base leading-7 text-gray-700">{text}</p></div>
-                </article>
-              ))}
+          <SectionHeading
+            eyebrow="Por qué COMPEL"
+            title="Respaldo real, no solo equipos."
+            description="Combinamos producto, conocimiento técnico y servicio local para que cada implementación funcione desde el primer día."
+          />
+          <div className="grid items-stretch gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+            <div className="relative min-h-[320px] overflow-hidden border border-brand-line bg-brand-sand md:min-h-[440px]">
+              <Image src={familia} alt="Familia de productos COMPEL" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-contain p-8 md:p-12" />
+              <span className="absolute bottom-0 left-0 h-1 w-28 bg-brand-accent" />
             </div>
-            <div className="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-full bg-white ring-1 ring-gray-200">
-              <Image src={familia} alt="Familia de productos COMPEL" fill sizes="(max-width: 1024px) 80vw, 30vw" className="object-contain p-4" />
-            </div>
-            <div className="space-y-7 lg:pl-4">
-              {benefits.slice(2).map(({ icon: Icon, title, text }) => (
-                <article key={title} className="flex gap-4">
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-brand-ink ring-1 ring-gray-300"><Icon size={20} /></span>
-                  <div><h3 className="text-xl font-bold text-gray-900">{title}</h3><p className="mt-1 text-base leading-7 text-gray-700">{text}</p></div>
+            <div className="grid gap-px border border-brand-line bg-brand-line sm:grid-cols-2">
+              {benefits.map(({ icon: Icon, title, text }, index) => (
+                <article key={title} className="flex flex-col bg-white p-7 md:p-8">
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-muted">0{index + 1}</span>
+                    <Icon size={20} className="text-brand-accent" />
+                  </div>
+                  <h3 className="mt-8 font-display text-xl text-brand-ink md:text-2xl">{title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-brand-muted">{text}</p>
                 </article>
               ))}
             </div>
@@ -46,29 +49,29 @@ export default function HomeEditorial() {
         </Container>
       </section>
 
-      <section className="bg-brand-ink py-14 text-brand-cream md:py-20">
+      <section className="bg-brand-ink py-16 text-brand-cream md:py-20">
         <Container className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Una solución para cada reto</p>
-            <h2 className="mt-3 max-w-2xl font-display text-3xl leading-tight md:text-5xl">Haz que tu operación avance con COMPEL.</h2>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-accent-hover">Una solución para cada reto</p>
+            <h2 className="mt-3 max-w-2xl font-display text-3xl leading-[0.98] md:text-5xl">Haz que tu operación avance con COMPEL.</h2>
           </div>
-          <Link href="/all-products" className="inline-flex shrink-0 items-center gap-2 rounded-full bg-brand-cream px-6 py-3 text-sm font-semibold text-brand-ink transition hover:bg-white">Explorar soluciones <span aria-hidden="true">→</span></Link>
+          <Link href="/all-products" className="inline-flex shrink-0 items-center gap-2 bg-white px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-brand-ink transition hover:bg-brand-accent hover:text-white">Explorar soluciones <span aria-hidden="true">→</span></Link>
         </Container>
       </section>
 
-      <section className="overflow-hidden py-14 md:py-20">
+      <section className="overflow-hidden bg-brand-sand/50 py-16 md:py-24">
         <Container>
-          <div className="mb-8 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-muted">La confianza se construye juntos</p>
-            <h2 className="mt-3 font-display text-3xl text-brand-ink md:text-4xl">Acompañamos a negocios como el tuyo.</h2>
+          <div className="mb-10 max-w-2xl">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-accent">La confianza se construye juntos</p>
+            <h2 className="mt-3 font-display text-3xl leading-[0.98] text-brand-ink md:text-5xl">Acompañamos a negocios como el tuyo.</h2>
           </div>
           <div className="overflow-hidden pb-3">
             <div className="animate-scroll flex w-max gap-5">
             {[...testimonials, ...testimonials].map((item, index) => (
-              <figure key={`${item.author}-${index}`} className="w-[300px] shrink-0 border border-brand-line bg-white p-6 md:w-[360px] md:p-8">
-                <div className="mb-4 text-brand-accent" aria-label="5 de 5 estrellas">★★★★★</div>
-                <blockquote className="font-display text-xl leading-7 text-brand-ink">“{item.quote}”</blockquote>
-                <figcaption className="mt-6 text-xs text-brand-muted">{item.author}<span className="mx-2">·</span>Testimonio de ejemplo</figcaption>
+              <figure key={`${item.author}-${index}`} className="w-[300px] shrink-0 border border-brand-line bg-white p-6 md:w-[380px] md:p-8">
+                <div className="mb-5 text-brand-accent" aria-label="5 de 5 estrellas">★★★★★</div>
+                <blockquote className="font-display text-xl leading-8 text-brand-ink">“{item.quote}”</blockquote>
+                <figcaption className="mt-7 border-t border-brand-line pt-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-muted">{item.author}<span className="mx-2">·</span>{item.company}</figcaption>
               </figure>
             ))}
             </div>
