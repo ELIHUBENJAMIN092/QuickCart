@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import axios from "axios";
 import { ArrowRight, BadgeCheck, Boxes, CircleDollarSign, Clock3, PackageCheck, PackagePlus, TriangleAlert, Wallet } from "lucide-react";
@@ -9,23 +9,41 @@ import PageHeader from "@/components/seller/PageHeader";
 import { categories, getCategoryName, getSubcategoryName, matchesCategoryFilter } from "@/lib/categories";
 
 export default function SellerDashboard() {
-  const { products, router, user, getToken, currency } = useAppContext();
+  const { authLoading, products, productsLoading, productsError, fetchProductData, router, user, getToken, currency } = useAppContext();
   const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersError, setOrdersError] = useState("");
+
+  const fetchOrders = useCallback(async () => {
+    if (!user) {
+      if (!authLoading) {
+        setOrdersLoading(false);
+        setOrders([]);
+      }
+      return;
+    }
+
+    setOrdersLoading(true);
+    setOrdersError("");
+    try {
+      const token = await getToken();
+      if (!token) throw new Error("Tu sesión expiró. Inicia sesión nuevamente.");
+      const { data } = await axios.get("/api/order/seller-orders", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!data.success) throw new Error(data.message || "No se pudieron cargar las órdenes.");
+      setOrders(data.orders);
+    } catch (error) {
+      setOrdersError(error.response?.data?.message || error.message || "No se pudieron cargar las órdenes.");
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, [authLoading, getToken, user]);
 
   useEffect(() => {
-    let active = true;
-    if (!user) return undefined;
-    (async () => {
-      try {
-        const token = await getToken();
-        const { data } = await axios.get("/api/order/seller-orders", { headers: { Authorization: `Bearer ${token}` } });
-        if (active && data.success) setOrders(data.orders);
-      } catch {
-        /* El resumen sigue funcionando aunque falle la carga de ventas. */
-      }
-    })();
-    return () => { active = false; };
-  }, [getToken, user]);
+    const timeout = setTimeout(fetchOrders, 0);
+    return () => clearTimeout(timeout);
+  }, [fetchOrders]);
 
   const sales = useMemo(() => {
     const pending = orders.filter((order) => !order.isPaid);
@@ -50,6 +68,27 @@ export default function SellerDashboard() {
     { label: "Valor del inventario", value: `${currency}${estimatedValue.toLocaleString("es-EC", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, note: "Estimado según precio actual", icon: CircleDollarSign },
   ];
 
+  if (productsLoading) {
+    return (
+      <main className="grid min-h-[70vh] flex-1 place-items-center p-6">
+        <p role="status" className="text-sm text-brand-muted">Cargando el inventario...</p>
+      </main>
+    );
+  }
+
+  if (productsError && products.length === 0) {
+    return (
+      <main className="grid min-h-[70vh] flex-1 place-items-center p-6">
+        <div role="alert" className="max-w-md text-center">
+          <p className="text-sm text-brand-sale">{productsError}</p>
+          <button type="button" onClick={fetchProductData} className="mt-4 rounded-full bg-brand-accent px-5 py-3 text-sm font-semibold text-white">
+            Reintentar carga del inventario
+          </button>
+        </div>
+      </main>
+    );
+  }
+
   if (products.length === 0) {
     return (
       <main className="grid min-h-[70vh] flex-1 place-items-center p-6">
@@ -63,6 +102,12 @@ export default function SellerDashboard() {
       </main>
     );
   }
+
+  const salesValue = (value) => {
+    if (ordersLoading) return "Cargando…";
+    if (ordersError) return "—";
+    return value;
+  };
 
   return (
     <main className="flex-1 p-4 md:p-8">
@@ -78,6 +123,13 @@ export default function SellerDashboard() {
           </>
         )}
       />
+
+      {productsError && (
+        <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-amber-50 px-4 py-3 text-xs text-amber-800">
+          <span>No se pudo actualizar el inventario: {productsError}</span>
+          <button type="button" onClick={fetchProductData} className="font-semibold underline">Reintentar</button>
+        </div>
+      )}
 
       <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {stats.map(({ label, value, note, icon: Icon }) => (
@@ -100,26 +152,32 @@ export default function SellerDashboard() {
           </div>
           <Link href="/seller/orders" className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-accent hover:underline">Ver órdenes <ArrowRight size={14} /></Link>
         </div>
+        {ordersError && (
+          <div role="alert" className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-red-50 px-4 py-3 text-xs text-brand-sale">
+            <span>No se pudo cargar el resumen de órdenes: {ordersError}</span>
+            <button type="button" onClick={fetchOrders} className="font-semibold underline">Reintentar</button>
+          </div>
+        )}
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <Link href="/seller/orders" className="flex items-center gap-3 rounded-xl bg-brand-sand px-4 py-3 transition hover:bg-brand-line/50">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-brand-accent"><Clock3 size={18} /></span>
             <span>
               <span className="block text-[10px] uppercase tracking-wider text-brand-muted">Por confirmar</span>
-              <span className="block text-lg font-semibold text-brand-ink">{sales.pendingCount} órdenes</span>
+              <span className="block text-lg font-semibold text-brand-ink">{salesValue(`${sales.pendingCount} órdenes`)}</span>
             </span>
           </Link>
           <Link href="/seller/orders" className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 ring-1 ring-brand-line transition hover:ring-brand-accent">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-amber-50 text-amber-700"><Wallet size={18} /></span>
             <span>
               <span className="block text-[10px] uppercase tracking-wider text-brand-muted">Por cobrar</span>
-              <span className="block text-lg font-semibold text-brand-ink">{currency}{sales.pendingAmount.toFixed(2)}</span>
+              <span className="block text-lg font-semibold text-brand-ink">{salesValue(`${currency}${sales.pendingAmount.toFixed(2)}`)}</span>
             </span>
           </Link>
           <Link href="/seller/pagos" className="flex items-center gap-3 rounded-xl bg-brand-success/5 px-4 py-3 ring-1 ring-brand-success/15 transition hover:ring-brand-success/40">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-brand-success"><BadgeCheck size={18} /></span>
             <span>
               <span className="block text-[10px] uppercase tracking-wider text-brand-muted">Recaudado</span>
-              <span className="block text-lg font-semibold text-brand-ink">{currency}{sales.paidAmount.toFixed(2)}</span>
+              <span className="block text-lg font-semibold text-brand-ink">{salesValue(`${currency}${sales.paidAmount.toFixed(2)}`)}</span>
             </span>
           </Link>
         </div>

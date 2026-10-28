@@ -12,7 +12,8 @@ import Container from "@/components/ui/Container";
 const PAGE_SIZE = 12;
 
 export default function AllProducts() {
-  const { products } = useAppContext();
+  const { products, commerceEnabled, user } = useAppContext();
+  const canShop = Boolean(commerceEnabled && user);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [search, setSearch] = useState("");
   const [minPrice, setMinPrice] = useState("");
@@ -32,15 +33,15 @@ export default function AllProducts() {
         .toLowerCase()
         .includes(search.trim().toLowerCase());
       const price = Number(product.offerPrice ?? product.price);
-      const matchesPrice = (!minPrice || price >= Number(minPrice)) && (!maxPrice || price <= Number(maxPrice));
+      const matchesPrice = !canShop || ((!minPrice || price >= Number(minPrice)) && (!maxPrice || price <= Number(maxPrice)));
       return matchesCategoryFilter(product, selectedCategory) && matchesSearch && matchesPrice;
     });
 
-    if (sortBy === "price-asc") result.sort((a, b) => Number(a.offerPrice ?? a.price) - Number(b.offerPrice ?? b.price));
-    if (sortBy === "price-desc") result.sort((a, b) => Number(b.offerPrice ?? b.price) - Number(a.offerPrice ?? a.price));
+    if (canShop && sortBy === "price-asc") result.sort((a, b) => Number(a.offerPrice ?? a.price) - Number(b.offerPrice ?? b.price));
+    if (canShop && sortBy === "price-desc") result.sort((a, b) => Number(b.offerPrice ?? b.price) - Number(a.offerPrice ?? a.price));
     if (sortBy === "recent") result.sort((a, b) => Number(b.date || 0) - Number(a.date || 0));
     return result;
-  }, [products, selectedCategory, search, minPrice, maxPrice, sortBy]);
+  }, [canShop, products, selectedCategory, search, minPrice, maxPrice, sortBy]);
 
   useEffect(() => setVisibleCount(PAGE_SIZE), [selectedCategory, search, minPrice, maxPrice, sortBy]);
 
@@ -81,11 +82,13 @@ export default function AllProducts() {
                   </div>
                 ))}
               </div>
-              <div className="mt-9 border-t border-brand-line pt-7">
-                <label htmlFor="price-filter" className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-ink">Precio máximo</label>
-                <input aria-label="Precio mínimo" type="number" min="0" value={minPrice} onChange={(event) => setMinPrice(event.target.value)} placeholder="Precio mínimo" className="mt-3 w-full border-b border-brand-line bg-transparent py-2 text-sm outline-none focus:border-brand-accent" />
-                <input id="price-filter" type="number" min="0" value={maxPrice} onChange={(event) => setMaxPrice(event.target.value)} placeholder="Precio máximo" className="mt-3 w-full border-b border-brand-line bg-transparent py-2 text-sm outline-none focus:border-brand-accent" />
-              </div>
+              {canShop && (
+                <div className="mt-9 border-t border-brand-line pt-7">
+                  <label htmlFor="price-filter" className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-ink">Precio máximo</label>
+                  <input aria-label="Precio mínimo" type="number" min="0" value={minPrice} onChange={(event) => setMinPrice(event.target.value)} placeholder="Precio mínimo" className="mt-3 w-full border-b border-brand-line bg-transparent py-2 text-sm outline-none focus:border-brand-accent" />
+                  <input id="price-filter" type="number" min="0" value={maxPrice} onChange={(event) => setMaxPrice(event.target.value)} placeholder="Precio máximo" className="mt-3 w-full border-b border-brand-line bg-transparent py-2 text-sm outline-none focus:border-brand-accent" />
+                </div>
+              )}
             </aside>
 
             <div>
@@ -99,15 +102,19 @@ export default function AllProducts() {
                   <input type="search" placeholder="Buscar productos..." value={search} onChange={(event) => setSearch(event.target.value)} className="w-full border border-brand-line bg-transparent py-3 pl-11 pr-10 text-sm outline-none focus:border-brand-accent" />
                   {search && <button onClick={() => setSearch("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-muted" aria-label="Limpiar búsqueda"><X size={16} /></button>}
                 </div>
-                <details className="mb-5 border-b border-brand-line pb-4 lg:hidden">
-                  <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink">Filtrar por precio máximo</summary>
-                  <input aria-label="Precio mínimo" type="number" min="0" value={minPrice} onChange={(event) => setMinPrice(event.target.value)} placeholder="Precio mínimo" className="mt-3 w-full border-b border-brand-line bg-transparent py-2 text-sm outline-none focus:border-brand-accent" />
-                  <input aria-label="Precio máximo" type="number" min="0" value={maxPrice} onChange={(event) => setMaxPrice(event.target.value)} placeholder="Precio máximo" className="mt-3 w-full border-b border-brand-line bg-transparent py-2 text-sm outline-none focus:border-brand-accent" />
-                </details>
+                {canShop && (
+                  <details className="mb-5 border-b border-brand-line pb-4 lg:hidden">
+                    <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink">Filtrar por precio máximo</summary>
+                    <input aria-label="Precio mínimo" type="number" min="0" value={minPrice} onChange={(event) => setMinPrice(event.target.value)} placeholder="Precio mínimo" className="mt-3 w-full border-b border-brand-line bg-transparent py-2 text-sm outline-none focus:border-brand-accent" />
+                    <input aria-label="Precio máximo" type="number" min="0" value={maxPrice} onChange={(event) => setMaxPrice(event.target.value)} placeholder="Precio máximo" className="mt-3 w-full border-b border-brand-line bg-transparent py-2 text-sm outline-none focus:border-brand-accent" />
+                  </details>
+                )}
                 <select aria-label="Ordenar productos" value={sortBy} onChange={(event) => setSortBy(event.target.value)} className="border border-brand-line bg-transparent px-4 py-3 text-sm outline-none">
                   <option value="recommended">Recomendados</option>
-                  <option value="price-asc">Precio: menor a mayor</option>
-                  <option value="price-desc">Precio: mayor a menor</option>
+                  {canShop && <>
+                    <option value="price-asc">Precio: menor a mayor</option>
+                    <option value="price-desc">Precio: mayor a menor</option>
+                  </>}
                   <option value="recent">Más recientes</option>
                 </select>
               </div>

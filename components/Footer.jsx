@@ -39,7 +39,7 @@ export default function Footer() {
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-accent">Hablemos de tu operación</p>
               <h2 className="mt-3 font-display text-3xl leading-[0.98] text-brand-ink md:text-5xl">¿Listo para dar el siguiente paso?</h2>
             </div>
-            <Link href="/Contactos" className="inline-flex shrink-0 items-center justify-center bg-brand-accent px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink">Contactar a un especialista</Link>
+            <Link href="/Acerca#contacto" className="inline-flex shrink-0 items-center justify-center bg-brand-accent px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink">Contactar a un especialista</Link>
           </div>
         </div>
         <div className="mx-auto grid max-w-[1360px] gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-4 md:px-8 lg:px-12">
@@ -63,8 +63,7 @@ export default function Footer() {
           <div>
             <h2 className="mb-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-ink">Empresa y soporte</h2>
             <ul className="space-y-3 text-sm text-brand-muted">
-              <li><Link href="/Acerca" className="transition hover:text-brand-accent">Sobre COMPEL</Link></li>
-              <li><Link href="/Contactos" className="transition hover:text-brand-accent">Contacto y asesoría</Link></li>
+              <li><Link href="/Acerca" className="transition hover:text-brand-accent">Nosotros y contacto</Link></li>
               <li><button onClick={() => setShowPDF(true)} className="transition hover:text-brand-accent">Política de privacidad</button></li>
               <li><a href="https://wa.me/593984617873" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 transition hover:text-brand-accent"><FaWhatsapp /> +(593) 98 461 7873</a></li>
               <li><a href="mailto:soporte@compelecuador.com" className="transition hover:text-brand-accent">soporte@compelecuador.com</a></li>

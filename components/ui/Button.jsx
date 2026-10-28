@@ -14,7 +14,7 @@ export default function Button({
   href,
   ...props
 }) {
-  const classes = `inline-flex items-center justify-center gap-2 px-7 py-3.5 text-[12px] font-semibold uppercase tracking-[0.14em] transition-colors ${variants[variant]} ${className}`;
+  const classes = `inline-flex items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-[12px] font-semibold uppercase tracking-[0.14em] transition-colors ${variants[variant]} ${className}`;
   if (href) {
     return <Link href={href} className={classes}>{children}</Link>;
   }

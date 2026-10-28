@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
+import { getCommerceEnabled } from "@/lib/commerce";
 import { getAuthenticatedSupabase } from "@/lib/supabase/server";
 
 export async function GET(request) {
   const { supabase, user } = await getAuthenticatedSupabase(request);
   if (!user) {
     return NextResponse.json({ success: false, message: "Inicia sesión." }, { status: 401 });
+  }
+  try {
+    if (!(await getCommerceEnabled(supabase))) {
+      return NextResponse.json({ success: false, message: "El carrito está deshabilitado." }, { status: 403 });
+    }
+  } catch (error) {
+    console.error("Error verificando disponibilidad del carrito:", error);
+    return NextResponse.json({ success: false, message: "No se pudo verificar el estado del carrito." }, { status: 500 });
   }
 
   const { data, error } = await supabase

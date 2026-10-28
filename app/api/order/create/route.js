@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getCommerceEnabled } from "@/lib/commerce";
 import { getAuthenticatedSupabase } from "@/lib/supabase/server";
 
 export async function POST(request) {
@@ -8,6 +9,10 @@ export async function POST(request) {
   }
 
   try {
+    if (!(await getCommerceEnabled(supabase))) {
+      return NextResponse.json({ success: false, message: "Las compras están deshabilitadas temporalmente." }, { status: 403 });
+    }
+
     const { address, items } = await request.json();
     const requiredAddressFields = ["fullName", "email", "phoneNumber", "idNumber", "area", "city", "state"];
     if (

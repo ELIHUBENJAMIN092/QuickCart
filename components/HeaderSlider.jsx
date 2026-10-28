@@ -64,7 +64,7 @@ export default function HeaderSlider() {
                 <Link href={`/all-products?category=${slide.category}`} tabIndex={index === currentSlide ? 0 : -1} className="inline-flex items-center gap-2 rounded-full bg-brand-cream px-6 py-3 text-sm font-semibold text-brand-ink transition hover:bg-white">
                   {slide.primary_label}<ArrowRight size={16} />
                 </Link>
-                <Link href="/Contactos" tabIndex={index === currentSlide ? 0 : -1} className="rounded-full border border-white/50 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/10">
+                <Link href="/Acerca#contacto" tabIndex={index === currentSlide ? 0 : -1} className="rounded-full border border-white/50 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/10">
                   {slide.secondary_label}
                 </Link>
               </div>

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BarChart3,
+  BadgeCheck,
   CreditCard,
   GalleryHorizontal,
   LayoutGrid,
@@ -14,6 +15,7 @@ import {
   Megaphone,
   PackagePlus,
   ShoppingBag,
+  ShoppingCart,
   Store,
   X,
 } from "lucide-react";
@@ -37,8 +39,13 @@ const groups = [
     label: "Contenido",
     items: [
       { name: "Carrusel", path: "/seller/carousel", icon: GalleryHorizontal },
+      { name: "Marcas de confianza", path: "/seller/marcas", icon: BadgeCheck },
       { name: "Banner", path: "/seller/banner", icon: Megaphone },
     ],
+  },
+  {
+    label: "Tienda",
+    items: [{ name: "Carrito y precios", path: "/seller/configuracion", icon: ShoppingCart }],
   },
   {
     label: "Ventas",

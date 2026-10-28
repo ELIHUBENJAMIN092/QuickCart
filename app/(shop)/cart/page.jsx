@@ -7,9 +7,10 @@ import OrderSummary from "@/components/OrderSummary";
 import { useAppContext } from "@/context/AppContext";
 import Container from "@/components/ui/Container";
 import Price from "@/components/ui/Price";
+import Loading from "@/components/Loading";
 
 export default function Cart() {
-  const { currency, products, cartItems, addToCart, updateCartQuantity, getCartCount } = useAppContext();
+  const { authLoading, commerceEnabled, commerceSettingsLoading, currency, products, cartItems, addToCart, updateCartQuantity, getCartCount, cartSaving, user } = useAppContext();
   const cartProducts = Object.entries(cartItems)
     .map(([id, quantity]) => ({ product: products.find((item) => item._id === id), quantity }))
     .filter(({ product, quantity }) => product && quantity > 0);
@@ -18,6 +19,24 @@ export default function Cart() {
     <>
       <main className="min-h-[55vh]">
         <Container className="py-12 md:py-16">
+          {authLoading || commerceSettingsLoading ? (
+            <Loading />
+          ) : !commerceEnabled ? (
+            <div className="py-16 text-center">
+              <ShoppingBag className="mx-auto text-brand-muted" size={42} strokeWidth={1.2} />
+              <h1 className="mt-6 font-display text-3xl text-brand-ink">Compras no disponibles por ahora.</h1>
+              <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-brand-muted">Puedes consultar el catálogo y los detalles de nuestros productos. El carrito y los precios están temporalmente ocultos.</p>
+              <Link href="/all-products" className="mt-7 inline-flex bg-brand-accent px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink">Ver catálogo</Link>
+            </div>
+          ) : !user ? (
+            <div className="py-16 text-center">
+              <ShoppingBag className="mx-auto text-brand-muted" size={42} strokeWidth={1.2} />
+              <h1 className="mt-6 font-display text-3xl text-brand-ink">Inicia sesión para ver tu carrito.</h1>
+              <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-brand-muted">Los precios y las compras están disponibles únicamente para clientes registrados.</p>
+              <Link href="/sign-in" className="mt-7 inline-flex bg-brand-accent px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink">Iniciar sesión</Link>
+            </div>
+          ) : (
+          <>
           <div className="mb-9 flex items-end justify-between border-b border-brand-line pb-8">
             <div><p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-accent">Tu selección</p><h1 className="font-display text-4xl leading-[0.96] text-brand-ink md:text-6xl">Carrito de compra</h1></div>
             <span className="text-sm text-brand-muted">{getCartCount()} artículos</span>
@@ -40,13 +59,13 @@ export default function Cart() {
                     <div className="min-w-0">
                       <Link href={`/product/${product._id}`} className="line-clamp-2 text-sm font-medium text-brand-ink hover:text-brand-accent">{product.name}</Link>
                       <Price price={product.price} offerPrice={product.offerPrice} currency={currency} className="mt-2 text-sm" />
-                      <button onClick={() => updateCartQuantity(product._id, 0)} className="mt-3 inline-flex items-center gap-1 text-xs text-brand-muted hover:text-brand-sale"><Trash2 size={13} /> Eliminar</button>
+                      <button onClick={() => updateCartQuantity(product._id, 0)} disabled={cartSaving} className="mt-3 inline-flex items-center gap-1 text-xs text-brand-muted hover:text-brand-sale disabled:opacity-50"><Trash2 size={13} /> Eliminar</button>
                     </div>
                     <div className="col-start-2 flex items-center justify-between sm:col-start-auto sm:flex-col sm:items-end sm:justify-between">
                       <div className="inline-flex items-center border border-brand-line">
-                        <button onClick={() => updateCartQuantity(product._id, quantity - 1)} className="p-2.5 text-brand-ink" aria-label="Disminuir cantidad"><Minus size={13} /></button>
+                        <button onClick={() => updateCartQuantity(product._id, quantity - 1)} disabled={cartSaving} className="p-2.5 text-brand-ink disabled:opacity-40" aria-label="Disminuir cantidad"><Minus size={13} /></button>
                         <span className="min-w-7 text-center text-xs">{quantity}</span>
-                        <button onClick={() => addToCart(product._id)} className="p-2.5 text-brand-ink" aria-label="Aumentar cantidad"><Plus size={13} /></button>
+                        <button onClick={() => addToCart(product._id)} disabled={cartSaving} className="p-2.5 text-brand-ink disabled:opacity-40" aria-label="Aumentar cantidad"><Plus size={13} /></button>
                       </div>
                       <p className="text-sm font-semibold text-brand-ink">{currency}{(Number(product.offerPrice ?? product.price) * quantity).toFixed(2)}</p>
                     </div>
@@ -56,6 +75,8 @@ export default function Cart() {
               </div>
               <OrderSummary />
             </div>
+          )}
+          </>
           )}
         </Container>
       </main>

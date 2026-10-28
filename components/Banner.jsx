@@ -12,7 +12,7 @@ export default function Banner() {
           <h2 className="mt-4 max-w-lg font-display text-4xl leading-[0.96] text-brand-ink md:text-6xl">Identifica mejor. Trabaja más inteligente.</h2>
           <p className="mt-5 max-w-md text-sm leading-7 text-brand-charcoal md:text-base">Te acompañamos a encontrar el equipo adecuado con asesoría, implementación y soporte local.</p>
           <div className="mt-9 flex flex-wrap items-center gap-3">
-            <Link href="/Contactos" className="inline-flex items-center gap-2 bg-brand-accent px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink">Conoce nuestras soluciones <ArrowRight size={16} /></Link>
+            <Link href="/Acerca#contacto" className="inline-flex items-center gap-2 bg-brand-accent px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink">Conoce nuestras soluciones <ArrowRight size={16} /></Link>
             <Link href="/all-products" className="inline-flex items-center border border-brand-ink px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-brand-ink transition hover:bg-brand-ink hover:text-white">Ver catálogo</Link>
           </div>
         </div>

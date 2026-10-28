@@ -58,7 +58,7 @@ export default function KioscosPage() {
             <TwoToneTitle title={kiosk.title} className="mt-5 text-4xl md:text-6xl lg:text-7xl" />
             <p className="mx-auto mt-6 max-w-2xl text-sm leading-7 text-brand-muted md:text-base">{kiosk.description}</p>
             <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-              <Link href={kiosk.primary_url || "/Contactos"} className="inline-flex items-center gap-2 bg-brand-accent px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink">
+              <Link href={kiosk.primary_url || "/Acerca#contacto"} className="inline-flex items-center gap-2 bg-brand-accent px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink">
                 {kiosk.primary_label || "Solicitar asesoría"} <ArrowRight size={16} />
               </Link>
               <Link href={kiosk.secondary_url || "/all-products"} className="inline-flex items-center gap-2 border border-brand-ink px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-brand-ink transition hover:bg-brand-ink hover:text-white">
@@ -95,7 +95,7 @@ export default function KioscosPage() {
             <p className="mt-6 max-w-md text-sm leading-7 text-brand-muted">
               Combinamos hardware, accesorios e integración para crear puntos de autoservicio que reducen filas, agilizan pagos y liberan a tu equipo para tareas de mayor valor.
             </p>
-            <Link href="/Contactos" className="mt-8 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-accent hover:text-brand-ink">
+            <Link href="/Acerca#contacto" className="mt-8 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-accent hover:text-brand-ink">
               Cuéntanos tu proyecto <ArrowRight size={15} />
             </Link>
           </div>
@@ -133,7 +133,7 @@ export default function KioscosPage() {
                 <li className="flex gap-3"><CheckCircle2 size={18} className="mt-0.5 shrink-0 text-white" /> Pagos, impresión, lectura de códigos y biometría.</li>
                 <li className="flex gap-3"><CheckCircle2 size={18} className="mt-0.5 shrink-0 text-white" /> Integración con tu sistema de gestión.</li>
               </ul>
-              <Link href={kiosk.closing_url || "/Contactos"} className="mt-9 inline-flex items-center gap-2 bg-white px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-brand-ink transition hover:bg-brand-accent hover:text-white">
+              <Link href={kiosk.closing_url || "/Acerca#contacto"} className="mt-9 inline-flex items-center gap-2 bg-white px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-brand-ink transition hover:bg-brand-accent hover:text-white">
                 {kiosk.closing_label || "Hablar con un especialista"} <ArrowRight size={16} />
               </Link>
             </div>
@@ -161,7 +161,7 @@ export default function KioscosPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-accent">Siguiente paso</p>
           <h2 className="mt-4 font-display text-3xl leading-[0.98] text-brand-ink md:text-5xl">{kiosk.closing_title}</h2>
           <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-brand-muted">{kiosk.closing_description}</p>
-          <Link href={kiosk.closing_url || "/Contactos"} className="mt-9 inline-flex items-center gap-2 bg-brand-accent px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink">
+          <Link href={kiosk.closing_url || "/Acerca#contacto"} className="mt-9 inline-flex items-center gap-2 bg-brand-accent px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink">
             {kiosk.closing_label || "Hablar con un especialista"} <ArrowRight size={16} />
           </Link>
         </div>

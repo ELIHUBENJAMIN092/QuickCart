@@ -29,8 +29,9 @@ function BannerLink({ href, className, children }) {
 }
 
 export default function Navbar() {
-  const { isSeller, user, signOut, products, cartItems, getCartCount, getCartAmount } =
+  const { isSeller, user, signOut, products, cartItems, getCartCount, getCartAmount, commerceEnabled } =
     useAppContext();
+  const canShop = Boolean(user && commerceEnabled);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [banner, setBanner] = useState(defaultBanner);
   const [bannerDismissed, setBannerDismissed] = useState(false);
@@ -143,10 +144,12 @@ export default function Navbar() {
               <button onClick={() => setSearchOpen(true)} aria-label="Buscar" className="flex items-center gap-2 text-[14px] font-medium transition hover:text-brand-accent">
                 <span className="hidden 2xl:inline">Buscar</span><Search size={20} />
               </button>
-              <button onClick={() => setCartOpen(true)} aria-label="Abrir carrito" className="relative transition hover:text-brand-accent">
-                <ShoppingCart size={20} />
-                {getCartCount() > 0 && <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center bg-brand-accent px-1 text-[9px] text-white">{getCartCount()}</span>}
-              </button>
+              {canShop && (
+                <button onClick={() => setCartOpen(true)} aria-label="Abrir carrito" className="relative transition hover:text-brand-accent">
+                  <ShoppingCart size={20} />
+                  {getCartCount() > 0 && <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center bg-brand-accent px-1 text-[9px] text-white">{getCartCount()}</span>}
+                </button>
+              )}
               <div className="hidden md:block">
                 {user ? (
                   <div className="relative" ref={menuRef}>
@@ -177,7 +180,7 @@ export default function Navbar() {
                         {isSeller && (
                           <Link href="/seller" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 border-b border-brand-line px-4 py-3 hover:bg-brand-sand"><LayoutDashboard size={16} /> Panel de administración</Link>
                         )}
-                        <button onClick={() => { setUserMenuOpen(false); setCartOpen(true); }} className="flex w-full items-center gap-3 border-b border-brand-line px-4 py-3 text-left hover:bg-brand-sand"><ShoppingCart size={16} /> Carrito</button>
+                        {canShop && <button onClick={() => { setUserMenuOpen(false); setCartOpen(true); }} className="flex w-full items-center gap-3 border-b border-brand-line px-4 py-3 text-left hover:bg-brand-sand"><ShoppingCart size={16} /> Carrito</button>}
                         <Link href="/my-orders" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 border-b border-brand-line px-4 py-3 hover:bg-brand-sand"><ShoppingBag size={16} /> Mis órdenes</Link>
                         <button onClick={() => { setUserMenuOpen(false); signOut(); }} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-brand-sand"><LogOut size={16} /> Cerrar sesión</button>
                       </div>
@@ -187,7 +190,6 @@ export default function Navbar() {
                   <Link href="/sign-in" aria-label="Cuenta" className="flex items-center gap-2 text-[14px] font-medium transition hover:text-brand-accent"><span className="hidden 2xl:inline">Cuenta</span> <User size={20} /></Link>
                 )}
               </div>
-              <Link href="/Contactos" onMouseEnter={() => setOpenMenu(null)} className="hidden items-center bg-brand-accent px-5 py-3 text-[12px] font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-brand-ink xl:inline-flex">Contacto</Link>
               <button className="xl:hidden" onClick={() => setMobileOpen((open) => !open)} aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}>
                 {mobileOpen ? <X size={22} /> : <Menu size={22} />}
               </button>
@@ -257,12 +259,12 @@ export default function Navbar() {
                   </div>
                 </details>
               ))}
-              <Link className="block border-b border-brand-line py-3" href="/Acerca" onClick={() => setMobileOpen(false)}>Nosotros</Link>
-              <Link className="block py-3" href="/Contactos" onClick={() => setMobileOpen(false)}>Contacto</Link>
+              <Link className="block py-3" href="/Acerca" onClick={() => setMobileOpen(false)}>Nosotros</Link>
               {user ? (
                 <>
+                  {isSeller && <Link className="block border-b border-brand-line py-3 font-medium text-brand-accent" href="/seller/dashboard" onClick={() => setMobileOpen(false)}>Panel de administración</Link>}
                   <Link className="block py-3" href="/my-orders" onClick={() => setMobileOpen(false)}>Mis órdenes</Link>
-                  <button className="py-3" onClick={signOut}>Cerrar sesión</button>
+                  <button className="block py-3" onClick={() => { setMobileOpen(false); signOut(); }}>Cerrar sesión</button>
                 </>
               ) : <Link className="block py-3" href="/sign-in" onClick={() => setMobileOpen(false)}>Iniciar sesión</Link>}
             </div>
@@ -270,9 +272,9 @@ export default function Navbar() {
         </nav>
       </header>
 
-      {(cartOpen || searchOpen) && (
+      {((cartOpen && canShop) || searchOpen) && (
         <div className="fixed inset-0 z-[60] bg-black/40" onClick={() => { setCartOpen(false); setSearchOpen(false); }}>
-          {cartOpen && (
+          {cartOpen && canShop && (
             <aside className="ml-auto flex h-full w-full max-w-md flex-col bg-brand-cream p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
               <div className="mb-6 flex items-center justify-between border-b border-brand-line pb-4">
                 <h2 className="font-display text-2xl text-brand-ink">Tu carrito ({getCartCount()})</h2>

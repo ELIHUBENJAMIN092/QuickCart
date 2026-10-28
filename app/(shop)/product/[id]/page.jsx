@@ -17,7 +17,8 @@ import SectionHeading from "@/components/ui/SectionHeading";
 
 export default function ProductPage() {
   const { id } = useParams();
-  const { products, addToCart, user, currency, router } = useAppContext();
+  const { products, addToCart, user, currency, router, commerceEnabled } = useAppContext();
+  const canShop = Boolean(commerceEnabled && user);
   const [selectedImage, setSelectedImage] = useState(0);
   const [showVideo, setShowVideo] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -94,7 +95,7 @@ export default function ProductPage() {
                   {product.brand_logo && <Image src={product.brand_logo} alt="Marca" width={240} height={56} className="h-14 w-auto max-w-full object-contain object-left" />}
                 </div>
                 <div className="shrink-0">
-                  {product.is_offer === true ? <Badge variant="sale" className="!px-4 !py-2 !text-sm">Oferta</Badge> : product.is_new === true ? <Badge variant="new" className="!px-4 !py-2 !text-sm">Nuevo</Badge> : null}
+                  {canShop && product.is_offer === true ? <Badge variant="sale" className="!px-4 !py-2 !text-sm">Oferta</Badge> : product.is_new === true ? <Badge variant="new" className="!px-4 !py-2 !text-sm">Nuevo</Badge> : null}
                 </div>
               </div>
               <div
@@ -135,25 +136,35 @@ export default function ProductPage() {
             <div className="min-w-0 lg:py-4">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-muted">{getCategoryName(product.category)}{product.subcategory ? ` · ${getSubcategoryName(product.category, product.subcategory)}` : ""}</p>
               <h1 className="mt-3 font-display text-4xl leading-[0.96] text-brand-ink md:text-6xl">{product.name}</h1>
-              <div className="mt-6 flex flex-wrap items-center gap-4">
-                <Price price={product.price} offerPrice={product.offerPrice} currency={currency} className="text-2xl" />
-                <span className={`text-xs font-semibold ${stock > 0 ? "text-brand-success" : "text-brand-sale"}`}>{stock > 0 ? `Disponible · ${stock} en stock` : "Agotado"}</span>
-              </div>
+              {canShop && (
+                <div className="mt-6 flex flex-wrap items-center gap-4">
+                  <Price price={product.price} offerPrice={product.offerPrice} currency={currency} className="text-2xl" />
+                  <span className={`text-xs font-semibold ${stock > 0 ? "text-brand-success" : "text-brand-sale"}`}>{stock > 0 ? `Disponible · ${stock} en stock` : "Agotado"}</span>
+                </div>
+              )}
               <p className="mt-6 whitespace-pre-line text-sm leading-7 text-brand-charcoal">{product.description}</p>
 
-              <div className="mt-9 flex items-center gap-4">
-                <div className="inline-flex items-center border border-brand-line">
-                  <button onClick={() => setQuantity((value) => Math.max(1, value - 1))} disabled={quantity <= 1} className="p-3 text-brand-ink disabled:opacity-40" aria-label="Disminuir cantidad"><Minus size={15} /></button>
-                  <span className="min-w-8 text-center text-sm">{quantity}</span>
-                  <button onClick={() => setQuantity((value) => Math.min(stock || 1, value + 1))} disabled={quantity >= stock} className="p-3 text-brand-ink disabled:opacity-40" aria-label="Aumentar cantidad"><Plus size={15} /></button>
-                </div>
-                <span className="text-xs text-brand-muted">{stock > 0 ? "Cantidad" : "Sin disponibilidad"}</span>
-              </div>
+              {canShop ? (
+                <>
+                  <div className="mt-9 flex items-center gap-4">
+                    <div className="inline-flex items-center border border-brand-line">
+                      <button onClick={() => setQuantity((value) => Math.max(1, value - 1))} disabled={quantity <= 1} className="p-3 text-brand-ink disabled:opacity-40" aria-label="Disminuir cantidad"><Minus size={15} /></button>
+                      <span className="min-w-8 text-center text-sm">{quantity}</span>
+                      <button onClick={() => setQuantity((value) => Math.min(stock || 1, value + 1))} disabled={quantity >= stock} className="p-3 text-brand-ink disabled:opacity-40" aria-label="Aumentar cantidad"><Plus size={15} /></button>
+                    </div>
+                    <span className="text-xs text-brand-muted">{stock > 0 ? "Cantidad" : "Sin disponibilidad"}</span>
+                  </div>
 
-              <div className="mt-7 grid gap-3 sm:grid-cols-2">
-                <button onClick={() => addProduct()} disabled={stock <= 0} className="bg-brand-accent px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink disabled:cursor-not-allowed disabled:opacity-50">Añadir al carrito</button>
-                <button onClick={() => addProduct(true)} disabled={stock <= 0} className="border border-brand-ink px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-brand-ink transition hover:bg-brand-ink hover:text-white disabled:cursor-not-allowed disabled:opacity-50">Comprar ahora</button>
-              </div>
+                  <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                    <button onClick={() => addProduct()} disabled={stock <= 0} className="bg-brand-accent px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink disabled:cursor-not-allowed disabled:opacity-50">Añadir al carrito</button>
+                    <button onClick={() => addProduct(true)} disabled={stock <= 0} className="border border-brand-ink px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-brand-ink transition hover:bg-brand-ink hover:text-white disabled:cursor-not-allowed disabled:opacity-50">Comprar ahora</button>
+                  </div>
+                </>
+              ) : commerceEnabled && !user ? (
+                <Link href="/sign-in" className="mt-7 inline-flex border border-brand-line px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-brand-accent transition hover:border-brand-accent">
+                  Inicia sesión para consultar precios
+                </Link>
+              ) : null}
 
               {(product.model_3d_url || product.catalog_pdf) && (
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -166,11 +177,11 @@ export default function ProductPage() {
                 </div>
               )}
 
-              <div className="mt-8 grid grid-cols-3 gap-3 border-y border-brand-line py-5">
+              {canShop && <div className="mt-8 grid grid-cols-3 gap-3 border-y border-brand-line py-5">
                 <div className="text-center"><Truck className="mx-auto mb-2 text-brand-accent" size={20} /><p className="text-[10px] leading-4 text-brand-muted">Envíos a nivel nacional</p></div>
                 <div className="text-center"><BadgeCheck className="mx-auto mb-2 text-brand-accent" size={20} /><p className="text-[10px] leading-4 text-brand-muted">Garantía y respaldo</p></div>
                 <div className="text-center"><Headset className="mx-auto mb-2 text-brand-accent" size={20} /><p className="text-[10px] leading-4 text-brand-muted">Soporte especializado</p></div>
-              </div>
+              </div>}
 
               <div className="mt-6 divide-y divide-brand-line border-y border-brand-line">
                 <details open className="py-4">

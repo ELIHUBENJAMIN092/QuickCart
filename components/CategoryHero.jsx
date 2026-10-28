@@ -21,7 +21,7 @@ export default function CategoryHero({ category, subcategory }) {
   const title = subcategory?.name || hero.title || category.name;
   const description = subcategory ? category.description : hero.description || category.description;
   const primaryLabel = hero.primary_label || "Solicitar asesoría";
-  const primaryUrl = hero.primary_url || "/Contactos";
+  const primaryUrl = hero.primary_url || "/Acerca#contacto";
   const secondaryLabel = hero.secondary_label || "Ver productos";
   const secondaryUrl = hero.secondary_url || "#productos";
   const videoBackground = category.slug === "kioscos-y-pos" ? "bg-[#edf2f5]" : "bg-brand-ink";
