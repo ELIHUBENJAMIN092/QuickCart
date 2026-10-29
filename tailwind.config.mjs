@@ -37,10 +37,20 @@ export default {
           from: { width: '0' },
           to: { width: '100%' },
         },
+        'menu-in': {
+          from: { opacity: '0', transform: 'translateY(-6px) scale(0.97)' },
+          to: { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
+        'sheet-in': {
+          from: { transform: 'translateY(100%)' },
+          to: { transform: 'translateY(0)' },
+        },
       },
       animation: {
         'scale-in': 'scale-in 500ms ease-out',
         progress: 'progress 6s linear',
+        'menu-in': 'menu-in 160ms ease-out',
+        'sheet-in': 'sheet-in 240ms cubic-bezier(0.32, 0.72, 0, 1)',
       },
       gridTemplateColumns: {
         auto: 'repeat(auto-fit, minmax(200px, 1fr))',

@@ -7,10 +7,11 @@ This application now uses Supabase Auth, Postgres, and Storage for new accounts 
 1. The base schema migration referenced by earlier setup instructions (`migrations/20261020140000_initial_schema.sql`) is not present in this checkout. Do not treat this repository alone as sufficient to create or verify the production schema. Restore the authoritative baseline migration from the Supabase project history before provisioning a new environment. The checked-in `migrations/20261027160000_category_heroes.sql` only extends an existing `categories` table.
 2. After restoring and applying the authoritative base schema, apply `migrations/20261028170000_commerce_visibility.sql` to create the seller-controlled store switch.
 3. Apply `migrations/20261028190000_trusted_brands.sql` to create the brand carousel catalog and import the eight existing logo entries. New logo files use the existing `product-media` bucket and seller-owned storage paths.
-4. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in the local and deployment environments. Never expose a secret/service-role key to the browser.
-5. Configure an SMTP provider in Supabase Auth settings so confirmation and password-recovery messages can be delivered.
-6. Set the site's allowed redirect URL in Supabase Auth, then deploy the `send-order-email` Edge Function with JWT verification enabled (`supabase functions deploy send-order-email`). Set the Edge Function secrets `RESEND_API_KEY` and `RESEND_FROM_EMAIL`; these remain private in Supabase and are not needed in the Next.js app. Configure a custom SMTP provider in Supabase Auth for confirmation and password-recovery emails. An external email delivery provider is still required for transactional messages.
-7. Create the first account through `/sign-up`. Seller access is granted by an administrator in the SQL Editor, for example:
+4. Enable the `pg_cron` extension in Supabase, then apply `migrations/20261029190000_chat_phase2.sql`. The migration schedules daily cleanup for expired conversations, events, and feedback (90-day retention).
+5. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in the local and deployment environments. Never expose a secret/service-role key to the browser. Configure `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` for shared production rate limiting; chat, lead, feedback, and event endpoints fail closed if this service is unavailable.
+6. Configure an SMTP provider in Supabase Auth settings so confirmation and password-recovery messages can be delivered.
+7. Set the site's allowed redirect URL in Supabase Auth, then deploy the `send-order-email` Edge Function with JWT verification enabled (`supabase functions deploy send-order-email`). Set the Edge Function secrets `RESEND_API_KEY` and `RESEND_FROM_EMAIL`; these remain private in Supabase and are not needed in the Next.js app. Configure a custom SMTP provider in Supabase Auth for confirmation and password-recovery emails. An external email delivery provider is still required for transactional messages.
+8. Create the first account through `/sign-up`. Seller access is granted by an administrator in the SQL Editor, for example:
 
    ```sql
    update public.profiles
@@ -18,7 +19,7 @@ This application now uses Supabase Auth, Postgres, and Storage for new accounts 
    where email = 'admin@example.com';
    ```
 
-7. Verify email confirmation, login, catalog reads, seller-only product changes, media uploads, order creation, and order email delivery before routing production traffic to the new app.
+9. Verify email confirmation, login, catalog reads, seller-only product changes, media uploads, order creation, and order email delivery before routing production traffic to the new app.
 
 The storefront exposes prices and shopping actions only to authenticated users while the seller-controlled commerce switch is enabled. Turning it off hides prices and cart controls and also blocks cart updates and new order creation at the API layer. The migration also restricts anonymous direct reads of the product table to non-price catalog fields; storefront RPCs return price fields only when the caller is authenticated and the switch is enabled. The switch is polled every 30 seconds and refreshed when a browser tab regains focus.
 

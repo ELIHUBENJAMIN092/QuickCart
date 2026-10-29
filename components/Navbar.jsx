@@ -28,6 +28,54 @@ function BannerLink({ href, className, children }) {
     : <a href={href} target="_blank" rel="noopener noreferrer" className={className}>{children}</a>;
 }
 
+function AccountMenuItem({ icon: Icon, label, description, badge = 0, tone = "default", href, onSelect }) {
+  const danger = tone === "danger";
+  const className = `group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition ${
+    danger
+      ? "text-brand-sale hover:bg-red-50"
+      : "text-brand-charcoal hover:bg-brand-sand hover:text-brand-ink"
+  }`;
+  const content = (
+    <>
+      <span
+        className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl transition ${
+          danger
+            ? "bg-red-50 text-brand-sale"
+            : "bg-brand-sand text-brand-charcoal group-hover:bg-white group-hover:text-brand-accent"
+        }`}
+      >
+        <Icon size={17} strokeWidth={1.8} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate">{label}</span>
+        {description && (
+          <span className={`block truncate text-[11px] font-normal ${danger ? "text-brand-sale/70" : "text-brand-muted"}`}>
+            {description}
+          </span>
+        )}
+      </span>
+      {badge > 0 ? (
+        <span className="shrink-0 rounded-full bg-brand-accent px-2 py-0.5 text-[11px] font-semibold leading-4 text-white">{badge}</span>
+      ) : (
+        !danger && <ChevronRight size={15} className="shrink-0 text-brand-line transition group-hover:text-brand-muted" />
+      )}
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link href={href} role="menuitem" onClick={onSelect} className={className}>
+        {content}
+      </Link>
+    );
+  }
+  return (
+    <button type="button" role="menuitem" onClick={onSelect} className={className}>
+      {content}
+    </button>
+  );
+}
+
 export default function Navbar() {
   const { isSeller, user, signOut, products, cartItems, getCartCount, getCartAmount, commerceEnabled } =
     useAppContext();
@@ -63,8 +111,19 @@ export default function Navbar() {
     const close = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) setUserMenuOpen(false);
     };
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setUserMenuOpen(false);
+    };
     document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
+    document.addEventListener("keydown", onKeyDown);
+    const lockScroll = window.matchMedia("(max-width: 767px)").matches;
+    const previousOverflow = document.body.style.overflow;
+    if (lockScroll) document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
   }, [userMenuOpen]);
 
   const cartProducts = Object.entries(cartItems)
@@ -99,7 +158,7 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40">
+      <header className={`sticky top-0 ${userMenuOpen ? "z-[70]" : "z-40"}`}>
         {banner.enabled && !bannerDismissed && (
           <div style={{ backgroundColor: banner.bg_color, color: banner.text_color }} className="relative px-4 py-2 text-[10px] font-medium uppercase tracking-[0.16em] md:text-xs">
             <div className="mx-auto flex max-w-[1360px] items-center justify-between gap-4 pr-8 md:pl-8 md:pr-12 lg:pl-12 lg:pr-16">
@@ -140,7 +199,7 @@ export default function Navbar() {
             </div>
             <div className="flex-1 xl:hidden" />
 
-            <div className="flex shrink-0 items-center gap-5 text-brand-charcoal">
+            <div className="flex shrink-0 items-center gap-4 text-brand-charcoal md:gap-5">
               <button onClick={() => setSearchOpen(true)} aria-label="Buscar" className="flex items-center gap-2 text-[14px] font-medium transition hover:text-brand-accent">
                 <span className="hidden 2xl:inline">Buscar</span><Search size={20} />
               </button>
@@ -150,10 +209,21 @@ export default function Navbar() {
                   {getCartCount() > 0 && <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center bg-brand-accent px-1 text-[9px] text-white">{getCartCount()}</span>}
                 </button>
               )}
-              <div className="hidden md:block">
+              <div className="relative" ref={menuRef}>
                 {user ? (
-                  <div className="relative" ref={menuRef}>
-                    <button onClick={() => setUserMenuOpen((open) => !open)} aria-label="Menú de cuenta" aria-expanded={userMenuOpen} className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-brand-line bg-brand-accent text-sm font-semibold text-white">
+                  <>
+                    <button
+                      onClick={() => setUserMenuOpen((open) => !open)}
+                      aria-label="Menú de cuenta"
+                      aria-haspopup="menu"
+                      aria-expanded={userMenuOpen}
+                      aria-controls="account-menu"
+                      className={`relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 bg-brand-accent text-sm font-semibold text-white transition ${
+                        userMenuOpen
+                          ? "border-brand-accent ring-4 ring-brand-accent/15"
+                          : "border-white ring-1 ring-brand-line hover:ring-brand-accent/40"
+                      }`}
+                    >
                       {avatarUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={avatarUrl} alt={displayName} referrerPolicy="no-referrer" className="h-full w-full object-cover" />
@@ -161,31 +231,94 @@ export default function Navbar() {
                         displayName.charAt(0).toUpperCase()
                       )}
                     </button>
+
                     {userMenuOpen && (
-                      <div className="absolute right-0 top-12 z-[70] w-72 overflow-hidden border border-brand-line bg-white text-sm shadow-xl">
-                        <div className="flex items-center gap-3 border-b border-brand-line p-4">
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-accent font-semibold text-white">
-                            {avatarUrl ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={avatarUrl} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
-                            ) : (
-                              displayName.charAt(0).toUpperCase()
+                      <>
+                        <button
+                          type="button"
+                          aria-label="Cerrar menú de cuenta"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="fixed inset-0 z-[75] cursor-default bg-brand-ink/40 backdrop-blur-[2px] md:hidden"
+                        />
+                        <div
+                          id="account-menu"
+                          role="menu"
+                          aria-label="Mi cuenta"
+                          className="fixed inset-x-0 bottom-0 z-[80] max-h-[85vh] overflow-y-auto rounded-t-3xl border border-brand-line bg-white shadow-[0_-20px_60px_-15px_rgba(11,13,18,0.35)] animate-sheet-in md:absolute md:inset-auto md:right-0 md:top-[calc(100%+12px)] md:max-h-none md:w-[340px] md:overflow-hidden md:rounded-2xl md:shadow-[0_24px_60px_-12px_rgba(11,13,18,0.3)] md:animate-menu-in"
+                        >
+                          <div className="flex justify-center pt-2.5 md:hidden">
+                            <span className="h-1 w-10 rounded-full bg-brand-line" />
+                          </div>
+
+                          <div className="flex items-start gap-3 bg-gradient-to-br from-brand-accent-soft via-white to-brand-sand px-5 pb-4 pt-4 md:px-4 md:pt-4">
+                            <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-brand-accent text-base font-semibold text-white ring-2 ring-white">
+                              {avatarUrl ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={avatarUrl} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                              ) : (
+                                displayName.charAt(0).toUpperCase()
+                              )}
+                            </span>
+                            <div className="min-w-0 flex-1 pt-0.5">
+                              <p className="truncate text-sm font-semibold text-brand-ink">{displayName}</p>
+                              <p className="truncate text-xs text-brand-muted">{user.email}</p>
+                              {isSeller && (
+                                <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-accent ring-1 ring-brand-accent/20">
+                                  <LayoutDashboard size={10} /> Vendedor
+                                </span>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setUserMenuOpen(false)}
+                              aria-label="Cerrar menú"
+                              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-brand-muted transition hover:bg-white hover:text-brand-ink md:hidden"
+                            >
+                              <X size={18} />
+                            </button>
+                          </div>
+
+                          <div className="px-2 py-2">
+                            <p className="px-3 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-muted">Mi cuenta</p>
+                            {isSeller && (
+                              <AccountMenuItem
+                                href="/seller"
+                                icon={LayoutDashboard}
+                                label="Panel de administración"
+                                description="Gestiona tu tienda"
+                                onSelect={() => setUserMenuOpen(false)}
+                              />
                             )}
-                          </span>
-                          <div className="min-w-0">
-                            <p className="truncate font-semibold uppercase text-brand-ink">{displayName}</p>
-                            <p className="truncate text-xs text-brand-muted">{user.email}</p>
+                            {canShop && (
+                              <AccountMenuItem
+                                icon={ShoppingCart}
+                                label="Carrito"
+                                description="Revisa tus productos"
+                                badge={getCartCount()}
+                                onSelect={() => { setUserMenuOpen(false); setCartOpen(true); }}
+                              />
+                            )}
+                            <AccountMenuItem
+                              href="/my-orders"
+                              icon={ShoppingBag}
+                              label="Mis órdenes"
+                              description="Consulta tus compras"
+                              onSelect={() => setUserMenuOpen(false)}
+                            />
+                          </div>
+
+                          <div className="border-t border-brand-line p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+                            <AccountMenuItem
+                              icon={LogOut}
+                              label="Cerrar sesión"
+                              tone="danger"
+                              onSelect={() => { setUserMenuOpen(false); signOut(); }}
+                            />
                           </div>
                         </div>
-                        {isSeller && (
-                          <Link href="/seller" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 border-b border-brand-line px-4 py-3 hover:bg-brand-sand"><LayoutDashboard size={16} /> Panel de administración</Link>
-                        )}
-                        {canShop && <button onClick={() => { setUserMenuOpen(false); setCartOpen(true); }} className="flex w-full items-center gap-3 border-b border-brand-line px-4 py-3 text-left hover:bg-brand-sand"><ShoppingCart size={16} /> Carrito</button>}
-                        <Link href="/my-orders" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 border-b border-brand-line px-4 py-3 hover:bg-brand-sand"><ShoppingBag size={16} /> Mis órdenes</Link>
-                        <button onClick={() => { setUserMenuOpen(false); signOut(); }} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-brand-sand"><LogOut size={16} /> Cerrar sesión</button>
-                      </div>
+                      </>
                     )}
-                  </div>
+                  </>
                 ) : (
                   <Link href="/sign-in" aria-label="Cuenta" className="flex items-center gap-2 text-[14px] font-medium transition hover:text-brand-accent"><span className="hidden 2xl:inline">Cuenta</span> <User size={20} /></Link>
                 )}

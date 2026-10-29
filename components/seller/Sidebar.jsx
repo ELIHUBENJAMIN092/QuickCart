@@ -13,6 +13,7 @@ import {
   List,
   LogOut,
   Megaphone,
+  MessageSquare,
   PackagePlus,
   ShoppingBag,
   ShoppingCart,
@@ -52,6 +53,7 @@ const groups = [
     items: [
       { name: "Órdenes", path: "/seller/orders", icon: ShoppingBag },
       { name: "Pagos confirmados", path: "/seller/pagos", icon: CreditCard },
+      { name: "Asistente IA", path: "/seller/chat", icon: MessageSquare },
     ],
   },
 ];
