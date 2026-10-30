@@ -11,7 +11,7 @@ import { defaultKiosk } from "@/lib/kiosk";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { uploadProductFile } from "@/lib/supabase/storage";
 
-const inputClass = "mt-2 w-full rounded-lg border border-brand-line bg-white px-4 py-3 text-sm text-brand-ink outline-none transition placeholder:text-brand-muted focus:border-brand-accent";
+const inputClass = "mt-2 w-full rounded-xl border border-brand-line bg-white px-4 py-3 text-base text-brand-ink outline-none transition placeholder:text-brand-muted focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/10 sm:text-sm";
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024;
 
 export default function KioskAdmin() {
@@ -84,7 +84,7 @@ export default function KioskAdmin() {
   if (!form) return <div className="flex-1 p-8 text-sm text-brand-muted">Cargando...</div>;
 
   return (
-    <main className="min-h-[calc(100vh-4rem)] flex-1 p-4 md:p-8">
+    <main className="min-h-[calc(100vh-4rem)] flex-1 p-4 pb-28 md:p-8 md:pb-8">
       <div className="mx-auto max-w-5xl">
         <PageHeader
           className="mb-7"
@@ -92,7 +92,7 @@ export default function KioskAdmin() {
           title="Kioscos y punto de venta"
           description="Administra el video, los textos y las características de la página pública de autoservicio."
           actions={(
-            <Link href="/kioscos-punto-de-venta" target="_blank" className="inline-flex items-center gap-2 rounded-full border border-brand-line bg-white px-4 py-2.5 text-xs font-semibold text-brand-charcoal transition hover:border-brand-accent hover:text-brand-accent">
+            <Link href="/kioscos-punto-de-venta" target="_blank" className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-brand-line bg-white px-4 py-2.5 text-xs font-semibold text-brand-charcoal transition hover:border-brand-accent hover:text-brand-accent sm:w-auto">
               <ExternalLink size={14} /> Ver página
             </Link>
           )}
@@ -119,10 +119,10 @@ export default function KioskAdmin() {
             </div>
 
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <label className="text-sm text-brand-charcoal">URL del video
+              <label className="block text-xs font-medium text-brand-charcoal">URL del video
                 <input value={form.video_url} onChange={update("video_url")} placeholder="/videos/kiosk-hero.mp4" className={inputClass} />
               </label>
-              <label className="flex cursor-pointer flex-col justify-center rounded-lg border border-dashed border-brand-line px-4 py-3 text-sm text-brand-charcoal transition hover:border-brand-accent">
+              <label className="flex min-h-14 cursor-pointer flex-col justify-center rounded-xl border border-dashed border-brand-line bg-brand-sand/30 px-4 py-3 text-xs text-brand-charcoal transition hover:border-brand-accent hover:bg-brand-accent-soft/40">
                 <span className="inline-flex items-center gap-2 font-medium text-brand-accent"><Upload size={16} /> {videoFile ? "Cambiar video" : "Subir video"}</span>
                 <span className="mt-1 truncate text-[11px] text-brand-muted">{videoFile ? videoFile.name : "Selecciona un archivo de tu equipo"}</span>
                 <input type="file" accept="video/mp4,video/webm,video/quicktime" className="sr-only" onChange={(event) => setVideoFile(event.target.files?.[0] || null)} />
@@ -133,26 +133,26 @@ export default function KioskAdmin() {
           <section className="rounded-2xl border border-brand-line bg-white p-5 shadow-sm md:p-6">
             <h2 className="text-sm font-semibold text-brand-ink">Encabezado</h2>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <label className="text-sm text-brand-charcoal">Etiqueta superior
+              <label className="block text-xs font-medium text-brand-charcoal">Etiqueta superior
                 <input value={form.eyebrow} onChange={update("eyebrow")} maxLength={80} className={inputClass} />
               </label>
-              <label className="text-sm text-brand-charcoal md:col-span-2">Título
+              <label className="block text-xs font-medium text-brand-charcoal md:col-span-2">Título
                 <input value={form.title} onChange={update("title")} maxLength={140} className={inputClass} />
                 <span className="mt-1 block text-[10px] font-normal text-brand-muted">Usa «|» para separar la línea azul.</span>
               </label>
-              <label className="text-sm text-brand-charcoal md:col-span-2">Descripción
+              <label className="block text-xs font-medium text-brand-charcoal md:col-span-2">Descripción
                 <textarea value={form.description} onChange={update("description")} maxLength={400} rows={3} className={inputClass} />
               </label>
-              <label className="text-sm text-brand-charcoal">Botón principal
+              <label className="block text-xs font-medium text-brand-charcoal">Botón principal
                 <input value={form.primary_label} onChange={update("primary_label")} maxLength={40} className={inputClass} />
               </label>
-              <label className="text-sm text-brand-charcoal">Enlace principal
+              <label className="block text-xs font-medium text-brand-charcoal">Enlace principal
                 <input value={form.primary_url} onChange={update("primary_url")} maxLength={300} className={inputClass} />
               </label>
-              <label className="text-sm text-brand-charcoal">Botón secundario
+              <label className="block text-xs font-medium text-brand-charcoal">Botón secundario
                 <input value={form.secondary_label} onChange={update("secondary_label")} maxLength={40} className={inputClass} />
               </label>
-              <label className="text-sm text-brand-charcoal">Enlace secundario
+              <label className="block text-xs font-medium text-brand-charcoal">Enlace secundario
                 <input value={form.secondary_url} onChange={update("secondary_url")} maxLength={300} className={inputClass} />
               </label>
             </div>
@@ -196,26 +196,26 @@ export default function KioskAdmin() {
           <section className="rounded-2xl border border-brand-line bg-white p-5 shadow-sm md:p-6">
             <h2 className="text-sm font-semibold text-brand-ink">Llamado final</h2>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <label className="text-sm text-brand-charcoal md:col-span-2">Título
+              <label className="block text-xs font-medium text-brand-charcoal md:col-span-2">Título
                 <input value={form.closing_title} onChange={update("closing_title")} maxLength={140} className={inputClass} />
               </label>
-              <label className="text-sm text-brand-charcoal md:col-span-2">Descripción
+              <label className="block text-xs font-medium text-brand-charcoal md:col-span-2">Descripción
                 <textarea value={form.closing_description} onChange={update("closing_description")} maxLength={300} rows={2} className={inputClass} />
               </label>
-              <label className="text-sm text-brand-charcoal">Texto del botón
+              <label className="block text-xs font-medium text-brand-charcoal">Texto del botón
                 <input value={form.closing_label} onChange={update("closing_label")} maxLength={40} className={inputClass} />
               </label>
-              <label className="text-sm text-brand-charcoal">Enlace del botón
+              <label className="block text-xs font-medium text-brand-charcoal">Enlace del botón
                 <input value={form.closing_url} onChange={update("closing_url")} maxLength={300} className={inputClass} />
               </label>
             </div>
           </section>
 
-          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-            <button type="button" onClick={reset} className="inline-flex items-center justify-center gap-2 rounded-full border border-brand-line bg-white px-5 py-3 text-sm font-medium text-brand-charcoal transition hover:border-brand-accent">
+          <div className="fixed inset-x-0 bottom-0 z-30 flex flex-col-reverse gap-2 border-t border-brand-line bg-white/95 p-3 backdrop-blur sm:static sm:z-auto sm:flex-row sm:justify-between sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+            <button type="button" onClick={reset} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-brand-line bg-white px-5 py-3 text-sm font-medium text-brand-charcoal transition hover:border-brand-accent">
               <RotateCcw size={15} /> Restaurar valores
             </button>
-            <button type="submit" disabled={saving} className="rounded-full bg-brand-accent px-8 py-3 text-sm font-semibold text-white transition hover:bg-brand-accent-hover disabled:cursor-wait disabled:opacity-60">
+            <button type="submit" disabled={saving} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-brand-accent px-8 py-3 text-sm font-semibold text-white transition hover:bg-brand-accent-hover disabled:cursor-wait disabled:opacity-60">
               {saving ? "Guardando..." : "Guardar página"}
             </button>
           </div>

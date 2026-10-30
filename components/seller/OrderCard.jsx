@@ -76,7 +76,7 @@ export default function OrderCard({ order, currency, paid = false, onConfirm, co
             <p className="mt-1 text-[11px] text-brand-muted">{paid ? "Contra entrega · cobrado" : "Contra entrega · por cobrar"}</p>
           </div>
           {paid ? (
-            <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-brand-success/10 px-3 py-2 text-[11px] font-semibold text-brand-success">
+            <span className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-success/10 px-3 py-2 text-[11px] font-semibold text-brand-success">
               <CheckCircle2 size={14} /> Recibido
             </span>
           ) : (
@@ -84,7 +84,7 @@ export default function OrderCard({ order, currency, paid = false, onConfirm, co
               type="button"
               onClick={() => onConfirm?.(order._id)}
               disabled={confirming}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-accent px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-brand-accent-hover disabled:cursor-wait disabled:opacity-60"
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-accent px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-brand-accent-hover disabled:cursor-wait disabled:opacity-60"
             >
               {confirming ? "Confirmando..." : "Confirmar pago"}
             </button>

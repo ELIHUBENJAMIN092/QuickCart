@@ -4,8 +4,6 @@ import facebook_icon from "./facebook_icon.svg";
 import youtube_icon from "./youtube_icon.svg";
 import box_icon from "./box_icon.png";
 import my_location_image from "./my_location_image.jpg";
-import redirect_icon from "./redirect_icon.svg";
-import upload_area from "./upload_area.png";
 import credencial from "./credencial.png";
 import boy_with_laptop_image from "./boy_with_laptop_image.png";
 import codigo_barras from "./codigo_barras.png";
@@ -20,8 +18,6 @@ export const assets = {
   youtube_icon,
   box_icon,
   my_location_image,
-  redirect_icon,
-  upload_area,
   credencial,
   boy_with_laptop_image,
   codigo_barras,

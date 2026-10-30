@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
@@ -91,7 +90,6 @@ export default function Navbar() {
   };
   const [suggestOpen, setSuggestOpen] = useState(false);
   const searchRef = useRef(null);
-  const router = useRouter();
   const [cartOpen, setCartOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -137,12 +135,6 @@ export default function Navbar() {
         product.name.toLowerCase().includes(search.trim().toLowerCase())
       ).slice(0, 5)
     : [];
-
-  const submitSearch = (event) => {
-    event.preventDefault();
-    setSuggestOpen(false);
-    router.push(`/all-products${search.trim() ? `?search=${encodeURIComponent(search.trim())}` : ""}`);
-  };
 
   useEffect(() => {
     if (!suggestOpen) return undefined;

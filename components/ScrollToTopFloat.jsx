@@ -30,7 +30,7 @@ const ScrollToTopFloat = () => {
 
   return (
     <div
-      className={`fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 transition-opacity duration-500 ${
+      className={`fixed bottom-6 left-6 md:left-1/2 z-50 transition-opacity duration-500 md:transform md:-translate-x-1/2 ${
         isVisible ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
     >

@@ -6,19 +6,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   Bot,
-  Building2,
   CheckCircle2,
   ChevronRight,
   Loader2,
-  Mail,
   MessageCircle,
-  Phone,
   RotateCcw,
   Send,
   ShoppingBag,
   ThumbsDown,
   ThumbsUp,
-  UserRound,
   X,
 } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";

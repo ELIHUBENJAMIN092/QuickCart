@@ -24,7 +24,7 @@ import { categories, isLabelPrinterSubcategory, isValidHttpsUrl, printerTypes } 
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { uploadProductFile } from "@/lib/supabase/storage";
 import { processProductImage } from "@/lib/imageOptimize";
-import ProductExtraFields, { ProductBadgeFields, validateCatalogFile } from "@/components/seller/ProductExtraFields";
+import { ProductBadgeFields, validateCatalogFile } from "@/components/seller/ProductExtraFields";
 
 const steps = [
   { title: "Imágenes", description: "Fotos y medios", icon: ImagePlus },
@@ -58,8 +58,10 @@ function StepHeading({ eyebrow, title, description }) {
 function Field({ label, hint, children, className = "" }) {
   return (
     <label className={`block min-w-0 text-sm font-medium text-brand-charcoal ${className}`}>
-      <span>{label}</span>
-      {hint && <span className="ml-1 font-normal text-brand-muted">{hint}</span>}
+      <span className="mb-2 block">
+        {label}
+        {hint && <span className="ml-1 text-[11px] font-normal text-brand-muted">{hint}</span>}
+      </span>
       {children}
     </label>
   );
@@ -253,7 +255,7 @@ export default function AddProduct() {
           title="Añadir producto"
           description="Sigue los pasos para completar la ficha y publicar tu producto."
           actions={(
-            <Link href="/seller/product-list" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-brand-line bg-white px-4 py-2.5 text-xs font-semibold text-brand-charcoal transition hover:border-brand-accent hover:text-brand-accent">
+            <Link href="/seller/product-list" className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-brand-line bg-white px-4 py-2.5 text-xs font-semibold text-brand-charcoal transition hover:border-brand-accent hover:text-brand-accent sm:w-auto">
               Gestionar productos
             </Link>
           )}
@@ -307,9 +309,9 @@ export default function AddProduct() {
                 title="Muestra tu producto"
                 description="Sube de una a tres fotos claras. Puedes incluir un video y el logo de la marca; estos dos últimos son opcionales."
               />
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 {[0, 1, 2].map((index) => (
-                  <label key={index} htmlFor={`product-image-${index}`} className="group relative flex aspect-square cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-brand-line bg-brand-sand/40 p-3 text-center transition hover:border-brand-accent">
+                  <label key={index} htmlFor={`product-image-${index}`} className="group relative flex aspect-square cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-brand-line bg-brand-sand/40 p-2 text-center transition hover:border-brand-accent sm:p-3">
                     <input
                       id={`product-image-${index}`}
                       type="file"
@@ -322,17 +324,17 @@ export default function AddProduct() {
                     />
                     {imagePreviews[index] ? (
                       <>
-                        <Image src={imagePreviews[index]} alt={`Vista previa de imagen ${index + 1}`} fill unoptimized className="object-contain p-3" />
-                        <span className="absolute bottom-2 rounded-full bg-white/95 px-3 py-1 text-[10px] font-semibold text-brand-ink shadow">{index === 0 ? "Imagen principal · Cambiar" : "Cambiar imagen"}</span>
+                        <Image src={imagePreviews[index]} alt={`Vista previa de imagen ${index + 1}`} fill unoptimized className="object-contain p-2 sm:p-3" />
+                        <span className="absolute bottom-1.5 max-w-[calc(100%-0.75rem)] truncate rounded-full bg-white/95 px-2 py-0.5 text-[9px] font-semibold text-brand-ink shadow sm:bottom-2 sm:px-3 sm:py-1 sm:text-[10px]">{index === 0 ? "Principal · Cambiar" : "Cambiar"}</span>
                       </>
                     ) : (
                       <>
-                        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-white text-brand-accent shadow-sm"><ImagePlus size={22} /></span>
-                        <span className="mt-3 text-xs font-semibold text-brand-ink">{index === 0 ? "Foto principal *" : `Foto adicional ${index}`}</span>
-                        <span className="mt-1 text-[10px] text-brand-muted">Toca para seleccionar</span>
+                        <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-brand-accent shadow-sm sm:h-12 sm:w-12 sm:rounded-2xl"><ImagePlus size={18} className="sm:h-[22px] sm:w-[22px]" /></span>
+                        <span className="mt-2 text-[10px] font-semibold leading-tight text-brand-ink sm:mt-3 sm:text-xs">{index === 0 ? "Foto principal *" : `Foto ${index + 1}`}</span>
+                        <span className="mt-1 hidden text-[10px] text-brand-muted sm:block">Toca para seleccionar</span>
                       </>
                     )}
-                    {processingImage === index && <span className="absolute inset-0 grid place-items-center bg-white/80 text-xs font-semibold text-brand-accent">Optimizando…</span>}
+                    {processingImage === index && <span className="absolute inset-0 grid place-items-center bg-white/80 px-1 text-center text-[10px] font-semibold text-brand-accent sm:text-xs">Optimizando…</span>}
                   </label>
                 ))}
               </div>
@@ -340,7 +342,7 @@ export default function AddProduct() {
 
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <Field label="Video del producto" hint="(opcional, máximo 100 MB)">
-                  <label htmlFor="product-video" className="mt-2 flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-dashed border-brand-line p-3 transition hover:border-brand-accent">
+                  <label htmlFor="product-video" className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-dashed border-brand-line p-3 transition hover:border-brand-accent">
                     <input id="product-video" type="file" accept="video/*" className="sr-only" onChange={(event) => setVideo(event.target.files?.[0] || null)} />
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-sand text-brand-accent"><Video size={18} /></span>
                     <span className="min-w-0 truncate text-xs text-brand-muted">{video?.name || "Selecciona un video"}</span>
@@ -348,7 +350,7 @@ export default function AddProduct() {
                   {videoPreview && <video src={videoPreview} controls className="mt-3 aspect-video w-full rounded-xl bg-brand-ink object-contain" />}
                 </Field>
                 <Field label="Logo de marca" hint="(opcional, máximo 2 MB)">
-                  <label htmlFor="product-brand-logo" className="mt-2 flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-dashed border-brand-line p-3 transition hover:border-brand-accent">
+                  <label htmlFor="product-brand-logo" className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-dashed border-brand-line p-3 transition hover:border-brand-accent">
                     <input id="product-brand-logo" type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="sr-only" onChange={async (event) => {
                       const selected = event.target.files?.[0];
                       event.target.value = "";
@@ -428,19 +430,19 @@ export default function AddProduct() {
               />
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Precio normal *">
-                  <div className="relative mt-2">
+                  <div className="relative">
                     <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-brand-muted">{process.env.NEXT_PUBLIC_CURRENCY || "$"}</span>
                     <input required min="0.01" step="0.01" type="number" value={price} onChange={(event) => setPrice(event.target.value)} placeholder="0.00" className={`${inputClass} pl-11`} />
                   </div>
                 </Field>
                 <Field label="Precio de oferta" hint="(usa 0 si no aplica)">
-                  <div className="relative mt-2">
+                  <div className="relative">
                     <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-brand-muted">{process.env.NEXT_PUBLIC_CURRENCY || "$"}</span>
                     <input required min="0" step="0.01" type="number" value={offerPrice} onChange={(event) => setOfferPrice(event.target.value)} placeholder="0.00" className={`${inputClass} pl-11`} />
                   </div>
                 </Field>
                 <Field label="Unidades disponibles *">
-                  <input required min="0" step="1" type="number" value={stock} onChange={(event) => setStock(event.target.value)} placeholder="0" className={`${inputClass} mt-2`} />
+                  <input required min="0" step="1" type="number" value={stock} onChange={(event) => setStock(event.target.value)} placeholder="0" className={inputClass} />
                 </Field>
                 <div className="flex items-center gap-3 rounded-xl bg-brand-sand/70 p-4 text-xs leading-5 text-brand-muted">
                   <BadgeCheck size={20} className="shrink-0 text-brand-accent" />
@@ -460,24 +462,24 @@ export default function AddProduct() {
               <div className="space-y-6">
                 {isLabelPrinterSubcategory(category, subcategory) && (
                   <Field label="Tipo de impresora *">
-                    <select required value={printerType} onChange={(event) => setPrinterType(event.target.value)} className={`${inputClass} mt-2`}>
+                    <select required value={printerType} onChange={(event) => setPrinterType(event.target.value)} className={inputClass}>
                       <option value="">Selecciona un tipo</option>
                       {printerTypes.map((type) => <option key={type.slug} value={type.slug}>{type.name}</option>)}
                     </select>
                   </Field>
                 )}
                 <Field label="Características principales" hint="(una por línea: Nombre: valor)">
-                  <textarea rows={5} value={specsText} onChange={(event) => setSpecsText(event.target.value)} placeholder={"Tipo de impresión: Térmica directa\nAncho de impresión: 104 mm\nVelocidad: 152 mm/s"} className={`${inputClass} mt-2 resize-y`} />
+                  <textarea rows={5} value={specsText} onChange={(event) => setSpecsText(event.target.value)} placeholder={"Tipo de impresión: Térmica directa\nAncho de impresión: 104 mm\nVelocidad: 152 mm/s"} className={`${inputClass} resize-y`} />
                 </Field>
                 <Field label="Catálogo del producto" hint="(PDF opcional, máximo 25 MB)">
-                  <label htmlFor="product-catalog" className="mt-2 flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-dashed border-brand-line p-3 transition hover:border-brand-accent">
+                  <label htmlFor="product-catalog" className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-dashed border-brand-line p-3 transition hover:border-brand-accent">
                     <input id="product-catalog" type="file" accept="application/pdf" className="sr-only" onChange={(event) => setCatalogFile(event.target.files?.[0] || null)} />
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-sand text-brand-accent"><FileText size={18} /></span>
                     <span className="min-w-0 truncate text-xs text-brand-muted">{catalogFile?.name || "Selecciona el catálogo PDF"}</span>
                   </label>
                 </Field>
                 <Field label="Enlace a vista 3D" hint="(opcional, URL https)">
-                  <input type="url" maxLength={500} value={model3dUrl} onChange={(event) => setModel3dUrl(event.target.value)} placeholder="https://…" className={`${inputClass} mt-2`} />
+                  <input type="url" maxLength={500} value={model3dUrl} onChange={(event) => setModel3dUrl(event.target.value)} placeholder="https://…" className={inputClass} />
                 </Field>
                 <ProductBadgeFields isOffer={isOffer} isNew={isNew} onIsOffer={setIsOffer} onIsNew={setIsNew} />
               </div>

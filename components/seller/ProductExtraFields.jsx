@@ -4,7 +4,7 @@ import { FileText } from "lucide-react";
 import { isLabelPrinterSubcategory, printerTypes } from "@/lib/categories";
 
 const inputClass =
-  "w-full rounded-lg border border-brand-line bg-white px-4 py-3 text-sm text-brand-ink outline-none transition placeholder:text-brand-muted focus:border-brand-accent";
+  "w-full rounded-xl border border-brand-line bg-white px-4 py-3 text-base text-brand-ink outline-none transition placeholder:text-brand-muted focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/10 sm:text-sm";
 
 export const MAX_CATALOG_SIZE = 25 * 1024 * 1024;
 
@@ -57,9 +57,9 @@ export default function ProductExtraFields({
           </p>
         )}
         {removeCatalog && <button type="button" onClick={() => onRemoveCatalog?.(false)} className="font-normal text-brand-accent hover:underline">Deshacer quitar catálogo</button>}
-        <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-brand-line p-4 text-sm font-normal text-brand-muted transition hover:border-brand-accent">
-          <FileText size={20} className="text-brand-accent" />
-          <span>{catalogFile ? catalogFile.name : currentCatalog ? "Reemplazar PDF" : "Seleccionar PDF"}</span>
+        <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-brand-line p-4 text-sm font-normal text-brand-muted transition hover:border-brand-accent">
+          <FileText size={20} className="shrink-0 text-brand-accent" />
+          <span className="min-w-0 truncate">{catalogFile ? catalogFile.name : currentCatalog ? "Reemplazar PDF" : "Seleccionar PDF"}</span>
           <input type="file" accept="application/pdf" className="sr-only" onChange={(event) => onCatalogFile(event.target.files?.[0] || null)} />
         </label>
       </div>
@@ -76,13 +76,13 @@ export function ProductBadgeFields({ isOffer, isNew, onIsOffer, onIsNew }) {
   return (
     <section className="border-t border-brand-line pt-6">
       <h2 className="mb-3 text-sm font-semibold text-brand-ink">Etiquetas de la tarjeta</h2>
-      <div className="flex flex-wrap gap-6 text-sm text-brand-charcoal">
-        <label className="flex cursor-pointer items-center gap-2">
-          <input type="checkbox" checked={isOffer} onChange={(event) => onIsOffer(event.target.checked)} className="h-4 w-4 accent-[#1A3A5B]" />
+      <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-brand-charcoal">
+        <label className="flex min-h-11 cursor-pointer items-center gap-2">
+          <input type="checkbox" checked={isOffer} onChange={(event) => onIsOffer(event.target.checked)} className="h-4 w-4 accent-brand-accent" />
           Marcar oferta
         </label>
-        <label className="flex cursor-pointer items-center gap-2">
-          <input type="checkbox" checked={isNew} onChange={(event) => onIsNew(event.target.checked)} className="h-4 w-4 accent-[#1A3A5B]" />
+        <label className="flex min-h-11 cursor-pointer items-center gap-2">
+          <input type="checkbox" checked={isNew} onChange={(event) => onIsNew(event.target.checked)} className="h-4 w-4 accent-brand-accent" />
           Marcar nuevo
         </label>
       </div>

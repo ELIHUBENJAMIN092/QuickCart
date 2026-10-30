@@ -65,11 +65,11 @@ function NavLinks({ onNavigate }) {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Navegación de administración" className="space-y-5 px-3 py-4">
-      {groups.map((group) => (
-        <div key={group.label}>
-          <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-muted">{group.label}</p>
-          <div className="space-y-0.5">
+    <nav aria-label="Navegación de administración" className="px-2.5 py-4">
+      {groups.map((group, index) => (
+        <div key={group.label} className={index ? "mt-5" : ""}>
+          <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-muted/80">{group.label}</p>
+          <div className="space-y-1">
             {group.items.map((item) => {
               const active = isActivePath(pathname, item.path);
               return (
@@ -78,14 +78,23 @@ function NavLinks({ onNavigate }) {
                   key={item.name}
                   onClick={onNavigate}
                   aria-current={active ? "page" : undefined}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
+                  className={`group flex min-h-11 items-center gap-3 rounded-xl px-2.5 py-2 text-sm transition-colors md:min-h-10 ${
                     active
-                      ? "bg-brand-accent font-semibold text-white shadow-sm"
-                      : "text-brand-charcoal hover:bg-brand-sand hover:text-brand-ink"
+                      ? "bg-brand-accent font-semibold text-white shadow-sm shadow-brand-accent/25"
+                      : "font-medium text-brand-charcoal hover:bg-brand-sand/70 hover:text-brand-ink"
                   }`}
                 >
-                  <item.icon size={18} aria-hidden="true" className="shrink-0" />
+                  <span
+                    className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg transition-colors ${
+                      active
+                        ? "bg-white/15 text-white"
+                        : "bg-brand-sand/80 text-brand-muted group-hover:bg-white group-hover:text-brand-accent"
+                    }`}
+                  >
+                    <item.icon size={15} aria-hidden="true" />
+                  </span>
                   <span className="truncate">{item.name}</span>
+                  {active && <span className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-white/80" aria-hidden="true" />}
                 </Link>
               );
             })}
@@ -102,19 +111,19 @@ function AccountCard() {
   const initial = email.slice(0, 1).toUpperCase();
 
   return (
-    <div className="border-t border-brand-line p-3">
-      <div className="flex items-center gap-3 rounded-lg bg-brand-sand px-3 py-2.5">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-accent text-sm font-semibold text-white">{initial}</span>
-        <div className="min-w-0">
-          <p className="truncate text-xs font-semibold text-brand-ink">{email}</p>
-          <p className="text-[10px] uppercase tracking-wider text-brand-muted">Administrador</p>
+    <div className="border-t border-brand-line p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <div className="flex items-center gap-2.5 rounded-xl bg-brand-sand/60 p-2.5">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-accent text-xs font-semibold text-white shadow-sm shadow-brand-accent/25">{initial}</span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[11px] font-semibold text-brand-ink" title={email}>{email}</p>
+          <p className="mt-0.5 text-[10px] uppercase tracking-wider text-brand-muted">Administrador</p>
         </div>
       </div>
       <div className="mt-2 grid grid-cols-2 gap-2">
-        <Link href="/" className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-brand-line px-2 py-2 text-[11px] font-medium text-brand-charcoal transition hover:border-brand-accent hover:text-brand-accent">
+        <Link href="/" className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-brand-line bg-white px-2 py-2 text-[11px] font-medium text-brand-charcoal transition hover:border-brand-accent hover:text-brand-accent">
           <Store size={13} /> Ver tienda
         </Link>
-        <button type="button" onClick={signOut} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-brand-line px-2 py-2 text-[11px] font-medium text-brand-charcoal transition hover:border-brand-sale hover:text-brand-sale">
+        <button type="button" onClick={signOut} className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-brand-line bg-white px-2 py-2 text-[11px] font-medium text-brand-charcoal transition hover:border-brand-sale hover:text-brand-sale">
           <LogOut size={13} /> Salir
         </button>
       </div>
@@ -127,13 +136,20 @@ export default function Sidebar({ open, onClose }) {
     if (!open) return undefined;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = previous; };
-  }, [open]);
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previous;
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open, onClose]);
 
   return (
     <>
-      <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-60 shrink-0 flex-col border-r border-brand-line bg-white md:flex">
-        <div className="flex-1 overflow-y-auto">
+      <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-64 shrink-0 flex-col border-r border-brand-line bg-white md:flex">
+        <div className="flex-1 overflow-y-auto overscroll-contain">
           <NavLinks />
         </div>
         <AccountCard />
@@ -141,15 +157,15 @@ export default function Sidebar({ open, onClose }) {
 
       {open && (
         <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Menú de administración">
-          <button type="button" onClick={onClose} aria-label="Cerrar menú" className="absolute inset-0 bg-brand-ink/50 backdrop-blur-sm" />
-          <aside className="absolute inset-y-0 left-0 flex w-[85%] max-w-xs flex-col bg-white shadow-2xl">
-            <div className="flex h-16 items-center justify-between border-b border-brand-line px-4">
+          <button type="button" onClick={onClose} aria-label="Cerrar menú" className="seller-fade-in absolute inset-0 bg-brand-ink/50 backdrop-blur-sm" />
+          <aside className="seller-drawer-in absolute inset-y-0 left-0 flex w-[86%] max-w-xs flex-col bg-white shadow-2xl">
+            <div className="flex h-16 items-center justify-between gap-3 border-b border-brand-line px-4">
               <Image src={assets.logo} alt="COMPEL" className="h-auto w-24" />
-              <button type="button" onClick={onClose} aria-label="Cerrar menú" className="grid h-9 w-9 place-items-center rounded-full border border-brand-line text-brand-charcoal">
+              <button type="button" onClick={onClose} aria-label="Cerrar menú" className="grid h-11 w-11 place-items-center rounded-xl border border-brand-line text-brand-charcoal transition hover:border-brand-accent hover:text-brand-accent">
                 <X size={18} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto overscroll-contain">
               <NavLinks onNavigate={onClose} />
             </div>
             <AccountCard />

@@ -81,7 +81,7 @@ export default function SellerDashboard() {
       <main className="grid min-h-[70vh] flex-1 place-items-center p-6">
         <div role="alert" className="max-w-md text-center">
           <p className="text-sm text-brand-sale">{productsError}</p>
-          <button type="button" onClick={fetchProductData} className="mt-4 rounded-full bg-brand-accent px-5 py-3 text-sm font-semibold text-white">
+          <button type="button" onClick={fetchProductData} className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-brand-accent px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-accent-hover">
             Reintentar carga del inventario
           </button>
         </div>
@@ -97,7 +97,7 @@ export default function SellerDashboard() {
           <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-brand-muted">Administración</p>
           <h1 className="mt-2 font-display text-3xl text-brand-ink">Prepara tu catálogo.</h1>
           <p className="mt-3 text-sm leading-6 text-brand-muted">Cuando agregues productos podrás revisar aquí el inventario y las alertas de stock.</p>
-          <Link href="/seller" className="mt-6 inline-flex rounded-full bg-brand-accent px-6 py-3 text-sm font-semibold text-white hover:bg-brand-accent-hover">Añadir producto</Link>
+          <Link href="/seller" className="mt-6 inline-flex min-h-11 items-center rounded-xl bg-brand-accent px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-accent-hover">Añadir producto</Link>
         </div>
       </main>
     );
@@ -110,120 +110,133 @@ export default function SellerDashboard() {
   };
 
   return (
-    <main className="flex-1 p-4 md:p-8">
-      <PageHeader
-        className="mb-7"
-        eyebrow="Vista general"
-        title="Resumen del negocio"
-        description="Una vista rápida de productos, inventario y ventas."
-        actions={(
-          <>
-            <Link href="/seller" className="inline-flex items-center gap-2 rounded-full bg-brand-accent px-5 py-3 text-xs font-semibold text-white hover:bg-brand-accent-hover"><PackagePlus size={16} /> Añadir producto</Link>
-            <Link href="/seller/product-list" className="inline-flex items-center gap-2 rounded-full border border-brand-line bg-white px-5 py-3 text-xs font-semibold text-brand-ink hover:border-brand-accent">Gestionar catálogo <ArrowRight size={15} /></Link>
-          </>
-        )}
-      />
+    <main className="min-h-[calc(100vh-4rem)] flex-1 p-4 md:p-8">
+      <div className="mx-auto w-full max-w-6xl">
+        <PageHeader
+          className="mb-6"
+          eyebrow="Vista general"
+          title="Resumen del negocio"
+          description="Una vista rápida de productos, inventario y ventas."
+          actions={(
+            <>
+              <Link href="/seller" className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-accent px-5 py-3 text-xs font-semibold text-white transition hover:bg-brand-accent-hover sm:w-auto"><PackagePlus size={16} /> Añadir producto</Link>
+              <Link href="/seller/product-list" className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-brand-line bg-white px-5 py-3 text-xs font-semibold text-brand-ink transition hover:border-brand-accent sm:w-auto">Gestionar catálogo <ArrowRight size={15} /></Link>
+            </>
+          )}
+        />
 
-      {productsError && (
-        <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-amber-50 px-4 py-3 text-xs text-amber-800">
-          <span>No se pudo actualizar el inventario: {productsError}</span>
-          <button type="button" onClick={fetchProductData} className="font-semibold underline">Reintentar</button>
-        </div>
-      )}
-
-      <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-        {stats.map(({ label, value, note, icon: Icon }) => (
-          <article key={label} className="rounded-xl border border-brand-line bg-white p-4 md:p-5">
-            <div className="flex items-start justify-between gap-2">
-              <p className="text-xs text-brand-muted">{label}</p>
-              <Icon size={17} className="shrink-0 text-brand-accent" />
-            </div>
-            <p className="mt-4 break-words font-display text-2xl text-brand-ink md:text-3xl">{value}</p>
-            <p className="mt-1 text-[10px] text-brand-muted">{note}</p>
-          </article>
-        ))}
-      </section>
-
-      <section className="mt-6 rounded-xl border border-brand-line bg-white p-4 md:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-muted">Ventas</p>
-            <h2 className="mt-1 font-display text-xl text-brand-ink">Movimiento de órdenes</h2>
-          </div>
-          <Link href="/seller/orders" className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-accent hover:underline">Ver órdenes <ArrowRight size={14} /></Link>
-        </div>
-        {ordersError && (
-          <div role="alert" className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-red-50 px-4 py-3 text-xs text-brand-sale">
-            <span>No se pudo cargar el resumen de órdenes: {ordersError}</span>
-            <button type="button" onClick={fetchOrders} className="font-semibold underline">Reintentar</button>
+        {productsError && (
+          <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-amber-50 px-4 py-3 text-xs text-amber-800">
+            <span className="min-w-0">No se pudo actualizar el inventario: {productsError}</span>
+            <button type="button" onClick={fetchProductData} className="font-semibold underline">Reintentar</button>
           </div>
         )}
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <Link href="/seller/orders" className="flex items-center gap-3 rounded-xl bg-brand-sand px-4 py-3 transition hover:bg-brand-line/50">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-brand-accent"><Clock3 size={18} /></span>
-            <span>
-              <span className="block text-[10px] uppercase tracking-wider text-brand-muted">Por confirmar</span>
-              <span className="block text-lg font-semibold text-brand-ink">{salesValue(`${sales.pendingCount} órdenes`)}</span>
-            </span>
-          </Link>
-          <Link href="/seller/orders" className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 ring-1 ring-brand-line transition hover:ring-brand-accent">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-amber-50 text-amber-700"><Wallet size={18} /></span>
-            <span>
-              <span className="block text-[10px] uppercase tracking-wider text-brand-muted">Por cobrar</span>
-              <span className="block text-lg font-semibold text-brand-ink">{salesValue(`${currency}${sales.pendingAmount.toFixed(2)}`)}</span>
-            </span>
-          </Link>
-          <Link href="/seller/pagos" className="flex items-center gap-3 rounded-xl bg-brand-success/5 px-4 py-3 ring-1 ring-brand-success/15 transition hover:ring-brand-success/40">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-brand-success"><BadgeCheck size={18} /></span>
-            <span>
-              <span className="block text-[10px] uppercase tracking-wider text-brand-muted">Recaudado</span>
-              <span className="block text-lg font-semibold text-brand-ink">{salesValue(`${currency}${sales.paidAmount.toFixed(2)}`)}</span>
-            </span>
-          </Link>
-        </div>
-      </section>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_1.2fr]">
-        <section className="rounded-xl border border-brand-line bg-white p-5 md:p-6">
-          <div className="mb-5 flex items-center justify-between">
-            <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-muted">Organización</p><h2 className="mt-1 font-display text-2xl text-brand-ink">Categorías</h2></div>
-            <Link href="/seller/categories" className="text-xs font-semibold text-brand-accent hover:underline">Administrar</Link>
-          </div>
-          <div className="space-y-4">
-            {categories.map((category) => {
-              const count = products.filter((product) => matchesCategoryFilter(product, category.slug)).length;
-              return (
-                <button key={category.slug} onClick={() => router.push(`/seller/product-list?category=${category.slug}`)} className="w-full text-left">
-                  <div className="mb-1.5 flex items-center justify-between gap-3 text-xs">
-                    <span className="font-medium text-brand-charcoal">{category.name}</span>
-                    <span className="text-brand-muted">{count} productos</span>
-                  </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-brand-cream"><div className="h-full rounded-full bg-brand-accent" style={{ width: `${products.length ? (count / products.length) * 100 : 0}%` }} /></div>
-                </button>
-              );
-            })}
-          </div>
+        <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+          {stats.map(({ label, value, note, icon: Icon }) => (
+            <article key={label} className="rounded-2xl border border-brand-line bg-white p-3.5 shadow-sm transition hover:shadow-md md:p-5">
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-accent-soft text-brand-accent">
+                <Icon size={17} />
+              </span>
+              <p className="mt-3 break-words font-display text-[26px] leading-none text-brand-ink md:text-3xl">{value}</p>
+              <p className="mt-2 text-[11px] font-medium leading-4 text-brand-charcoal md:text-xs">{label}</p>
+              <p className="mt-1 text-[10px] leading-4 text-brand-muted">{note}</p>
+            </article>
+          ))}
         </section>
 
-        <section className="rounded-xl border border-brand-line bg-white p-5 md:p-6">
-          <div className="mb-5 flex items-center justify-between">
-            <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-muted">Atención requerida</p><h2 className="mt-1 font-display text-2xl text-brand-ink">Revisar inventario</h2></div>
-            <span className="rounded-full bg-brand-sand px-3 py-1 text-[10px] font-semibold text-brand-charcoal">{lowStock.length + outOfStock.length} alertas</span>
+        <section className="mt-4 rounded-2xl border border-brand-line bg-white p-4 shadow-sm md:p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-muted">Ventas</p>
+              <h2 className="mt-1 font-display text-xl text-brand-ink">Movimiento de órdenes</h2>
+            </div>
+            <Link href="/seller/orders" className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-brand-accent transition hover:bg-brand-accent-soft/50">Ver órdenes <ArrowRight size={14} /></Link>
           </div>
-          {lowStock.length + outOfStock.length === 0 ? (
-            <p className="rounded-lg bg-brand-success/5 px-4 py-6 text-center text-sm text-brand-success">Todo el inventario tiene más de cinco unidades.</p>
-          ) : (
-            <div className="divide-y divide-brand-line">
-              {[...outOfStock, ...lowStock].slice(0, 6).map((product) => (
-                <div key={product._id} className="flex items-center justify-between gap-3 py-3">
-                  <div className="min-w-0"><p className="truncate text-sm font-medium text-brand-ink">{product.name}</p><p className="mt-1 truncate text-[10px] text-brand-muted">{getCategoryName(product.category)}{product.subcategory ? ` · ${getSubcategoryName(product.category, product.subcategory)}` : ""}</p></div>
-                  <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold ${Number(product.stock) ? "bg-amber-50 text-amber-700" : "bg-red-50 text-brand-sale"}`}>{Number(product.stock) ? `${product.stock} uds.` : "Agotado"}</span>
-                </div>
-              ))}
+          {ordersError && (
+            <div role="alert" className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-red-50 px-4 py-3 text-xs text-brand-sale">
+              <span className="min-w-0">No se pudo cargar el resumen de órdenes: {ordersError}</span>
+              <button type="button" onClick={fetchOrders} className="font-semibold underline">Reintentar</button>
             </div>
           )}
-          <Link href="/seller/product-list" className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-brand-accent hover:underline">Abrir inventario <ArrowRight size={14} /></Link>
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            <Link href="/seller/orders" className="flex items-center gap-3 rounded-xl border border-brand-line bg-white px-3.5 py-3 transition hover:border-brand-accent hover:shadow-sm">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-accent-soft text-brand-accent"><Clock3 size={16} /></span>
+              <span className="min-w-0">
+                <span className="block text-[10px] font-semibold uppercase tracking-wider text-brand-muted">Por confirmar</span>
+                <span className="mt-0.5 block truncate text-base font-semibold text-brand-ink">{salesValue(`${sales.pendingCount} órdenes`)}</span>
+              </span>
+            </Link>
+            <Link href="/seller/orders" className="flex items-center gap-3 rounded-xl border border-brand-line bg-white px-3.5 py-3 transition hover:border-amber-300 hover:shadow-sm">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-amber-50 text-amber-700"><Wallet size={16} /></span>
+              <span className="min-w-0">
+                <span className="block text-[10px] font-semibold uppercase tracking-wider text-brand-muted">Por cobrar</span>
+                <span className="mt-0.5 block truncate text-base font-semibold text-brand-ink">{salesValue(`${currency}${sales.pendingAmount.toFixed(2)}`)}</span>
+              </span>
+            </Link>
+            <Link href="/seller/pagos" className="flex items-center gap-3 rounded-xl border border-brand-success/20 bg-brand-success/5 px-3.5 py-3 transition hover:border-brand-success/50 hover:shadow-sm">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white text-brand-success"><BadgeCheck size={16} /></span>
+              <span className="min-w-0">
+                <span className="block text-[10px] font-semibold uppercase tracking-wider text-brand-muted">Recaudado</span>
+                <span className="mt-0.5 block truncate text-base font-semibold text-brand-ink">{salesValue(`${currency}${sales.paidAmount.toFixed(2)}`)}</span>
+              </span>
+            </Link>
+          </div>
         </section>
+
+        <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_1.2fr]">
+          <section className="rounded-2xl border border-brand-line bg-white p-4 shadow-sm sm:p-5">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-muted">Organización</p>
+                <h2 className="mt-1 font-display text-xl text-brand-ink">Categorías</h2>
+              </div>
+              <span className="shrink-0 rounded-full bg-brand-sand px-2.5 py-1 text-[10px] font-semibold text-brand-charcoal">{categories.length}</span>
+            </div>
+            <div className="mt-4 space-y-3.5">
+              {categories.map((category) => {
+                const count = products.filter((product) => matchesCategoryFilter(product, category.slug)).length;
+                const percent = products.length ? (count / products.length) * 100 : 0;
+                return (
+                  <button key={category.slug} type="button" onClick={() => router.push(`/seller/product-list?category=${category.slug}`)} className="block w-full rounded-lg text-left transition hover:opacity-80">
+                    <div className="mb-1.5 flex items-center justify-between gap-3 text-xs">
+                      <span className="truncate font-medium text-brand-charcoal">{category.name}</span>
+                      <span className="shrink-0 tabular-nums text-brand-muted">{count}</span>
+                    </div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-brand-sand"><div className="h-full rounded-full bg-brand-accent" style={{ width: `${percent}%` }} /></div>
+                  </button>
+                );
+              })}
+            </div>
+            <Link href="/seller/categories" className="mt-4 inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-brand-line text-xs font-semibold text-brand-accent transition hover:bg-brand-sand/50 sm:w-auto sm:justify-start sm:border-0 sm:px-0 sm:min-h-0 sm:py-1">Administrar categorías <ArrowRight size={14} /></Link>
+          </section>
+
+          <section className="rounded-2xl border border-brand-line bg-white p-4 shadow-sm sm:p-5">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-muted">Atención requerida</p>
+                <h2 className="mt-1 font-display text-xl text-brand-ink">Revisar inventario</h2>
+              </div>
+              <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold ${lowStock.length + outOfStock.length ? "bg-amber-50 text-amber-700" : "bg-brand-success/10 text-brand-success"}`}>{lowStock.length + outOfStock.length} alertas</span>
+            </div>
+            {lowStock.length + outOfStock.length === 0 ? (
+              <p className="mt-4 rounded-xl bg-brand-success/5 px-4 py-6 text-center text-sm text-brand-success">Todo el inventario tiene más de cinco unidades.</p>
+            ) : (
+              <div className="mt-2 divide-y divide-brand-line">
+                {[...outOfStock, ...lowStock].slice(0, 6).map((product) => (
+                  <div key={product._id} className="flex items-center justify-between gap-3 py-2.5">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-brand-ink">{product.name}</p>
+                      <p className="mt-0.5 truncate text-[10px] text-brand-muted">{getCategoryName(product.category)}{product.subcategory ? ` · ${getSubcategoryName(product.category, product.subcategory)}` : ""}</p>
+                    </div>
+                    <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold ${Number(product.stock) ? "bg-amber-50 text-amber-700" : "bg-red-50 text-brand-sale"}`}>{Number(product.stock) ? `${product.stock} uds.` : "Agotado"}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <Link href="/seller/product-list" className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-brand-line text-xs font-semibold text-brand-accent transition hover:bg-brand-sand/50 sm:w-auto sm:border-0 sm:justify-start sm:px-0 sm:min-h-0 sm:py-1">Abrir inventario <ArrowRight size={14} /></Link>
+          </section>
+        </div>
       </div>
     </main>
   );

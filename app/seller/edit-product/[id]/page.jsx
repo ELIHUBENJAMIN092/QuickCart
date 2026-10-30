@@ -11,13 +11,14 @@ import { useParams } from "next/navigation";
 import { useAppContext } from "@/context/AppContext";
 import { categories, normalizeProductCategory } from "@/lib/categories";
 import Loading from "@/components/Loading";
+import PageHeader from "@/components/seller/PageHeader";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { uploadProductFile } from "@/lib/supabase/storage";
 import { processProductImage } from "@/lib/imageOptimize";
 import ProductExtraFields, { ProductBadgeFields, validateCatalogFile } from "@/components/seller/ProductExtraFields";
 
 const inputClass =
-  "w-full rounded-lg border border-brand-line bg-white px-4 py-3 text-sm text-brand-ink outline-none transition placeholder:text-brand-muted focus:border-brand-accent";
+  "w-full rounded-xl border border-brand-line bg-white px-4 py-3 text-base text-brand-ink outline-none transition placeholder:text-brand-muted focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/10 sm:text-sm";
 
 export default function EditProduct() {
   const { id } = useParams();
@@ -204,18 +205,19 @@ export default function EditProduct() {
   if (loading) return <div className="flex-1"><Loading /></div>;
 
   return (
-    <main className="min-h-[calc(100vh-4rem)] flex-1 px-4 py-7 md:px-8 md:py-10">
+    <main className="min-h-[calc(100vh-4rem)] flex-1 px-4 pb-28 pt-6 sm:pb-10 md:px-8 md:pt-8">
       <div className="mx-auto max-w-4xl">
-        <Link href="/seller/product-list" className="mb-6 inline-flex items-center gap-2 text-sm text-brand-muted hover:text-brand-accent">
+        <Link href="/seller/product-list" className="mb-5 inline-flex items-center gap-2 text-sm text-brand-muted transition hover:text-brand-accent">
           <ArrowLeft size={16} /> Volver a productos
         </Link>
-        <div className="mb-7">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-muted">Administración · Catálogo</p>
-          <h1 className="mt-2 font-display text-3xl text-brand-ink md:text-4xl">Editar producto</h1>
-          <p className="mt-2 text-sm text-brand-muted">Actualiza la información que verán tus clientes en la tienda.</p>
-        </div>
+        <PageHeader
+          className="mb-6"
+          eyebrow="Administración · Catálogo"
+          title="Editar producto"
+          description="Actualiza la información que verán tus clientes en la tienda."
+        />
 
-        <form onSubmit={handleSubmit} className="space-y-7 rounded-2xl border border-brand-line bg-white p-5 shadow-sm md:p-8">
+        <form id="edit-product-form" onSubmit={handleSubmit} className="space-y-7 rounded-2xl border border-brand-line bg-white p-4 shadow-sm sm:p-6 md:p-8">
           <section>
             <h2 className="mb-4 text-sm font-semibold text-brand-ink">Información del producto</h2>
             <div className="grid gap-5 md:grid-cols-2">
@@ -270,27 +272,29 @@ export default function EditProduct() {
           <section className="border-t border-brand-line pt-6">
             <h2 className="mb-1 text-sm font-semibold text-brand-ink">Imágenes y video</h2>
             <p className="mb-4 text-xs leading-5 text-brand-muted">Cambia o quita cada foto por separado. Máximo 3 imágenes de 8 MB; se optimizan y se les quita el fondo blanco automáticamente.</p>
-            <div className="flex flex-wrap gap-4">
+            <div className="grid grid-cols-3 gap-2.5 sm:max-w-md sm:gap-3">
               {slots.map((slot, index) => (
-                <div key={index} className="w-28 space-y-2">
-                  <div className="relative h-28 w-28 overflow-hidden border border-brand-line bg-brand-cream">
+                <div key={index} className="space-y-2">
+                  <div className="relative aspect-square w-full overflow-hidden rounded-xl border border-brand-line bg-brand-sand/40">
                     {processingSlot === index ? (
-                      <span className="flex h-full items-center justify-center text-xs text-brand-muted">Procesando...</span>
+                      <span className="flex h-full items-center justify-center px-1 text-center text-[10px] text-brand-muted">Procesando...</span>
                     ) : slot.url || slot.preview ? (
-                      <Image src={slot.preview || slot.url} alt={`Imagen ${index + 1}`} fill unoptimized={Boolean(slot.preview)} sizes="112px" className="object-contain p-1" />
+                      <Image src={slot.preview || slot.url} alt={`Imagen ${index + 1}`} fill unoptimized={Boolean(slot.preview)} sizes="(max-width: 640px) 30vw, 112px" className="object-contain p-1.5" />
                     ) : (
-                      <span className="flex h-full items-center justify-center text-xs text-brand-muted">Sin imagen</span>
+                      <span className="flex h-full items-center justify-center text-[10px] text-brand-muted">Sin imagen</span>
                     )}
                   </div>
-                  <label className="block cursor-pointer text-center text-xs font-medium text-brand-accent hover:underline">
-                    {slot.url || slot.file ? "Reemplazar" : "Subir foto"}
-                    <input type="file" accept="image/*" className="sr-only" onChange={(event) => { replaceSlot(index, event.target.files?.[0]); event.target.value = ""; }} />
-                  </label>
-                  {(slot.url || slot.file) && <button type="button" onClick={() => removeSlot(index)} className="block w-full text-center text-xs text-brand-sale hover:underline">Quitar</button>}
+                  <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[11px]">
+                    <label className="cursor-pointer font-medium text-brand-accent hover:underline">
+                      {slot.url || slot.file ? "Reemplazar" : "Subir foto"}
+                      <input type="file" accept="image/*" className="sr-only" onChange={(event) => { replaceSlot(index, event.target.files?.[0]); event.target.value = ""; }} />
+                    </label>
+                    {(slot.url || slot.file) && <button type="button" onClick={() => removeSlot(index)} className="text-brand-sale hover:underline">Quitar</button>}
+                  </div>
                 </div>
               ))}
               {slots.length < 3 && (
-                <button type="button" onClick={() => setSlots((current) => [...current, {}])} className="flex h-28 w-28 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-brand-line text-xs text-brand-muted transition hover:border-brand-accent">
+                <button type="button" onClick={() => setSlots((current) => [...current, {}])} className="flex aspect-square w-full flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-brand-line text-[10px] text-brand-muted transition hover:border-brand-accent hover:text-brand-accent">
                   <ImagePlus size={20} className="text-brand-accent" /> Añadir foto
                 </button>
               )}
@@ -346,11 +350,18 @@ export default function EditProduct() {
             onRemoveCatalog={(value) => { setRemoveCatalog(value); if (value) setCatalogFile(null); }}
           />
 
-          <div className="flex flex-col-reverse gap-3 border-t border-brand-line pt-6 sm:flex-row sm:justify-end">
-            <Link href="/seller/product-list" className="rounded-full border border-brand-line px-6 py-3 text-center text-sm font-medium text-brand-charcoal hover:bg-brand-cream">Cancelar</Link>
-            <button type="submit" disabled={saving || processingSlot !== null} className="rounded-full bg-brand-accent px-7 py-3 text-sm font-semibold text-white transition hover:bg-brand-accent-hover disabled:cursor-wait disabled:opacity-60">{saving ? "Guardando..." : "Guardar cambios"}</button>
+          <div className="hidden flex-col-reverse gap-3 border-t border-brand-line pt-6 sm:flex sm:flex-row sm:justify-end">
+            <Link href="/seller/product-list" className="rounded-xl border border-brand-line px-6 py-3 text-center text-sm font-medium text-brand-charcoal transition hover:bg-brand-sand">Cancelar</Link>
+            <button type="submit" disabled={saving || processingSlot !== null} className="rounded-xl bg-brand-accent px-7 py-3 text-sm font-semibold text-white transition hover:bg-brand-accent-hover disabled:cursor-wait disabled:opacity-60">{saving ? "Guardando..." : "Guardar cambios"}</button>
           </div>
         </form>
+
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-brand-line bg-white/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(20,35,50,0.08)] backdrop-blur sm:hidden">
+          <div className="mx-auto flex max-w-4xl items-center gap-2.5">
+            <Link href="/seller/product-list" className="inline-flex min-h-12 flex-1 items-center justify-center rounded-xl border border-brand-line px-4 text-sm font-semibold text-brand-charcoal">Cancelar</Link>
+            <button type="submit" form="edit-product-form" disabled={saving || processingSlot !== null} className="inline-flex min-h-12 flex-[1.6] items-center justify-center rounded-xl bg-brand-accent px-5 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-60">{saving ? "Guardando..." : "Guardar cambios"}</button>
+          </div>
+        </div>
       </div>
     </main>
   );

@@ -34,7 +34,7 @@ export default function CommerceSettingsPage() {
   if (!isSeller) {
     return (
       <main className="p-6 md:p-8">
-        <p role="alert" className="rounded-lg bg-red-50 p-4 text-sm text-brand-sale">No tienes permiso para administrar esta configuración.</p>
+        <p role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-brand-sale">No tienes permiso para administrar esta configuración.</p>
       </main>
     );
   }
@@ -60,8 +60,8 @@ export default function CommerceSettingsPage() {
                 Al ocultarlos, el catálogo conserva las fotos, descripciones y detalles de los productos. Los precios, el acceso al carrito y las acciones para comprar dejan de estar disponibles en toda la tienda. La preferencia se aplica también a las solicitudes de compra.
               </p>
 
-              <label className="mt-6 flex cursor-pointer items-center justify-between gap-5 rounded-xl border border-brand-line bg-brand-cream p-4">
-                <span>
+              <label className="mt-6 flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-brand-line bg-brand-sand/40 p-4">
+                <span className="min-w-0">
                   <span className="block text-sm font-semibold text-brand-ink">
                     {commerceSettingsLoading
                       ? "Cargando configuración..."

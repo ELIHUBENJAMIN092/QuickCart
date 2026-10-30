@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { ArrowRight, Film, Image as ImageIcon, ImagePlus, Plus, Trash2, Upload } from "lucide-react";
+import { ArrowRight, ChevronDown, Film, Image as ImageIcon, ImagePlus, Plus, Trash2, Upload } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 import { useConfirm } from "@/components/ui/ConfirmProvider";
 import PageHeader from "@/components/seller/PageHeader";
@@ -14,7 +14,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { uploadProductFile } from "@/lib/supabase/storage";
 import { optimizeImage } from "@/lib/imageOptimize";
 
-const inputClass = "mt-2 w-full rounded-lg border border-brand-line bg-white px-4 py-3 text-sm text-brand-ink outline-none focus:border-brand-accent";
+const inputClass = "mt-2 w-full rounded-xl border border-brand-line bg-white px-4 py-3 text-base text-brand-ink outline-none transition placeholder:text-brand-muted focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/10 sm:text-sm";
 
 function CategoryEditor({ category, position, isNew = false, onSaved, onCancel }) {
   const { getToken, user } = useAppContext();
@@ -42,6 +42,7 @@ function CategoryEditor({ category, position, isNew = false, onSaved, onCancel }
   const [resetImage, setResetImage] = useState(false);
   const [resetHeroImage, setResetHeroImage] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [open, setOpen] = useState(isNew);
   const [coverType, setCoverType] = useState(category?.hero?.video_url ? "video" : "image");
   const filePreview = useMemo(() => (file ? URL.createObjectURL(file) : ""), [file]);
   const heroImagePreview = useMemo(() => (heroImageFile ? URL.createObjectURL(heroImageFile) : ""), [heroImageFile]);
@@ -156,54 +157,92 @@ function CategoryEditor({ category, position, isNew = false, onSaved, onCancel }
     }
   };
 
+  const summaryImage = category?.image_url || category?.image || "";
+  const subcategoryCount = category?.subcategories?.length || 0;
+  const hasVideoCover = Boolean(category?.hero?.video_url);
+  const formId = `category-form-${category?.slug || "new"}`;
+
   return (
-    <form onSubmit={save} className="grid gap-6 rounded-xl border border-brand-line bg-white p-5 md:grid-cols-[260px_1fr]">
-      <div>
-        <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-brand-line bg-brand-sand">
-          {preview ? <Image src={preview} alt="" fill unoptimized={Boolean(filePreview)} sizes="260px" className="object-cover" /> : <span className="flex h-full items-center justify-center text-xs text-brand-muted">Sin imagen</span>}
-        </div>
-        <label className="mt-3 flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-brand-line px-3 py-2.5 text-xs font-medium text-brand-accent hover:border-brand-accent">
-          <ImagePlus size={16} /> {file ? file.name : "Imagen de categoría"}
-          <input type="file" accept="image/*" className="sr-only" onChange={(event) => { setFile(event.target.files?.[0] || null); setResetImage(false); }} />
-        </label>
-        {!isNew && category?.image_url && !file && !resetImage && (
-          <button type="button" onClick={() => setResetImage(true)} className="mt-2 block w-full text-center text-xs text-brand-sale hover:underline">Quitar imagen personalizada</button>
-        )}
-        <p className="mt-2 text-[11px] leading-4 text-brand-muted">
-          {usesVideo ? "Se usa como póster del video y lámina de categoría." : "Se usa como lámina de categoría y respaldo de la portada."} Horizontal, máximo 8 MB.
-        </p>
-      </div>
+    <div className="overflow-hidden rounded-2xl border border-brand-line bg-white shadow-sm">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        aria-controls={formId}
+        className="flex w-full items-center gap-3 p-3.5 text-left transition hover:bg-brand-sand/30 sm:p-4"
+      >
+        <span className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl border border-brand-line bg-brand-sand/40">
+          {summaryImage ? (
+            <Image src={summaryImage} alt="" fill sizes="48px" className="object-cover" />
+          ) : (
+            <ImageIcon size={18} className="text-brand-muted" />
+          )}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center gap-2">
+            <span className="truncate text-sm font-semibold text-brand-ink">{category?.name || "Nueva categoría"}</span>
+            <span className="shrink-0 rounded-full bg-brand-sand px-2 py-0.5 text-[10px] font-semibold text-brand-muted">#{position}</span>
+          </span>
+          <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-brand-muted">
+            <span className="truncate">{category?.slug || "Sin guardar"}</span>
+            <span aria-hidden="true">·</span>
+            <span>{subcategoryCount} {subcategoryCount === 1 ? "subcategoría" : "subcategorías"}</span>
+          </span>
+        </span>
+        <span className={`hidden shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold sm:inline-flex ${hasVideoCover ? "bg-brand-accent-soft text-brand-accent" : "bg-brand-sand text-brand-muted"}`}>
+          {hasVideoCover ? "Portada con video" : "Portada con imagen"}
+        </span>
+        <ChevronDown size={18} className={`shrink-0 text-brand-muted transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
 
-      <div className="min-w-0 space-y-4">
-        <div className="grid gap-4 sm:grid-cols-[1fr_100px]">
-          <label className="block text-xs font-medium text-brand-charcoal">Título
-            <input required maxLength={60} value={form.name} onChange={update("name")} className={inputClass} />
+      <form id={formId} onSubmit={save} className={`grid gap-5 border-t border-brand-line p-4 sm:p-5 md:grid-cols-[240px_1fr] md:gap-6 ${open ? "" : "hidden"}`}>
+        <div>
+          <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-brand-line bg-brand-sand/40 md:aspect-[4/3]">
+            {preview ? <Image src={preview} alt="" fill unoptimized={Boolean(filePreview)} sizes="(max-width: 768px) 100vw, 240px" className="object-cover" /> : <span className="flex h-full items-center justify-center text-xs text-brand-muted">Sin imagen</span>}
+          </div>
+          <label className="mt-3 flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-brand-line bg-brand-sand/30 px-3 py-2.5 text-xs font-medium text-brand-accent transition hover:border-brand-accent hover:bg-brand-accent-soft/40">
+            <ImagePlus size={16} /> <span className="min-w-0 truncate">{file ? file.name : "Imagen de categoría"}</span>
+            <input type="file" accept="image/*" className="sr-only" onChange={(event) => { setFile(event.target.files?.[0] || null); setResetImage(false); }} />
           </label>
-          <label className="block text-xs font-medium text-brand-charcoal">Orden
-            <input type="number" min="0" value={form.position} onChange={update("position")} className={inputClass} />
-          </label>
+          {!isNew && category?.image_url && !file && !resetImage && (
+            <button type="button" onClick={() => setResetImage(true)} className="mt-2 block w-full text-center text-xs text-brand-sale hover:underline">Quitar imagen personalizada</button>
+          )}
+          <p className="mt-2 text-[11px] leading-4 text-brand-muted">
+            {usesVideo ? "Se usa como póster del video y lámina de categoría." : "Se usa como lámina de categoría y respaldo de la portada."} Horizontal, máximo 8 MB.
+          </p>
         </div>
-        <label className="block text-xs font-medium text-brand-charcoal">Descripción (subtítulo)
-          <textarea rows={2} maxLength={200} value={form.description} onChange={update("description")} className={inputClass} />
-        </label>
-        <label className="block text-xs font-medium text-brand-charcoal">Subcategorías <span className="font-normal text-brand-muted">(una por línea; escribe «- » antes para que sea hija de la de arriba)</span>
-          <textarea rows={7} value={form.subs} onChange={update("subs")} placeholder={"Impresoras\nSuministros\n- Etiquetas\n- Cintas"} className={`${inputClass} font-mono`} />
-        </label>
 
-        <details className="rounded-xl border border-brand-line bg-brand-sand/30 p-4">
-          <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2">
-            <span className="inline-flex items-center gap-2 text-xs font-semibold text-brand-ink">
-              {usesVideo ? <Film size={15} className="text-brand-accent" /> : <ImageIcon size={15} className="text-brand-accent" />} Portada de categoría
-            </span>
-            <span className="text-[11px] text-brand-muted">{usesVideo ? (form.hero.video_url || videoFile ? "Video configurado" : "Falta video") : "Solo imagen"}</span>
-          </summary>
+        <div className="min-w-0 space-y-4">
+          <div className="grid grid-cols-[minmax(0,1fr)_92px] gap-3">
+            <label className="block min-w-0 text-xs font-medium text-brand-charcoal">Título
+              <input required maxLength={60} value={form.name} onChange={update("name")} className={inputClass} />
+            </label>
+            <label className="block text-xs font-medium text-brand-charcoal">Orden
+              <input type="number" min="0" value={form.position} onChange={update("position")} className={inputClass} />
+            </label>
+          </div>
+          <label className="block text-xs font-medium text-brand-charcoal">Descripción (subtítulo)
+            <textarea rows={2} maxLength={200} value={form.description} onChange={update("description")} className={inputClass} />
+          </label>
+          <label className="block text-xs font-medium text-brand-charcoal">Subcategorías <span className="font-normal text-brand-muted">(una por línea; escribe «- » antes para que sea hija de la de arriba)</span>
+            <textarea rows={5} value={form.subs} onChange={update("subs")} placeholder={"Impresoras\nSuministros\n- Etiquetas\n- Cintas"} className={`${inputClass} font-mono`} />
+          </label>
+
+          <details className="group rounded-xl border border-brand-line bg-brand-sand/30 p-4">
+            <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-2 text-xs font-semibold text-brand-ink">
+                {usesVideo ? <Film size={15} className="text-brand-accent" /> : <ImageIcon size={15} className="text-brand-accent" />} Portada de categoría
+                <ChevronDown size={15} className="text-brand-muted transition-transform group-open:rotate-180" />
+              </span>
+              <span className="text-[11px] text-brand-muted">{usesVideo ? (form.hero.video_url || videoFile ? "Video configurado" : "Falta video") : "Solo imagen"}</span>
+            </summary>
           <div className="mt-4 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="inline-flex rounded-full border border-brand-line bg-white p-1">
-                <button type="button" onClick={() => setCoverType("image")} aria-pressed={!usesVideo} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition ${!usesVideo ? "bg-brand-accent text-white" : "text-brand-muted hover:text-brand-ink"}`}>
+              <div className="inline-flex rounded-xl border border-brand-line bg-white p-1">
+                <button type="button" onClick={() => setCoverType("image")} aria-pressed={!usesVideo} className={`inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition ${!usesVideo ? "bg-brand-accent text-white" : "text-brand-muted hover:text-brand-ink"}`}>
                   <ImageIcon size={14} /> Solo imagen
                 </button>
-                <button type="button" onClick={() => setCoverType("video")} aria-pressed={usesVideo} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition ${usesVideo ? "bg-brand-accent text-white" : "text-brand-muted hover:text-brand-ink"}`}>
+                <button type="button" onClick={() => setCoverType("video")} aria-pressed={usesVideo} className={`inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition ${usesVideo ? "bg-brand-accent text-white" : "text-brand-muted hover:text-brand-ink"}`}>
                   <Film size={14} /> Con video
                 </button>
               </div>
@@ -224,7 +263,7 @@ function CategoryEditor({ category, position, isNew = false, onSaved, onCancel }
                   <label className="block text-xs font-medium text-brand-charcoal">URL del video
                     <input value={form.hero.video_url} onChange={updateHero("video_url")} maxLength={500} placeholder="/videos/categoria.mp4" className={inputClass} />
                   </label>
-                  <label className="flex cursor-pointer flex-col justify-center rounded-lg border border-dashed border-brand-line px-4 py-3 text-xs text-brand-charcoal transition hover:border-brand-accent">
+                  <label className="flex min-h-14 cursor-pointer flex-col justify-center rounded-xl border border-dashed border-brand-line px-4 py-3 text-xs text-brand-charcoal transition hover:border-brand-accent">
                     <span className="inline-flex items-center gap-2 font-medium text-brand-accent"><Upload size={15} /> {videoFile ? "Cambiar video" : "Subir video"}</span>
                     <span className="mt-1 truncate text-[11px] text-brand-muted">{videoFile ? videoFile.name : "MP4 / WebM, máximo 100 MB"}</span>
                     <input type="file" accept="video/mp4,video/webm,video/quicktime" className="sr-only" onChange={(event) => setVideoFile(event.target.files?.[0] || null)} />
@@ -244,7 +283,7 @@ function CategoryEditor({ category, position, isNew = false, onSaved, onCancel }
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="flex cursor-pointer flex-col justify-center rounded-lg border border-dashed border-brand-line px-4 py-3 text-xs text-brand-charcoal transition hover:border-brand-accent">
+                  <label className="flex min-h-14 cursor-pointer flex-col justify-center rounded-xl border border-dashed border-brand-line px-4 py-3 text-xs text-brand-charcoal transition hover:border-brand-accent">
                     <span className="inline-flex items-center gap-2 font-medium text-brand-accent"><ImagePlus size={15} /> {heroImageFile ? "Cambiar imagen de portada" : "Subir imagen de portada"}</span>
                     <span className="mt-1 truncate text-[11px] text-brand-muted">{heroImageFile ? heroImageFile.name : "Horizontal, ideal 16:9, máximo 8 MB"}</span>
                     <input type="file" accept="image/*" className="sr-only" onChange={(event) => { setHeroImageFile(event.target.files?.[0] || null); setResetHeroImage(false); }} />
@@ -307,17 +346,18 @@ function CategoryEditor({ category, position, isNew = false, onSaved, onCancel }
           </div>
         </details>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-          {isNew ? <span /> : (
-            <button type="button" onClick={remove} className="inline-flex items-center gap-2 text-xs text-brand-sale hover:underline"><Trash2 size={14} /> Eliminar categoría</button>
-          )}
-          <div className="flex gap-3">
-            {isNew && <button type="button" onClick={onCancel} className="rounded-full border border-brand-line px-5 py-2.5 text-sm text-brand-charcoal hover:bg-brand-cream">Cancelar</button>}
-            <button type="submit" disabled={saving} className="rounded-full bg-brand-accent px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-accent-hover disabled:cursor-wait disabled:opacity-60">{saving ? "Guardando..." : isNew ? "Crear categoría" : "Guardar cambios"}</button>
+        <div className="flex flex-col gap-3 border-t border-brand-line pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="order-1 flex flex-col-reverse gap-2 sm:order-2 sm:flex-row sm:items-center">
+            {isNew && <button type="button" onClick={onCancel} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-brand-line px-5 py-2.5 text-sm font-medium text-brand-charcoal transition hover:bg-brand-sand">Cancelar</button>}
+            <button type="submit" disabled={saving} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-brand-accent px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-accent-hover disabled:cursor-wait disabled:opacity-60">{saving ? "Guardando..." : isNew ? "Crear categoría" : "Guardar cambios"}</button>
           </div>
+          {!isNew && (
+            <button type="button" onClick={remove} className="order-2 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 text-xs font-medium text-brand-sale transition hover:bg-red-50 sm:order-1 sm:justify-start"><Trash2 size={14} /> Eliminar categoría</button>
+          )}
         </div>
-      </div>
-    </form>
+        </div>
+      </form>
+    </div>
   );
 }
 
@@ -340,15 +380,21 @@ export default function CategoriesAdmin() {
           title="Categorías"
           description="Estas categorías aparecen en el inicio, el menú, el pie de página y al crear productos. Cada una puede usar portada con video o solo con imagen."
           actions={!adding ? (
-            <button onClick={() => setAdding(true)} className="inline-flex items-center gap-2 rounded-full bg-brand-accent px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-accent-hover"><Plus size={16} /> Nueva categoría</button>
+            <button onClick={() => setAdding(true)} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-accent-hover sm:w-auto"><Plus size={16} /> Nueva categoría</button>
           ) : null}
         />
 
-        <div className="mt-8 space-y-6" key={refresh}>
-          {adding && <CategoryEditor isNew position={categories.length + 1} onSaved={reload} onCancel={() => setAdding(false)} />}
-          {categories.map((category, index) => (
-            <CategoryEditor key={`${category.slug}-${refresh}`} category={category} position={index + 1} onSaved={reload} />
-          ))}
+        <div className="mt-6">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-muted">{categories.length} {categories.length === 1 ? "categoría" : "categorías"}</p>
+            <p className="text-[11px] text-brand-muted">Toca una tarjeta para editar su información.</p>
+          </div>
+          <div className="mt-3 space-y-4" key={refresh}>
+            {adding && <CategoryEditor isNew position={categories.length + 1} onSaved={reload} onCancel={() => setAdding(false)} />}
+            {categories.map((category, index) => (
+              <CategoryEditor key={`${category.slug}-${refresh}`} category={category} position={index + 1} onSaved={reload} />
+            ))}
+          </div>
         </div>
       </div>
     </main>

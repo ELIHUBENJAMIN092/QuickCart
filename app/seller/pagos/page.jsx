@@ -68,7 +68,7 @@ export default function Pagos() {
                 type="button"
                 onClick={() => fetchPaidOrders(true)}
                 disabled={refreshing}
-                className="inline-flex items-center gap-2 rounded-full border border-brand-line bg-white px-4 py-2.5 text-xs font-semibold text-brand-charcoal transition hover:border-brand-accent disabled:opacity-60"
+                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-brand-line bg-white px-4 py-2.5 text-xs font-semibold text-brand-charcoal transition hover:border-brand-accent disabled:opacity-60 sm:w-auto"
               >
                 <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} /> Actualizar
               </button>
@@ -76,19 +76,19 @@ export default function Pagos() {
           />
 
           <section className="mt-6 grid gap-3 sm:grid-cols-2">
-            <article className="rounded-xl border border-brand-line bg-white p-4">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs text-brand-muted">Pagos confirmados</p>
-                <BadgeCheck size={16} className="text-brand-success" />
-              </div>
-              <p className="mt-2 font-display text-3xl text-brand-ink">{stats.count}</p>
+            <article className="rounded-2xl border border-brand-line bg-white p-3.5 shadow-sm md:p-4">
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-success/10 text-brand-success">
+                <BadgeCheck size={16} />
+              </span>
+              <p className="mt-3 font-display text-3xl text-brand-ink">{stats.count}</p>
+              <p className="mt-0.5 text-[11px] text-brand-muted">Pagos confirmados</p>
             </article>
-            <article className="rounded-xl border border-brand-line bg-white p-4">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs text-brand-muted">Total recaudado</p>
-                <Wallet size={16} className="text-brand-success" />
-              </div>
-              <p className="mt-2 break-words font-display text-2xl text-brand-ink">{currency}{stats.amount.toFixed(2)}</p>
+            <article className="rounded-2xl border border-brand-line bg-white p-3.5 shadow-sm md:p-4">
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-success/10 text-brand-success">
+                <Wallet size={16} />
+              </span>
+              <p className="mt-3 break-words font-display text-2xl text-brand-ink">{currency}{stats.amount.toFixed(2)}</p>
+              <p className="mt-0.5 text-[11px] text-brand-muted">Total recaudado</p>
             </article>
           </section>
 
@@ -100,7 +100,7 @@ export default function Pagos() {
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Buscar por cliente, cédula, teléfono o producto"
                 aria-label="Buscar pagos"
-                className="w-full rounded-full border border-brand-line bg-white py-2.5 pl-9 pr-4 text-xs outline-none focus:border-brand-accent"
+                className="min-h-11 w-full rounded-xl border border-brand-line bg-white py-2.5 pl-9 pr-4 text-base outline-none transition placeholder:text-brand-muted focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/10 sm:text-xs"
               />
             </label>
             <p className="text-xs text-brand-muted">{filtered.length} de {paidOrders.length} pagos</p>
