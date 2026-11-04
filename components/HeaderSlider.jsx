@@ -4,12 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import CertificationSeals from "@/components/CertificationSeals";
 import { buildSlides, slideImage } from "@/lib/carousel";
 
 const SLIDE_DURATION = 6000;
 
 export default function HeaderSlider() {
   const [slides, setSlides] = useState(() => buildSlides());
+  const [certifications, setCertifications] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -18,6 +20,15 @@ export default function HeaderSlider() {
     fetch("/api/carousel")
       .then((response) => response.json())
       .then((data) => { if (active && data.slides) setSlides(data.slides); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/certifications", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => { if (active && data.certifications) setCertifications(data.certifications); })
       .catch(() => {});
     return () => { active = false; };
   }, []);
@@ -35,7 +46,7 @@ export default function HeaderSlider() {
 
   return (
     <section
-      className="relative isolate min-h-[560px] overflow-hidden bg-brand-ink text-brand-cream md:min-h-[min(720px,calc(100vh-100px))]"
+      className="relative isolate min-h-[640px] overflow-hidden bg-brand-ink text-brand-cream md:min-h-[min(720px,calc(100vh-100px))]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       aria-label="Soluciones COMPEL"
@@ -55,10 +66,10 @@ export default function HeaderSlider() {
             className="object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-brand-ink/90 via-brand-ink/65 to-brand-ink/10" />
-          <div className="relative mx-auto flex min-h-[560px] max-w-7xl items-center px-6 py-20 md:min-h-[min(720px,calc(100vh-100px))] md:px-12">
+          <div className="relative mx-auto flex min-h-[640px] max-w-7xl items-center px-6 py-20 md:min-h-[min(720px,calc(100vh-100px))] md:px-12">
             <div className={`max-w-2xl transition-all duration-700 ${index === currentSlide ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"}`}>
               <p className="mb-5 text-xs font-semibold uppercase tracking-[0.24em] text-white/75">{slide.eyebrow}</p>
-              <h1 className="font-display text-5xl leading-[1.05] tracking-tight text-white md:text-7xl">{slide.title}</h1>
+              <h1 className="font-display text-[clamp(2rem,11vw,3rem)] leading-[1.05] tracking-tight text-white md:text-7xl">{slide.title}</h1>
               <p className="mt-6 max-w-lg text-sm leading-7 text-white/80 md:text-base">{slide.description}</p>
               <div className="mt-9 flex flex-wrap items-center gap-3">
                 <Link href={`/all-products?category=${slide.category}`} tabIndex={index === currentSlide ? 0 : -1} className="inline-flex items-center gap-2 rounded-full bg-brand-cream px-6 py-3 text-sm font-semibold text-brand-ink transition hover:bg-white">
@@ -68,21 +79,36 @@ export default function HeaderSlider() {
                   {slide.secondary_label}
                 </Link>
               </div>
+              {index === 0 && (
+                <div className="mt-6 md:hidden">
+                  <div className="certification-seals-scroll flex overflow-x-auto pb-1">
+                    <CertificationSeals certifications={certifications} visible={index === currentSlide} inline className="ml-auto shrink-0" />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       ))}
+      <div className="hidden md:block">
+        <CertificationSeals certifications={certifications} visible={currentSlide === 0} />
+      </div>
       {slides.length > 1 && (
         <>
-          <button type="button" onClick={() => go(-1)} aria-label="Imagen anterior" className="absolute left-3 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/30 md:left-6 md:h-12 md:w-12">
+          <button type="button" onClick={() => go(-1)} aria-label="Imagen anterior" className="absolute left-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/30 md:left-6 md:flex md:h-12 md:w-12">
             <ChevronLeft size={26} />
           </button>
-          <button type="button" onClick={() => go(1)} aria-label="Imagen siguiente" className="absolute right-3 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/30 md:right-6 md:h-12 md:w-12">
+          <button type="button" onClick={() => go(1)} aria-label="Imagen siguiente" className="absolute right-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/30 md:right-6 md:flex md:h-12 md:w-12">
             <ChevronRight size={26} />
           </button>
         </>
       )}
-      <div className="absolute bottom-8 left-6 right-6 z-10 mx-auto flex max-w-7xl gap-3 md:left-12 md:right-12">
+      <div className="absolute bottom-8 left-6 right-6 z-10 mx-auto flex max-w-7xl items-center gap-2 md:left-12 md:right-12 md:gap-3">
+        {slides.length > 1 && (
+          <button type="button" onClick={() => go(-1)} aria-label="Imagen anterior" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/30 md:hidden">
+            <ChevronLeft size={20} />
+          </button>
+        )}
         {slides.map((slide, index) => (
           <button key={slide.position} onClick={() => setCurrentSlide(index)} className="group h-8 flex-1 py-3" aria-label={`Mostrar diapositiva ${index + 1}`} aria-current={index === currentSlide}>
             <span className="block h-px w-full overflow-hidden bg-white/40">
@@ -90,6 +116,11 @@ export default function HeaderSlider() {
             </span>
           </button>
         ))}
+        {slides.length > 1 && (
+          <button type="button" onClick={() => go(1)} aria-label="Imagen siguiente" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/30 md:hidden">
+            <ChevronRight size={20} />
+          </button>
+        )}
       </div>
     </section>
   );

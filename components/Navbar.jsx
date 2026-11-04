@@ -2,17 +2,21 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
-  User,
   ChevronRight,
+  Home,
+  Info,
   LayoutDashboard,
+  LayoutGrid,
   LogOut,
   Menu,
   Search,
   ShoppingBag,
   ShoppingCart,
+  User,
   X,
 } from "lucide-react";
 import { assets } from "@/assets/assets";
@@ -75,11 +79,102 @@ function AccountMenuItem({ icon: Icon, label, description, badge = 0, tone = "de
   );
 }
 
+function MobileNavLink({ href, label, active, icon: Icon, onClick, trailing, showBadge = true }) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      aria-current={active ? "page" : undefined}
+      className={`group flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
+        active
+          ? "bg-brand-accent-soft font-semibold text-brand-accent"
+          : "font-medium text-brand-charcoal hover:bg-brand-sand hover:text-brand-ink"
+      }`}
+    >
+      {Icon && (
+        <span
+          className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg transition-colors ${
+            active
+              ? "bg-white text-brand-accent"
+              : "bg-brand-sand/80 text-brand-muted group-hover:bg-white group-hover:text-brand-accent"
+          }`}
+        >
+          <Icon size={15} aria-hidden="true" />
+        </span>
+      )}
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      {trailing ??
+        (active ? (
+          showBadge ? (
+            <span className="shrink-0 rounded-full bg-white px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-brand-accent ring-1 ring-brand-accent/20">
+              Actual
+            </span>
+          ) : (
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-accent" aria-hidden="true" />
+          )
+        ) : null)}
+    </Link>
+  );
+}
+
+function MobileSubLink({ href, label, active, onClick, showBadge = true }) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      aria-current={active ? "page" : undefined}
+      className={`flex min-h-9 items-center gap-2 rounded-lg px-3 py-1.5 text-[13px] transition-colors ${
+        active
+          ? "bg-brand-accent-soft font-semibold text-brand-accent"
+          : "font-medium text-brand-muted hover:bg-brand-sand/70 hover:text-brand-ink"
+      }`}
+    >
+      <span
+        className={`h-1 w-1 shrink-0 rounded-full ${active ? "bg-brand-accent" : "bg-brand-line"}`}
+        aria-hidden="true"
+      />
+      <span className="min-w-0 flex-1">{label}</span>
+      {active && showBadge && (
+        <span className="shrink-0 text-[9px] font-semibold uppercase tracking-[0.14em] text-brand-accent">Actual</span>
+      )}
+    </Link>
+  );
+}
+
+const normalizePath = (value) => {
+  const path = String(value || "/")
+    .split("?")[0]
+    .split("#")[0]
+    .replace(/\/+$/, "");
+  return (path || "/").toLowerCase();
+};
+
+const subcategoryHref = (category, subcategory) =>
+  subcategory?.href || `/categoria/${category.slug}${subcategory?.slug ? `/${subcategory.slug}` : ""}`;
+
+const categoryIsActive = (pathname, category) => {
+  const path = normalizePath(pathname);
+  const base = `/categoria/${category.slug}`.toLowerCase();
+  if (path === base || path.startsWith(`${base}/`)) return true;
+  return category.subcategories.some((subcategory) => {
+    const href = normalizePath(subcategoryHref(category, subcategory));
+    return href !== "/" && (path === href || path.startsWith(`${href}/`));
+  });
+};
+
+const pathIsActive = (pathname, target) => {
+  const path = normalizePath(pathname);
+  const href = normalizePath(target);
+  return path === href || path.startsWith(`${href}/`);
+};
+
 export default function Navbar() {
   const { isSeller, user, signOut, products, cartItems, getCartCount, getCartAmount, commerceEnabled } =
     useAppContext();
   const canShop = Boolean(user && commerceEnabled);
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileCategory, setMobileCategory] = useState(null);
   const [banner, setBanner] = useState(defaultBanner);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
@@ -97,6 +192,32 @@ export default function Navbar() {
   const menuRef = useRef(null);
   const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
   const displayName = user?.user_metadata?.name || user?.user_metadata?.full_name || user?.email || "?";
+  const currentPath = normalizePath(pathname);
+  const activeCategorySlug = categories.find((category) => categoryIsActive(pathname, category))?.slug || null;
+  const isHomeActive = currentPath === "/";
+  const isCatalogActive = pathIsActive(pathname, "/all-products");
+  const isAboutActive = pathIsActive(pathname, "/Acerca");
+  const isSellerActive = pathIsActive(pathname, "/seller");
+  const isOrdersActive = pathIsActive(pathname, "/my-orders");
+  const closeMobile = () => setMobileOpen(false);
+  const toggleMobileMenu = () => {
+    if (!mobileOpen) setMobileCategory(activeCategorySlug);
+    setMobileOpen(!mobileOpen);
+  };
+
+  useEffect(() => {
+    if (!mobileOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setMobileOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [mobileOpen]);
 
   useEffect(() => {
     fetch("/api/banner").then((res) => res.json()).then((data) => data.banner && setBanner(data.banner)).catch(() => {});
@@ -174,20 +295,42 @@ export default function Navbar() {
               <Image className="w-28 md:w-32" src={assets.logo} alt="COMPEL" priority />
             </Link>
 
-            <div className="mr-auto hidden items-center text-[14px] font-medium text-brand-charcoal xl:flex">
-              {categories.map((category) => (
-                <button
-                  key={category.slug}
-                  type="button"
-                  onMouseEnter={(event) => openAt(category.slug, event.currentTarget)}
-                  onClick={(event) => (openMenu === category.slug ? setOpenMenu(null) : openAt(category.slug, event.currentTarget))}
-                  aria-expanded={openMenu === category.slug}
-                  className={`flex items-center gap-1 whitespace-nowrap border-b-2 px-3 py-7 transition hover:bg-brand-sand hover:text-brand-accent xl:px-3.5 ${openMenu === category.slug ? "border-brand-accent bg-brand-sand text-brand-accent" : "border-transparent"}`}
-                >
-                  {category.name} <ChevronDown size={14} />
-                </button>
-              ))}
-              <Link href="/Acerca" onMouseEnter={() => setOpenMenu(null)} className="whitespace-nowrap border-b-2 border-transparent px-3 py-7 transition hover:bg-brand-sand hover:text-brand-accent xl:px-3.5">Nosotros</Link>
+            <div className="mr-auto hidden items-center text-[14px] font-medium xl:flex">
+              {categories.map((category) => {
+                const active = categoryIsActive(pathname, category);
+                const expanded = openMenu === category.slug;
+                return (
+                  <button
+                    key={category.slug}
+                    type="button"
+                    onMouseEnter={(event) => openAt(category.slug, event.currentTarget)}
+                    onClick={(event) => (expanded ? setOpenMenu(null) : openAt(category.slug, event.currentTarget))}
+                    aria-expanded={expanded}
+                    aria-current={active ? "page" : undefined}
+                    className={`group relative flex items-center gap-1 whitespace-nowrap rounded-none px-3 py-7 transition-colors focus:outline-none focus-visible:text-brand-accent xl:px-3.5 ${active ? "text-brand-accent" : expanded ? "text-brand-ink" : "text-brand-charcoal hover:text-brand-ink"}`}
+                  >
+                    {category.name}
+                    <ChevronDown size={14} className={`transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
+                    <span
+                      aria-hidden="true"
+                      className={`pointer-events-none absolute inset-x-3 bottom-0 h-0.5 rounded-full transition-colors xl:inset-x-3.5 ${active ? "bg-brand-accent" : expanded ? "bg-brand-charcoal" : "bg-transparent group-hover:bg-brand-line"}`}
+                    />
+                  </button>
+                );
+              })}
+              <Link
+                href="/Acerca"
+                onMouseEnter={() => setOpenMenu(null)}
+                aria-current={isAboutActive ? "page" : undefined}
+                style={{ borderRadius: 0 }}
+                className={`group relative whitespace-nowrap rounded-none px-3 py-7 transition-colors focus:outline-none focus-visible:text-brand-accent xl:px-3.5 ${isAboutActive ? "text-brand-accent" : "text-brand-charcoal hover:text-brand-ink"}`}
+              >
+                Nosotros
+                <span
+                  aria-hidden="true"
+                  className={`pointer-events-none absolute inset-x-3 bottom-0 h-0.5 rounded-full transition-colors xl:inset-x-3.5 ${isAboutActive ? "bg-brand-accent" : "bg-transparent group-hover:bg-brand-line"}`}
+                />
+              </Link>
             </div>
             <div className="flex-1 xl:hidden" />
 
@@ -315,7 +458,14 @@ export default function Navbar() {
                   <Link href="/sign-in" aria-label="Cuenta" className="flex items-center gap-2 text-[14px] font-medium transition hover:text-brand-accent"><span className="hidden 2xl:inline">Cuenta</span> <User size={20} /></Link>
                 )}
               </div>
-              <button className="xl:hidden" onClick={() => setMobileOpen((open) => !open)} aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}>
+              <button
+                type="button"
+                className="rounded-lg p-1 transition hover:text-brand-accent xl:hidden"
+                onClick={toggleMobileMenu}
+                aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+                aria-expanded={mobileOpen}
+                aria-controls="mobile-nav-drawer"
+              >
                 {mobileOpen ? <X size={22} /> : <Menu size={22} />}
               </button>
             </div>
@@ -356,46 +506,209 @@ export default function Navbar() {
             </div>
           ))}
 
-          {mobileOpen && (
-            <div className="max-h-[calc(100vh-100px)] overflow-y-auto border-t border-brand-line bg-white px-5 py-5 xl:hidden">
-              <Link className="block border-b border-brand-line py-3" href="/" onClick={() => setMobileOpen(false)}>Inicio</Link>
-              <Link className="block border-b border-brand-line py-3" href="/all-products" onClick={() => setMobileOpen(false)}>Todo el catálogo</Link>
-              {categories.map((category) => (
-                <details key={category.slug} className="border-b border-brand-line py-3">
-                  <summary className="cursor-pointer list-none font-medium text-brand-ink">{category.name}</summary>
-                  <div className="space-y-2 pb-2 pl-3 pt-3">
-                    {category.subcategories.filter((item) => !item.parent).map((subcategory) => {
-                      const children = category.subcategories.filter((item) => item.parent === subcategory.slug);
-                      const href = subcategory.href || categoryHref(category.slug, subcategory.slug);
-                      if (!children.length) {
-                        return <Link key={subcategory.slug} className="block text-sm text-brand-muted" href={href} onClick={() => setMobileOpen(false)}>{subcategory.name}</Link>;
-                      }
-                      return (
-                        <details key={subcategory.slug} className="text-sm text-brand-muted">
-                          <summary className="flex cursor-pointer list-none items-center justify-between pr-1">{subcategory.name} <ChevronDown size={14} /></summary>
-                          <div className="space-y-2 pl-4 pt-2">
-                            {children.map((child) => (
-                              <Link key={child.slug} className="block" href={categoryHref(category.slug, child.slug)} onClick={() => setMobileOpen(false)}>{child.name}</Link>
-                            ))}
-                          </div>
-                        </details>
-                      );
-                    })}
-                  </div>
-                </details>
-              ))}
-              <Link className="block py-3" href="/Acerca" onClick={() => setMobileOpen(false)}>Nosotros</Link>
-              {user ? (
-                <>
-                  {isSeller && <Link className="block border-b border-brand-line py-3 font-medium text-brand-accent" href="/seller/dashboard" onClick={() => setMobileOpen(false)}>Panel de administración</Link>}
-                  <Link className="block py-3" href="/my-orders" onClick={() => setMobileOpen(false)}>Mis órdenes</Link>
-                  <button className="block py-3" onClick={() => { setMobileOpen(false); signOut(); }}>Cerrar sesión</button>
-                </>
-              ) : <Link className="block py-3" href="/sign-in" onClick={() => setMobileOpen(false)}>Iniciar sesión</Link>}
-            </div>
-          )}
         </nav>
       </header>
+
+      {mobileOpen && (
+        <div
+          id="mobile-nav-drawer"
+          className="fixed inset-0 z-[70] xl:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menú de navegación"
+        >
+          <button
+            type="button"
+            onClick={closeMobile}
+            aria-label="Cerrar menú"
+            className="absolute inset-0 cursor-default rounded-none bg-brand-ink/45 backdrop-blur-[2px] animate-fade-in motion-reduce:animate-none"
+          />
+          <aside className="absolute inset-y-0 right-0 flex w-[min(90vw,400px)] max-w-full flex-col rounded-none bg-white shadow-[-24px_0_60px_-20px_rgba(11,13,18,0.35)] animate-drawer-in motion-reduce:animate-none">
+            <div className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-brand-line px-4">
+              <Link href="/" onClick={closeMobile} aria-label="COMPEL, inicio" className="shrink-0">
+                <Image className="w-24" src={assets.logo} alt="COMPEL" />
+              </Link>
+              <button
+                type="button"
+                onClick={closeMobile}
+                aria-label="Cerrar menú"
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-brand-line text-brand-charcoal transition hover:border-brand-accent hover:text-brand-accent focus:outline-none focus-visible:border-brand-accent focus-visible:text-brand-accent"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-4">
+              <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-muted/80">Navegación</p>
+              <div className="space-y-0.5">
+                <MobileNavLink href="/" label="Inicio" icon={Home} active={isHomeActive} onClick={closeMobile} />
+                <MobileNavLink
+                  href="/all-products"
+                  label="Todo el catálogo"
+                  icon={LayoutGrid}
+                  active={isCatalogActive}
+                  onClick={closeMobile}
+                />
+              </div>
+
+              <p className="mt-5 px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-muted/80">Categorías</p>
+              <div className="space-y-1">
+                {categories.map((category) => {
+                  const active = categoryIsActive(pathname, category);
+                  const expanded = mobileCategory === category.slug;
+                  const leaves = category.subcategories.filter(
+                    (item) => !item.parent && !category.subcategories.some((child) => child.parent === item.slug)
+                  );
+                  const parents = category.subcategories.filter((item) =>
+                    category.subcategories.some((child) => child.parent === item.slug)
+                  );
+                  return (
+                    <div
+                      key={category.slug}
+                      className="overflow-hidden"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setMobileCategory(expanded ? null : category.slug)}
+                        aria-expanded={expanded}
+                        aria-current={active ? "page" : undefined}
+                        className={`flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm transition-colors focus:outline-none focus-visible:text-brand-accent ${
+                          active
+                            ? "bg-brand-accent-soft font-semibold text-brand-accent"
+                            : "font-medium text-brand-charcoal hover:bg-brand-sand/70 hover:text-brand-ink"
+                        }`}
+                      >
+                        <span className="min-w-0 flex-1 truncate">{category.name}</span>
+                        {active && (
+                          <span className="shrink-0 rounded-full bg-white px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-brand-accent ring-1 ring-brand-accent/20">
+                            Actual
+                          </span>
+                        )}
+                        <ChevronDown
+                          size={16}
+                          className={`shrink-0 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+                        />
+                      </button>
+                      {expanded && (
+                        <div className="space-y-0.5 px-2 pb-2 pt-1">
+                          <MobileSubLink
+                            href={`/categoria/${category.slug}`}
+                            label={`Ver todo ${category.name}`}
+                            active={currentPath === normalizePath(`/categoria/${category.slug}`)}
+                            onClick={closeMobile}
+                            showBadge={false}
+                          />
+                          {leaves.map((subcategory) => (
+                            <MobileSubLink
+                              key={subcategory.slug}
+                              href={subcategoryHref(category, subcategory)}
+                              label={subcategory.name}
+                              active={currentPath === normalizePath(subcategoryHref(category, subcategory))}
+                              onClick={closeMobile}
+                            />
+                          ))}
+                          {parents.map((parent) => {
+                            const children = category.subcategories.filter((child) => child.parent === parent.slug);
+                            const parentActive =
+                              currentPath === normalizePath(subcategoryHref(category, parent)) ||
+                              children.some((child) => currentPath === normalizePath(subcategoryHref(category, child)));
+                            return (
+                              <div key={parent.slug} className="pt-1">
+                                <MobileSubLink
+                                  href={subcategoryHref(category, parent)}
+                                  label={parent.name}
+                                  active={parentActive}
+                                  onClick={closeMobile}
+                                />
+                                <div className="ml-3 border-l border-brand-line pl-1.5">
+                                  {children.map((child) => (
+                                    <MobileSubLink
+                                      key={child.slug}
+                                      href={subcategoryHref(category, child)}
+                                      label={child.name}
+                                      active={currentPath === normalizePath(subcategoryHref(category, child))}
+                                      onClick={closeMobile}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <p className="mt-5 px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-muted/80">Compañía</p>
+              <MobileNavLink href="/Acerca" label="Nosotros" icon={Info} active={isAboutActive} onClick={closeMobile} />
+            </div>
+
+            <div className="shrink-0 border-t border-brand-line p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              {user ? (
+                <>
+                  <div className="mb-2 flex items-center gap-2.5 rounded-xl bg-brand-sand/60 p-2.5">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-brand-accent text-xs font-semibold text-white ring-2 ring-white">
+                      {avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={avatarUrl} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                      ) : (
+                        displayName.charAt(0).toUpperCase()
+                      )}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[12px] font-semibold text-brand-ink">{displayName}</p>
+                      <p className="truncate text-[11px] text-brand-muted">{user.email}</p>
+                    </div>
+                  </div>
+                  <div className="grid gap-1">
+                    {isSeller && (
+                      <MobileNavLink
+                        href="/seller/dashboard"
+                        label="Panel de administración"
+                        icon={LayoutDashboard}
+                        active={isSellerActive}
+                        onClick={closeMobile}
+                        showBadge={false}
+                      />
+                    )}
+                    <MobileNavLink
+                      href="/my-orders"
+                      label="Mis órdenes"
+                      icon={ShoppingBag}
+                      active={isOrdersActive}
+                      onClick={closeMobile}
+                      showBadge={false}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        closeMobile();
+                        signOut();
+                      }}
+                      className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-brand-sale transition-colors hover:bg-red-50"
+                    >
+                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-red-50 text-brand-sale">
+                        <LogOut size={15} aria-hidden="true" />
+                      </span>
+                      Cerrar sesión
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <Link
+                  href="/sign-in"
+                  onClick={closeMobile}
+                  className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-accent px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-ink"
+                >
+                  <User size={17} aria-hidden="true" /> Iniciar sesión
+                </Link>
+              )}
+            </div>
+          </aside>
+        </div>
+      )}
 
       {((cartOpen && canShop) || searchOpen) && (
         <div className="fixed inset-0 z-[60] bg-black/40" onClick={() => { setCartOpen(false); setSearchOpen(false); }}>

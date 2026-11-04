@@ -75,6 +75,31 @@ button.absolute.inset-0 {
   justify-content: center;
 }
 
+/* Sellos de certificación sobre la primera diapositiva del hero */
+.certification-seal {
+  height: var(--seal-height, 104px);
+}
+
+@media (max-width: 1023px) {
+  .certification-seal {
+    height: calc(var(--seal-height, 104px) * 0.78);
+  }
+}
+
+@media (max-width: 639px) {
+  .certification-seal {
+    height: min(72px, calc(var(--seal-height, 104px) * 0.6));
+  }
+}
+
+.certification-seals-scroll {
+  scrollbar-width: none;
+}
+
+.certification-seals-scroll::-webkit-scrollbar {
+  display: none;
+}
+
 /* Responsive tweaks para carrusel */
 @media (max-width: 768px) {
   .brand-logo {

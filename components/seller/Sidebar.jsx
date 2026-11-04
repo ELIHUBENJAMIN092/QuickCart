@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Award,
   BarChart3,
   BadgeCheck,
   CreditCard,
@@ -40,6 +41,7 @@ const groups = [
     label: "Contenido",
     items: [
       { name: "Carrusel", path: "/seller/carousel", icon: GalleryHorizontal },
+      { name: "Certificaciones", path: "/seller/certificaciones", icon: Award },
       { name: "Marcas de confianza", path: "/seller/marcas", icon: BadgeCheck },
       { name: "Banner", path: "/seller/banner", icon: Megaphone },
     ],

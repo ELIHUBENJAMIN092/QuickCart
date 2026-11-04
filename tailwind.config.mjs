@@ -45,12 +45,22 @@ export default {
           from: { transform: 'translateY(100%)' },
           to: { transform: 'translateY(0)' },
         },
+        'drawer-in': {
+          from: { transform: 'translateX(100%)' },
+          to: { transform: 'translateX(0)' },
+        },
+        'fade-in': {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
       },
       animation: {
         'scale-in': 'scale-in 500ms ease-out',
         progress: 'progress 6s linear',
         'menu-in': 'menu-in 160ms ease-out',
         'sheet-in': 'sheet-in 240ms cubic-bezier(0.32, 0.72, 0, 1)',
+        'drawer-in': 'drawer-in 300ms cubic-bezier(0.32, 0.72, 0, 1)',
+        'fade-in': 'fade-in 220ms ease-out',
       },
       gridTemplateColumns: {
         auto: 'repeat(auto-fit, minmax(200px, 1fr))',
