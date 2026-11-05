@@ -1,13 +1,16 @@
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
 import BrandCarousel from "@/components/BrandLogos";
+import CategoryHero from "@/components/CategoryHero";
 import Loading from "@/components/Loading";
 import Container from "@/components/ui/Container";
 import { useAppContext } from "@/context/AppContext";
-import { normalizeProductCategory, printerTypes } from "@/lib/categories";
+import { getCategoryBySlug, normalizeProductCategory, printerTypes } from "@/lib/categories";
+
+const DESCRIPTION =
+  "Impresoras portátiles, de escritorio e industriales para identificar, etiquetar y rastrear en tu operación.";
 
 export default function LabelPrintersPage() {
   const { products } = useAppContext();
@@ -25,46 +28,70 @@ export default function LabelPrintersPage() {
 
   if (!products.length) return <Loading />;
 
+  const category = getCategoryBySlug("codigo-de-barras");
+  const heroCategory = { ...category, description: DESCRIPTION };
+  const total = grouped.reduce((sum, type) => sum + type.items.length, 0);
+
   return (
     <main>
-      <div className="border-b border-brand-line bg-brand-sand">
-        <Container className="py-8 md:py-10">
-          <nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap gap-2 text-xs text-brand-muted">
-            <Link href="/" className="hover:text-brand-accent">Inicio</Link><span>»</span>
-            <Link href="/all-products?category=codigo-de-barras" className="hover:text-brand-accent">Código de Barras</Link><span>»</span>
-            <span className="text-brand-ink">Impresoras de etiquetas</span>
-          </nav>
-          <h1 className="font-display text-3xl leading-[0.96] text-brand-ink md:text-5xl">Impresoras de etiquetas</h1>
-          <p className="mt-3 max-w-2xl text-sm text-brand-muted md:text-base">Impresoras portátiles, de escritorio e industriales para identificar, etiquetar y rastrear en tu operación.</p>
-          <div className="mt-6 flex flex-wrap gap-3">
+      <CategoryHero category={heroCategory} subcategory={{ name: "Impresoras de etiquetas" }} />
+
+      <div id="productos" className="scroll-mt-24">
+        <div className="border-b border-brand-line bg-white">
+          <Container className="flex flex-wrap gap-2 py-5">
             {grouped.map((type) => (
-              <a key={type.slug} href={`#${type.slug}`} className="inline-flex items-center gap-2 border border-brand-line bg-white px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-ink transition hover:border-brand-ink hover:bg-brand-ink hover:text-white">
+              <a
+                key={type.slug}
+                href={`#${type.slug}`}
+                className="inline-flex items-center border border-brand-line bg-white px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-ink transition hover:border-brand-ink hover:bg-brand-ink hover:text-white"
+              >
                 {type.name}
               </a>
             ))}
-          </div>
-        </Container>
-      </div>
-
-      {grouped.map((type) => (
-        <section key={type.slug} id={type.slug} className="scroll-mt-20 pb-10 md:pb-14">
-          <div className="border-y border-brand-line bg-brand-sand">
-            <Container className="py-5 md:py-6">
-              <h2 className="font-display text-2xl text-brand-ink md:text-3xl">{type.name}</h2>
-              <p className="mt-1 text-sm text-brand-muted">{type.description}</p>
-            </Container>
-          </div>
-          <Container>
-            {type.items.length ? (
-              <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
-                {type.items.map((product) => <ProductCard key={product._id} product={product} />)}
-              </div>
-            ) : (
-              <p className="mt-8 border border-brand-line bg-brand-sand px-5 py-6 text-sm text-brand-muted">Próximamente tendremos modelos en esta categoría.</p>
-            )}
           </Container>
-        </section>
-      ))}
+        </div>
+
+        {total === 0 && (
+          <Container className="py-12">
+            <p className="border border-brand-line bg-brand-sand px-5 py-6 text-sm text-brand-muted">
+              Próximamente tendremos productos en esta sección.
+            </p>
+          </Container>
+        )}
+
+        {grouped.map((type) => (
+          <section
+            key={type.slug}
+            id={type.slug}
+            className="scroll-mt-24 border-b border-brand-line pb-12 pt-8 md:pb-16 md:pt-10"
+          >
+            <div className="border-y border-brand-line bg-brand-sand">
+              <Container className="flex items-end justify-between gap-4 py-6 md:py-8">
+                <div>
+                  <h2 className="font-display text-2xl leading-none text-brand-ink md:text-4xl">{type.name}</h2>
+                  <p className="mt-2 text-sm text-brand-muted">{type.description}</p>
+                </div>
+                <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-muted">
+                  {type.items.length} productos
+                </span>
+              </Container>
+            </div>
+            <Container>
+              {type.items.length ? (
+                <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
+                  {type.items.map((product) => (
+                    <ProductCard key={product._id} product={product} />
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-8 border border-brand-line bg-brand-sand px-5 py-6 text-sm text-brand-muted">
+                  Próximamente tendremos modelos en esta categoría.
+                </p>
+              )}
+            </Container>
+          </section>
+        ))}
+      </div>
       <BrandCarousel />
     </main>
   );

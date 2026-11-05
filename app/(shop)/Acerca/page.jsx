@@ -4,12 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 import BrandCarousel from "@/components/BrandLogos";
+import WhatsAppContacts from "@/components/WhatsAppContacts";
 import { assets } from "@/assets/assets";
 import Container from "@/components/ui/Container";
 
 const contactItems = [
   { icon: Phone, title: "Llámanos", detail: "02 2548-701 · 02 2902-384", href: "tel:+59322548701" },
-  { icon: Mail, title: "Escríbenos", detail: "soporte@compelecuador.com", href: "mailto:soporte@compelecuador.com" },
+  { icon: Mail, title: "Escríbenos", detail: "info@compelecuador.com", href: "mailto:info@compelecuador.com" },
   { icon: MapPin, title: "Visítanos", detail: "Jerónimo Carrión Oe1-10 y Av. 10 de Agosto, Quito", href: "https://maps.google.com/?q=Jerónimo+Carrión+Oe1-10+y+Av.+10+de+Agosto,+Quito" },
 ];
 
@@ -57,6 +58,16 @@ export default function AboutPage() {
                   <p className="mt-2 text-sm leading-6 text-brand-muted">{detail}</p>
                 </a>
               ))}
+            </div>
+            <div className="mt-8">
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-accent">Atención directa</p>
+                  <h3 className="mt-2 font-display text-2xl text-brand-ink md:text-3xl">Escríbenos por WhatsApp</h3>
+                </div>
+                <p className="text-xs text-brand-muted">Elige el contacto que necesitas.</p>
+              </div>
+              <WhatsAppContacts className="mt-5" />
             </div>
             <div className="mt-8 overflow-hidden rounded-xl border border-brand-line bg-white">
               <iframe

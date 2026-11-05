@@ -8,11 +8,12 @@ This application now uses Supabase Auth, Postgres, and Storage for new accounts 
 2. After restoring and applying the authoritative base schema, apply `migrations/20261028170000_commerce_visibility.sql` to create the seller-controlled store switch.
 3. Apply `migrations/20261028190000_trusted_brands.sql` to create the brand carousel catalog and import the eight existing logo entries. New logo files use the existing `product-media` bucket and seller-owned storage paths.
 4. Apply `migrations/20261104130000_certifications.sql` to create the certification seals catalog. Its three seeded Zebra seals are displayed over the first home carousel slide; sellers can add, resize, reorder, and remove them from **Certificaciones**.
-5. Enable the `pg_cron` extension in Supabase, then apply `migrations/20261029190000_chat_phase2.sql`. The migration schedules daily cleanup for expired conversations, events, and feedback (90-day retention).
-6. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in the local and deployment environments. Never expose a secret/service-role key to the browser. Configure `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` for shared production rate limiting; chat, lead, feedback, and event endpoints fail closed if this service is unavailable.
-7. Configure an SMTP provider in Supabase Auth settings so confirmation and password-recovery messages can be delivered.
-8. Set the site's allowed redirect URL in Supabase Auth, then deploy the `send-order-email` Edge Function with JWT verification enabled (`supabase functions deploy send-order-email`). Set the Edge Function secrets `RESEND_API_KEY` and `RESEND_FROM_EMAIL`; these remain private in Supabase and are not needed in the Next.js app. Configure a custom SMTP provider in Supabase Auth for confirmation and password-recovery emails. An external email delivery provider is still required for transactional messages.
-9. Create the first account through `/sign-up`. Seller access is granted by an administrator in the SQL Editor, for example:
+5. Apply `migrations/20261104171600_whatsapp_contacts.sql` to create the WhatsApp contacts catalog shown in **Nosotros**. Its three seeded contacts can be renamed, reordered, added, or removed from **Contactos** in the seller dashboard. If that migration was applied before 2026-11-05, also apply `migrations/20261105163000_fix_reorder_whatsapp_contacts.sql` to fix the reorder RPC (its previous version failed with `21000: UPDATE requires a WHERE clause`).
+6. Enable the `pg_cron` extension in Supabase, then apply `migrations/20261029190000_chat_phase2.sql`. The migration schedules daily cleanup for expired conversations, events, and feedback (90-day retention).
+7. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in the local and deployment environments. Never expose a secret/service-role key to the browser. Configure `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` for shared production rate limiting; chat, lead, feedback, and event endpoints fail closed if this service is unavailable.
+8. Configure an SMTP provider in Supabase Auth settings so confirmation and password-recovery messages can be delivered.
+9. Set the site's allowed redirect URL in Supabase Auth, then deploy the `send-order-email` Edge Function with JWT verification enabled (`supabase functions deploy send-order-email`). Set the Edge Function secrets `RESEND_API_KEY` and `RESEND_FROM_EMAIL`; these remain private in Supabase and are not needed in the Next.js app. Configure a custom SMTP provider in Supabase Auth for confirmation and password-recovery emails. An external email delivery provider is still required for transactional messages.
+10. Create the first account through `/sign-up`. Seller access is granted by an administrator in the SQL Editor, for example:
 
    ```sql
    update public.profiles
@@ -20,13 +21,15 @@ This application now uses Supabase Auth, Postgres, and Storage for new accounts 
    where email = 'admin@example.com';
    ```
 
-10. Verify email confirmation, login, catalog reads, seller-only product changes, media uploads, order creation, and order email delivery before routing production traffic to the new app.
+11. Verify email confirmation, login, catalog reads, seller-only product changes, media uploads, order creation, and order email delivery before routing production traffic to the new app.
 
 The storefront exposes prices and shopping actions only to authenticated users while the seller-controlled commerce switch is enabled. Turning it off hides prices and cart controls and also blocks cart updates and new order creation at the API layer. The migration also restricts anonymous direct reads of the product table to non-price catalog fields; storefront RPCs return price fields only when the caller is authenticated and the switch is enabled. The switch is polled every 30 seconds and refreshed when a browser tab regains focus.
 
 The seller dashboard's **Marcas de confianza** page manages the logo carousel. Uploaded JPG, PNG, and WebP logos are optimized in the browser, and sellers can add, reorder, and remove entries.
 
 The seller dashboard's **Certificaciones** page manages the certified rating seals. Uploaded JPG, PNG, and WebP seals are optimized in the browser, each one has an adjustable display height, and sellers can add, rename, resize, reorder, and remove them. The seals are overlaid only on the first slide of the home carousel.
+
+The seller dashboard's **Contactos** page manages the WhatsApp numbers shown in the Contact section of **Nosotros**. Sellers can add, rename, edit the phone number, reorder, and remove contacts; each one opens a WhatsApp conversation using the Ecuador country code.
 
 The application expects a public product-media bucket, seller-restricted storage writes, and an atomic order-creation RPC that records item snapshots and clears the user's cart. Verify these controls against the deployed Supabase policies and function before relying on them; their definitions are not checked into this repository.
 

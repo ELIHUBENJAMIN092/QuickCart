@@ -14,6 +14,7 @@ import {
   List,
   LogOut,
   Megaphone,
+  MessageCircle,
   MessageSquare,
   PackagePlus,
   ShoppingBag,
@@ -44,6 +45,7 @@ const groups = [
       { name: "Certificaciones", path: "/seller/certificaciones", icon: Award },
       { name: "Marcas de confianza", path: "/seller/marcas", icon: BadgeCheck },
       { name: "Banner", path: "/seller/banner", icon: Megaphone },
+      { name: "Contactos", path: "/seller/contactos", icon: MessageCircle },
     ],
   },
   {

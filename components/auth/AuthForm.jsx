@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
-export default function AuthForm({ mode }) {
+export default function AuthForm({ mode, heroImage }) {
   const isSignUp = mode === "sign-up";
   const isForgotPassword = mode === "forgot-password";
   const isUpdatePassword = mode === "update-password";
@@ -92,40 +92,45 @@ export default function AuthForm({ mode }) {
   const inputClass = "mt-1.5 w-full rounded-lg border border-brand-line bg-white px-4 py-3.5 text-base text-brand-ink outline-none transition placeholder:text-brand-muted/60 focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/15";
 
   return (
-    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden px-4 py-10 lg:justify-end lg:px-[8vw]">
-      <Image src={assets.codigo_barras} alt="" fill priority sizes="100vw" className="object-cover object-[30%_center]" />
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0B2A6F]/85 via-[#0069FF]/55 to-[#3BA6EF]/40" aria-hidden="true" />
-      <Link href="/" aria-label="Ir al inicio" className="absolute bottom-8 left-8 hidden lg:block">
-        <Image className="w-44 brightness-[2.2] saturate-[0.8] drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]" src={logoCompel} alt="COMPEL" priority />
-      </Link>
+    <main className="relative isolate min-h-dvh overflow-hidden bg-[#020B22]">
+      <Image src={heroImage || assets.codigo_barras} alt="" fill priority sizes="100vw" className="object-cover object-center" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#020B22]/95 via-[#05245C]/65 to-[#05245C]/20" aria-hidden="true" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#020B22]/70 via-transparent to-[#020B22]/45 lg:hidden" aria-hidden="true" />
 
-      <section className="relative z-10 w-full max-w-md">
-        <h2 className="mb-6 hidden text-center font-display text-2xl font-bold uppercase leading-tight text-white drop-shadow lg:block xl:text-3xl">
-          Identificación, código de barras y RFID<br /><span className="font-semibold">para tu negocio.</span>
-        </h2>
-        <form onSubmit={handleSubmit} className="w-full space-y-5 rounded-2xl bg-[#04132F]/95 p-6 text-white shadow-2xl backdrop-blur sm:p-9">
-          <div>
-            <Link href="/" aria-label="Ir al inicio" className="mb-6 flex justify-center">
-              <Image className="w-44 brightness-[2.2] saturate-[0.8]" src={logoCompel} alt="COMPEL" priority />
-            </Link>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-sky-300 text-center">Cuenta COMPEL</p>
-            <h1 className="mt-2 text-center font-display text-3xl leading-[1] text-white sm:text-4xl lg:mt-0">{title}</h1>
-            <p className="mt-3 text-center text-sm leading-relaxed text-white/70">{subtitle}</p>
-          </div>
+      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-7xl flex-col px-5 pb-10 pt-8 sm:px-8 sm:pb-12 sm:pt-10 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,27rem)] lg:items-center lg:gap-16 lg:px-12 lg:pb-16 lg:pt-24 xl:gap-24">
+        <header className="mx-auto max-w-2xl text-center lg:mx-0 lg:text-left">
+          <h1 className="text-balance font-display text-[2rem] font-extrabold leading-[1.08] tracking-tight text-white drop-shadow-[0_3px_18px_rgba(0,0,0,0.6)] sm:text-5xl lg:text-6xl xl:text-7xl">
+            Identificación, código de barras y RFID
+            <span className="block text-white/85">para tu negocio.</span>
+          </h1>
+          <p className="mt-5 hidden max-w-lg text-base leading-7 text-white/85 lg:block">
+            Soluciones profesionales para identificar, rastrear y optimizar la operación de tu empresa.
+          </p>
+        </header>
+
+        <section className="mx-auto mt-8 w-full max-w-md lg:mt-0 lg:max-w-none">
+          <form onSubmit={handleSubmit} className="w-full space-y-4 rounded-2xl border border-white/70 bg-white/85 p-5 text-brand-ink shadow-2xl backdrop-blur-md sm:space-y-5 sm:p-8">
+            <div className="flex flex-col items-center">
+              <Link href="/" aria-label="Ir al inicio" className="mb-4 inline-flex">
+                <Image className="h-6 w-auto drop-shadow-[0_3px_6px_rgba(0,0,0,0.4)]" src={logoCompel} alt="COMPEL" priority />
+              </Link>
+              <h2 className="text-center font-display text-2xl leading-[1] text-[#0B2A6F] sm:text-3xl lg:text-4xl">{title}</h2>
+              <p className="mt-2 text-center text-sm leading-relaxed text-brand-muted sm:mt-3">{subtitle}</p>
+            </div>
         {isSignUp && (
-          <label className="block text-sm font-medium text-white/90">
+          <label className="block text-sm font-medium text-brand-charcoal">
             Nombre
             <input required autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} className={inputClass} />
           </label>
         )}
         {!isUpdatePassword && (
-          <label className="block text-sm font-medium text-white/90">
+          <label className="block text-sm font-medium text-brand-charcoal">
             Correo electrónico
             <input required type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass} />
           </label>
         )}
         {!isForgotPassword && (
-          <label className="block text-sm font-medium text-white/90">
+          <label className="block text-sm font-medium text-brand-charcoal">
             Contraseña
             <div className="relative">
               <input required type={showPassword ? "text" : "password"} minLength={8} autoComplete={isSignUp || isUpdatePassword ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} className={`${inputClass} pr-24`} />
@@ -140,10 +145,10 @@ export default function AuthForm({ mode }) {
         </button>
         {showGoogle && (
           <>
-            <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-white/60">
-              <span className="h-px flex-1 bg-white/20" /> o <span className="h-px flex-1 bg-white/20" />
+            <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-brand-muted">
+              <span className="h-px flex-1 bg-brand-line" /> o <span className="h-px flex-1 bg-brand-line" />
             </div>
-            <button type="button" onClick={handleGoogle} disabled={submitting} className="flex w-full items-center justify-center gap-3 rounded-lg bg-white py-3.5 text-sm font-semibold text-brand-charcoal transition hover:bg-brand-sand disabled:opacity-60">
+            <button type="button" onClick={handleGoogle} disabled={submitting} className="flex w-full items-center justify-center gap-3 rounded-lg border border-brand-line bg-white py-3.5 text-sm font-semibold text-brand-charcoal transition hover:bg-brand-sand disabled:opacity-60">
               <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
                 <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.4 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z" />
                 <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.2 5.5-4.7 7.2l7.6 5.9c4.4-4.1 6.9-10.1 6.9-17.6z" />
@@ -156,20 +161,21 @@ export default function AuthForm({ mode }) {
         )}
         {mode === "sign-in" ? (
           <>
-            <p className="text-center text-sm text-white/70">
-              <Link className="font-medium text-sky-300 hover:underline" href="/forgot-password">¿Olvidaste tu contraseña?</Link>
+            <p className="text-center text-sm text-brand-muted">
+              <Link className="font-medium text-brand-accent hover:underline" href="/forgot-password">¿Olvidaste tu contraseña?</Link>
             </p>
-            <p className="text-center text-sm text-white/70">
-              ¿Aún no tienes cuenta? <Link className="font-medium text-sky-300 hover:underline" href="/sign-up">Regístrate</Link>
+            <p className="text-center text-sm text-brand-muted">
+              ¿Aún no tienes cuenta? <Link className="font-medium text-brand-accent hover:underline" href="/sign-up">Regístrate</Link>
             </p>
           </>
         ) : mode !== "update-password" && (
-          <p className="text-center text-sm text-white/70">
-            ¿Ya tienes cuenta? <Link className="font-medium text-sky-300 hover:underline" href="/sign-in">Inicia sesión</Link>
+          <p className="text-center text-sm text-brand-muted">
+            ¿Ya tienes cuenta? <Link className="font-medium text-brand-accent hover:underline" href="/sign-in">Inicia sesión</Link>
           </p>
         )}
-      </form>
-      </section>
+          </form>
+        </section>
+      </div>
     </main>
   );
 }

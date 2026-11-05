@@ -66,7 +66,7 @@ export default function Footer() {
               <li><Link href="/Acerca" className="transition hover:text-brand-accent">Nosotros y contacto</Link></li>
               <li><button onClick={() => setShowPDF(true)} className="transition hover:text-brand-accent">Política de privacidad</button></li>
               <li><a href="https://wa.me/593984617873" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 transition hover:text-brand-accent"><FaWhatsapp /> +(593) 98 461 7873</a></li>
-              <li><a href="mailto:soporte@compelecuador.com" className="transition hover:text-brand-accent">soporte@compelecuador.com</a></li>
+              <li><a href="mailto:info@compelecuador.com" className="transition hover:text-brand-accent">info@compelecuador.com</a></li>
             </ul>
           </div>
 
