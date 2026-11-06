@@ -37,7 +37,7 @@ export default function HomeProducts() {
           />
           <div className="flex flex-wrap gap-x-8 border-t border-brand-line/70">
             {tabs.map((tab) => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`border-b-2 px-1 py-4 text-[11px] font-semibold uppercase tracking-[0.14em] transition ${activeTab === tab.id ? "border-brand-accent text-brand-ink" : "border-transparent text-brand-muted hover:text-brand-ink"}`}>
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`!rounded-none border-b-2 px-1 py-4 outline-none focus-visible:text-brand-accent text-[11px] font-semibold uppercase tracking-[0.14em] transition ${activeTab === tab.id ? "border-brand-accent text-brand-ink" : "border-transparent text-brand-muted hover:text-brand-ink"}`}>
                 {tab.label}
               </button>
             ))}

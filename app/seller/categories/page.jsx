@@ -18,9 +18,8 @@ import { optimizeImage } from "@/lib/imageOptimize";
 
 const inputClass = "mt-2 w-full rounded-xl border border-brand-line bg-white px-4 py-3 text-base text-brand-ink outline-none transition placeholder:text-brand-muted focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/10 sm:text-sm";
 
-// Proporción panorámica de la imagen de categoría y de la portada del sitio.
-// Coincide con la franja ancha que se ve en la sección de categoría.
-const CATEGORY_IMAGE_ASPECT = 10 / 3;
+// La imagen de categoría es cuadrada (tarjeta del inicio); la portada es panorámica.
+const CATEGORY_IMAGE_ASPECT = 1;
 const CATEGORY_HERO_ASPECT = 10 / 3;
 const aspectFor = (kind) => (kind === "hero" ? CATEGORY_HERO_ASPECT : CATEGORY_IMAGE_ASPECT);
 
@@ -235,11 +234,11 @@ function CategoryEditor({ category, position, isNew = false, onSaved, onCancel }
 
       <form id={formId} onSubmit={save} className={`grid gap-5 border-t border-brand-line p-4 sm:p-5 md:grid-cols-[240px_1fr] md:gap-6 ${open ? "" : "hidden"}`}>
         <div>
-          <div className="relative overflow-hidden rounded-2xl border border-brand-line bg-brand-sand/40" style={{ aspectRatio: CATEGORY_IMAGE_ASPECT }}>
+          <div className="relative mx-auto max-w-[240px] overflow-hidden rounded-2xl border border-brand-line bg-brand-sand/40" style={{ aspectRatio: CATEGORY_IMAGE_ASPECT }}>
             {preview ? <Image src={preview} alt="" fill unoptimized={Boolean(filePreview)} sizes="(max-width: 768px) 100vw, 240px" className="object-cover" /> : <span className="flex h-full items-center justify-center text-xs text-brand-muted">Sin imagen</span>}
           </div>
           <label className="mt-3 flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-brand-line bg-brand-sand/30 px-3 py-2.5 text-xs font-medium text-brand-accent transition hover:border-brand-accent hover:bg-brand-accent-soft/40">
-            <ImagePlus size={16} /> <span className="min-w-0 truncate">{file ? file.name : "Imagen de categoría"}</span>
+            <ImagePlus size={16} /> <span className="min-w-0 truncate">{file ? file.name : "Imagen de tarjeta"}</span>
             <input type="file" accept="image/*" className="sr-only" onChange={(event) => pickImage(event, "image")} />
           </label>
           {file && (
@@ -255,7 +254,7 @@ function CategoryEditor({ category, position, isNew = false, onSaved, onCancel }
             <button type="button" onClick={() => setResetImage(true)} className="mt-2 block w-full text-center text-xs text-brand-sale hover:underline">Quitar imagen personalizada</button>
           )}
           <p className="mt-2 text-[11px] leading-4 text-brand-muted">
-            {usesVideo ? "Se usa como póster del video y lámina de categoría." : "Se usa como lámina de categoría y respaldo de la portada."} Panorámica, ideal 10:3, máximo 8 MB.
+            Se usa en la tarjeta de la categoría del inicio. Cuadrada, ideal 1:1 (mín. 800×800 px), máximo 8 MB.
           </p>
         </div>
 
@@ -293,7 +292,7 @@ function CategoryEditor({ category, position, isNew = false, onSaved, onCancel }
                   <Film size={14} /> Con video
                 </button>
               </div>
-              <span className="text-[11px] text-brand-muted">{usesVideo ? "Se reproduce automáticamente, sin sonido." : "Sube una portada propia o usa la imagen de categoría."}</span>
+              <span className="text-[11px] text-brand-muted">{usesVideo ? "Se reproduce automáticamente, sin sonido." : "Sube una portada propia o usa la imagen de tarjeta."}</span>
             </div>
 
             {usesVideo ? (
@@ -355,10 +354,10 @@ function CategoryEditor({ category, position, isNew = false, onSaved, onCancel }
                         }}
                         className="self-start text-xs text-brand-sale hover:underline"
                       >
-                        Usar imagen de categoría
+                        Usar imagen de tarjeta
                       </button>
                     )}
-                    <p>Si no subes una imagen de portada, se usará la imagen de categoría y podría recortarse.</p>
+                    <p>Si no subes una imagen de portada, se usará la imagen de tarjeta (cuadrada) y se recortará.</p>
                   </div>
                 </div>
               </>
@@ -418,11 +417,11 @@ function CategoryEditor({ category, position, isNew = false, onSaved, onCancel }
         <ImageCropModal
           file={cropTarget.file}
           aspect={aspectFor(cropTarget.kind)}
-          title={cropTarget.kind === "hero" ? "Encuadrar portada de categoría" : "Encuadrar imagen de categoría"}
+          title={cropTarget.kind === "hero" ? "Encuadrar portada de categoría" : "Encuadrar imagen de tarjeta"}
           description={
             cropTarget.kind === "hero"
               ? "Mueve la imagen con las flechas o arrástrala. El marco discontinuo muestra la proporción panorámica (10:3) que se verá en la portada."
-              : "Mueve la imagen con las flechas o arrástrala. El marco discontinuo muestra la proporción panorámica (10:3) que se verá en la sección."
+              : "Mueve la imagen con las flechas o arrástrala. El marco discontinuo muestra la proporción cuadrada (1:1) que se verá en la tarjeta del inicio."
           }
           onApply={applyCrop}
           onClose={() => setCropTarget(null)}

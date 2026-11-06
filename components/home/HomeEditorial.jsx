@@ -29,19 +29,21 @@ export default function HomeEditorial() {
             description="Combinamos producto, conocimiento técnico y servicio local para que cada implementación funcione desde el primer día."
           />
           <div className="grid items-stretch gap-5 lg:grid-cols-[1.05fr_0.95fr]">
-            <div className="relative min-h-[320px] overflow-hidden border border-brand-line bg-brand-sand md:min-h-[440px]">
-              <Image src={familia} alt="Familia de productos COMPEL" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-contain p-8 md:p-12" />
-              <span className="absolute bottom-0 left-0 h-1 w-28 bg-brand-accent" />
+            <div className="relative aspect-[4/3] overflow-hidden border border-brand-line bg-brand-sand sm:aspect-[16/10] lg:aspect-auto lg:min-h-[440px]">
+              <Image src={familia} alt="Familia de productos COMPEL" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-contain p-5 sm:p-8 lg:p-12" />
+              <span className="absolute bottom-0 left-0 h-1 w-20 bg-brand-accent md:w-28" />
             </div>
-            <div className="grid gap-px border border-brand-line bg-brand-line sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-px border border-brand-line bg-brand-line">
               {benefits.map(({ icon: Icon, title, text }, index) => (
-                <article key={title} className="flex flex-col bg-white p-7 md:p-8">
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-muted">0{index + 1}</span>
-                    <Icon size={20} className="text-brand-accent" />
+                <article key={title} className="flex flex-col bg-white p-4 sm:p-6 md:p-8">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-muted sm:text-[11px]">0{index + 1}</span>
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-accent-soft sm:h-9 sm:w-9">
+                      <Icon size={16} className="text-brand-accent sm:size-[18px]" />
+                    </span>
                   </div>
-                  <h3 className="mt-8 font-display text-xl text-brand-ink md:text-2xl">{title}</h3>
-                  <p className="mt-2 text-sm leading-7 text-brand-muted">{text}</p>
+                  <h3 className="mt-5 font-display text-base leading-tight text-brand-ink sm:mt-8 sm:text-xl md:text-2xl">{title}</h3>
+                  <p className="mt-2 text-xs leading-5 text-brand-muted sm:text-sm sm:leading-7">{text}</p>
                 </article>
               ))}
             </div>
