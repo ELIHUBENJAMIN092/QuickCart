@@ -361,7 +361,7 @@ export default function AddProduct() {
                 ))}
               </div>
               {errorOf("photo") && <p role="alert" className="mt-2 text-[11px] text-brand-sale">{errorOf("photo")}</p>}
-              <p className="mt-3 text-xs leading-5 text-brand-muted">JPG, PNG o WebP · Máximo 8 MB por imagen. Se optimizan automáticamente.</p>
+              <p className="mt-3 text-xs leading-5 text-brand-muted">JPG, PNG o WebP · Máximo 8 MB por imagen. Se optimizan y se intenta quitar el fondo blanco y sus sombras automáticamente. Revisa la vista previa; para fondos complejos usa una imagen transparente.</p>
 
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <Field label="Video del producto" hint="(opcional, máximo 100 MB)">

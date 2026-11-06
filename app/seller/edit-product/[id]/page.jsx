@@ -298,7 +298,7 @@ export default function EditProduct() {
 
           <section className="border-t border-brand-line pt-6">
             <h2 className="mb-1 text-sm font-semibold text-brand-ink">Imágenes y video{required}</h2>
-            <p className="mb-4 text-xs leading-5 text-brand-muted">Cambia o quita cada foto por separado. Máximo 3 imágenes de 8 MB; se optimizan y se les quita el fondo blanco automáticamente.</p>
+            <p className="mb-4 text-xs leading-5 text-brand-muted">Cambia o quita cada foto por separado. Máximo 3 imágenes de 8 MB; se optimizan y se intenta quitar el fondo blanco y sus sombras automáticamente. Revisa la vista previa; para fondos complejos usa una imagen transparente.</p>
             {hasError("images") && <p role="alert" data-invalid="true" className="mb-3 text-[11px] text-brand-sale">Sube al menos una imagen del producto.</p>}
             <div className="grid grid-cols-3 gap-2.5 sm:max-w-md sm:gap-3">
               {slots.map((slot, index) => (
