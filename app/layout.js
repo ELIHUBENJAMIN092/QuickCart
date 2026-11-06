@@ -2,6 +2,7 @@ import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 import { AppContextProvider } from "@/context/AppContext";
 import { ConfirmProvider } from "@/components/ui/ConfirmProvider";
+import VisitTracker from "@/components/VisitTracker";
 import { Toaster } from "react-hot-toast";
 
 const inter = Inter({
@@ -23,6 +24,7 @@ export default function RootLayout({ children }) {
     <html lang="es" data-scroll-behavior="smooth">
       <body className={`${inter.variable} ${manrope.variable} font-sans antialiased`}>
         <Toaster />
+        <VisitTracker />
         <AppContextProvider><ConfirmProvider>{children}</ConfirmProvider></AppContextProvider>
       </body>
     </html>

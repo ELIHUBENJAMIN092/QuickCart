@@ -37,20 +37,6 @@ export default function LabelPrintersPage() {
       <CategoryHero category={heroCategory} subcategory={{ name: "Impresoras de etiquetas" }} />
 
       <div id="productos" className="scroll-mt-24">
-        <div className="border-b border-brand-line bg-white">
-          <Container className="flex flex-wrap gap-2 py-5">
-            {grouped.map((type) => (
-              <a
-                key={type.slug}
-                href={`#${type.slug}`}
-                className="inline-flex items-center border border-brand-line bg-white px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-ink transition hover:border-brand-ink hover:bg-brand-ink hover:text-white"
-              >
-                {type.name}
-              </a>
-            ))}
-          </Container>
-        </div>
-
         {total === 0 && (
           <Container className="py-12">
             <p className="border border-brand-line bg-brand-sand px-5 py-6 text-sm text-brand-muted">

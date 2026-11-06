@@ -8,8 +8,6 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#FFFFFF',
-        foreground: '#3A3A3A',
         brand: {
           cream: '#FFFFFF',
           sand: '#EEF1F7',
@@ -29,10 +27,6 @@ export default {
         sans: ['var(--font-sans)', 'Arial', 'sans-serif'],
       },
       keyframes: {
-        'scale-in': {
-          from: { transform: 'scale(0.8)', opacity: '0' },
-          to: { transform: 'scale(1)', opacity: '1' },
-        },
         progress: {
           from: { width: '0' },
           to: { width: '100%' },
@@ -55,15 +49,11 @@ export default {
         },
       },
       animation: {
-        'scale-in': 'scale-in 500ms ease-out',
         progress: 'progress 6s linear',
         'menu-in': 'menu-in 160ms ease-out',
         'sheet-in': 'sheet-in 240ms cubic-bezier(0.32, 0.72, 0, 1)',
         'drawer-in': 'drawer-in 300ms cubic-bezier(0.32, 0.72, 0, 1)',
         'fade-in': 'fade-in 220ms ease-out',
-      },
-      gridTemplateColumns: {
-        auto: 'repeat(auto-fit, minmax(200px, 1fr))',
       },
     },
   },

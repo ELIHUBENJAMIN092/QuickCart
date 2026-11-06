@@ -5,16 +5,24 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { ArrowRight, ChevronDown, Film, Image as ImageIcon, ImagePlus, Plus, Trash2, Upload } from "lucide-react";
+import { ArrowRight, ChevronDown, Crop, Film, Image as ImageIcon, ImagePlus, Plus, Trash2, Upload } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 import { useConfirm } from "@/components/ui/ConfirmProvider";
 import PageHeader from "@/components/seller/PageHeader";
+import ImageCropModal from "@/components/seller/ImageCropModal";
 import { categories, parseSubcategories, subcategoriesToText } from "@/lib/categories";
+import { aspectMatches, getImageDimensions } from "@/lib/imageCrop";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { uploadProductFile } from "@/lib/supabase/storage";
 import { optimizeImage } from "@/lib/imageOptimize";
 
 const inputClass = "mt-2 w-full rounded-xl border border-brand-line bg-white px-4 py-3 text-base text-brand-ink outline-none transition placeholder:text-brand-muted focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/10 sm:text-sm";
+
+// Proporción panorámica de la imagen de categoría y de la portada del sitio.
+// Coincide con la franja ancha que se ve en la sección de categoría.
+const CATEGORY_IMAGE_ASPECT = 10 / 3;
+const CATEGORY_HERO_ASPECT = 10 / 3;
+const aspectFor = (kind) => (kind === "hero" ? CATEGORY_HERO_ASPECT : CATEGORY_IMAGE_ASPECT);
 
 function CategoryEditor({ category, position, isNew = false, onSaved, onCancel }) {
   const { getToken, user } = useAppContext();
@@ -44,6 +52,7 @@ function CategoryEditor({ category, position, isNew = false, onSaved, onCancel }
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(isNew);
   const [coverType, setCoverType] = useState(category?.hero?.video_url ? "video" : "image");
+  const [cropTarget, setCropTarget] = useState(null);
   const filePreview = useMemo(() => (file ? URL.createObjectURL(file) : ""), [file]);
   const heroImagePreview = useMemo(() => (heroImageFile ? URL.createObjectURL(heroImageFile) : ""), [heroImageFile]);
   const videoPreview = useMemo(() => (videoFile ? URL.createObjectURL(videoFile) : ""), [videoFile]);
@@ -68,6 +77,35 @@ function CategoryEditor({ category, position, isNew = false, onSaved, onCancel }
     setVideoFile(null);
     setCoverType("image");
     setForm((current) => ({ ...current, hero: { ...current.hero, video_url: "" } }));
+  };
+
+  // Si la imagen no trae la proporción esperada, abrimos el encuadre automáticamente.
+  const pickImage = async (event, kind) => {
+    const selected = event.target.files?.[0] || null;
+    event.target.value = "";
+    if (!selected) return;
+    if (kind === "hero") {
+      setHeroImageFile(selected);
+      setResetHeroImage(false);
+    } else {
+      setFile(selected);
+      setResetImage(false);
+    }
+    const dimensions = await getImageDimensions(selected);
+    if (dimensions && !aspectMatches(dimensions.width, dimensions.height, aspectFor(kind))) {
+      setCropTarget({ kind, file: selected });
+    }
+  };
+
+  const openCrop = (kind, targetFile) => {
+    if (targetFile) setCropTarget({ kind, file: targetFile });
+  };
+
+  const applyCrop = (croppedFile) => {
+    if (!cropTarget) return;
+    if (cropTarget.kind === "hero") setHeroImageFile(croppedFile);
+    else setFile(croppedFile);
+    setCropTarget(null);
   };
 
   const save = async (event) => {
@@ -197,18 +235,27 @@ function CategoryEditor({ category, position, isNew = false, onSaved, onCancel }
 
       <form id={formId} onSubmit={save} className={`grid gap-5 border-t border-brand-line p-4 sm:p-5 md:grid-cols-[240px_1fr] md:gap-6 ${open ? "" : "hidden"}`}>
         <div>
-          <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-brand-line bg-brand-sand/40 md:aspect-[4/3]">
+          <div className="relative overflow-hidden rounded-2xl border border-brand-line bg-brand-sand/40" style={{ aspectRatio: CATEGORY_IMAGE_ASPECT }}>
             {preview ? <Image src={preview} alt="" fill unoptimized={Boolean(filePreview)} sizes="(max-width: 768px) 100vw, 240px" className="object-cover" /> : <span className="flex h-full items-center justify-center text-xs text-brand-muted">Sin imagen</span>}
           </div>
           <label className="mt-3 flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-brand-line bg-brand-sand/30 px-3 py-2.5 text-xs font-medium text-brand-accent transition hover:border-brand-accent hover:bg-brand-accent-soft/40">
             <ImagePlus size={16} /> <span className="min-w-0 truncate">{file ? file.name : "Imagen de categoría"}</span>
-            <input type="file" accept="image/*" className="sr-only" onChange={(event) => { setFile(event.target.files?.[0] || null); setResetImage(false); }} />
+            <input type="file" accept="image/*" className="sr-only" onChange={(event) => pickImage(event, "image")} />
           </label>
+          {file && (
+            <button
+              type="button"
+              onClick={() => openCrop("image", file)}
+              className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-brand-line px-3 py-2 text-[11px] font-medium text-brand-accent transition hover:border-brand-accent hover:bg-brand-accent-soft/40"
+            >
+              <Crop size={13} /> Encuadrar imagen
+            </button>
+          )}
           {!isNew && category?.image_url && !file && !resetImage && (
             <button type="button" onClick={() => setResetImage(true)} className="mt-2 block w-full text-center text-xs text-brand-sale hover:underline">Quitar imagen personalizada</button>
           )}
           <p className="mt-2 text-[11px] leading-4 text-brand-muted">
-            {usesVideo ? "Se usa como póster del video y lámina de categoría." : "Se usa como lámina de categoría y respaldo de la portada."} Horizontal, máximo 8 MB.
+            {usesVideo ? "Se usa como póster del video y lámina de categoría." : "Se usa como lámina de categoría y respaldo de la portada."} Panorámica, ideal 10:3, máximo 8 MB.
           </p>
         </div>
 
@@ -274,21 +321,30 @@ function CategoryEditor({ category, position, isNew = false, onSaved, onCancel }
               <>
                 <div className="overflow-hidden rounded-xl border border-brand-line bg-brand-sand">
                   {heroImage ? (
-                    <div className="relative aspect-video">
+                    <div className="relative" style={{ aspectRatio: CATEGORY_HERO_ASPECT }}>
                       <Image src={heroImage} alt="" fill unoptimized={Boolean(heroImagePreview)} sizes="(max-width: 768px) 100vw, 720px" className="object-cover" />
                     </div>
                   ) : (
-                    <div className="grid aspect-video place-items-center text-xs text-brand-muted">Sin imagen de portada</div>
+                    <div className="grid place-items-center text-xs text-brand-muted" style={{ aspectRatio: CATEGORY_HERO_ASPECT }}>Sin imagen de portada</div>
                   )}
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="flex min-h-14 cursor-pointer flex-col justify-center rounded-xl border border-dashed border-brand-line px-4 py-3 text-xs text-brand-charcoal transition hover:border-brand-accent">
                     <span className="inline-flex items-center gap-2 font-medium text-brand-accent"><ImagePlus size={15} /> {heroImageFile ? "Cambiar imagen de portada" : "Subir imagen de portada"}</span>
-                    <span className="mt-1 truncate text-[11px] text-brand-muted">{heroImageFile ? heroImageFile.name : "Horizontal, ideal 16:9, máximo 8 MB"}</span>
-                    <input type="file" accept="image/*" className="sr-only" onChange={(event) => { setHeroImageFile(event.target.files?.[0] || null); setResetHeroImage(false); }} />
+                    <span className="mt-1 truncate text-[11px] text-brand-muted">{heroImageFile ? heroImageFile.name : "Panorámica, ideal 10:3, máximo 8 MB"}</span>
+                    <input type="file" accept="image/*" className="sr-only" onChange={(event) => pickImage(event, "hero")} />
                   </label>
                   <div className="flex flex-col justify-center gap-1.5 text-[11px] leading-4 text-brand-muted">
+                    {heroImageFile && (
+                      <button
+                        type="button"
+                        onClick={() => openCrop("hero", heroImageFile)}
+                        className="inline-flex items-center gap-1.5 self-start text-xs font-medium text-brand-accent hover:underline"
+                      >
+                        <Crop size={13} /> Encuadrar imagen
+                      </button>
+                    )}
                     {hasCustomHeroImage && (
                       <button
                         type="button"
@@ -302,7 +358,7 @@ function CategoryEditor({ category, position, isNew = false, onSaved, onCancel }
                         Usar imagen de categoría
                       </button>
                     )}
-                    <p>Si no subes una imagen de portada, se usará la imagen de categoría.</p>
+                    <p>Si no subes una imagen de portada, se usará la imagen de categoría y podría recortarse.</p>
                   </div>
                 </div>
               </>
@@ -357,6 +413,21 @@ function CategoryEditor({ category, position, isNew = false, onSaved, onCancel }
         </div>
         </div>
       </form>
+
+      {cropTarget && (
+        <ImageCropModal
+          file={cropTarget.file}
+          aspect={aspectFor(cropTarget.kind)}
+          title={cropTarget.kind === "hero" ? "Encuadrar portada de categoría" : "Encuadrar imagen de categoría"}
+          description={
+            cropTarget.kind === "hero"
+              ? "Mueve la imagen con las flechas o arrástrala. El marco discontinuo muestra la proporción panorámica (10:3) que se verá en la portada."
+              : "Mueve la imagen con las flechas o arrástrala. El marco discontinuo muestra la proporción panorámica (10:3) que se verá en la sección."
+          }
+          onApply={applyCrop}
+          onClose={() => setCropTarget(null)}
+        />
+      )}
     </div>
   );
 }

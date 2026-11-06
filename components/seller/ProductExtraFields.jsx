@@ -6,7 +6,7 @@ import { isLabelPrinterSubcategory, printerTypes } from "@/lib/categories";
 const inputClass =
   "w-full rounded-xl border border-brand-line bg-white px-4 py-3 text-base text-brand-ink outline-none transition placeholder:text-brand-muted focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/10 sm:text-sm";
 
-export const MAX_CATALOG_SIZE = 25 * 1024 * 1024;
+const MAX_CATALOG_SIZE = 25 * 1024 * 1024;
 
 export function validateCatalogFile(file) {
   return !file || (file.type === "application/pdf" && file.size <= MAX_CATALOG_SIZE);

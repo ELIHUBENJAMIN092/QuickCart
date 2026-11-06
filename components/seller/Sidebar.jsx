@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Activity,
   Award,
   BarChart3,
   BadgeCheck,
@@ -59,6 +60,10 @@ const groups = [
       { name: "Pagos confirmados", path: "/seller/pagos", icon: CreditCard },
       { name: "Asistente IA", path: "/seller/chat", icon: MessageSquare },
     ],
+  },
+  {
+    label: "Monitoreo",
+    items: [{ name: "Visitas", path: "/seller/visitas", icon: Activity }],
   },
 ];
 

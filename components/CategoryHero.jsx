@@ -28,7 +28,7 @@ export default function CategoryHero({ category, subcategory }) {
 
   return (
     <section className="bg-white">
-      <div className={`relative isolate min-h-[45vh] overflow-hidden border-b border-brand-line md:min-h-[60vh] ${hero.video_url ? videoBackground : "bg-brand-sand"}`}>
+      <div className={`relative isolate h-[45vh] overflow-hidden border-b border-brand-line md:h-[clamp(300px,30vw,720px)] ${hero.video_url ? videoBackground : "bg-brand-sand"}`}>
         {hero.video_url ? (
           <video
             key={hero.video_url}
