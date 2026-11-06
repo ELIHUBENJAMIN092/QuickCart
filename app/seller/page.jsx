@@ -34,6 +34,7 @@ const steps = [
   { title: "Publicar", description: "Revisión final", icon: PackageCheck },
 ];
 
+const invalidClass = "!border-brand-sale !ring-2 !ring-red-100";
 const inputClass = "w-full rounded-xl border border-brand-line bg-white px-4 py-3.5 text-base text-brand-ink outline-none transition placeholder:text-brand-muted focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/10 sm:text-sm";
 
 function useObjectUrl(file) {
@@ -55,14 +56,15 @@ function StepHeading({ eyebrow, title, description }) {
   );
 }
 
-function Field({ label, hint, children, className = "" }) {
+function Field({ label, hint, children, className = "", error = "" }) {
   return (
-    <label className={`block min-w-0 text-sm font-medium text-brand-charcoal ${className}`}>
+    <label className={`block min-w-0 text-sm font-medium text-brand-charcoal ${className}`} data-invalid={error ? "true" : undefined}>
       <span className="mb-2 block">
         {label}
         {hint && <span className="ml-1 text-[11px] font-normal text-brand-muted">{hint}</span>}
       </span>
       {children}
+      {error && <span role="alert" className="mt-1.5 block text-[11px] font-normal text-brand-sale">{error}</span>}
     </label>
   );
 }
@@ -88,6 +90,7 @@ export default function AddProduct() {
   const [printerType, setPrinterType] = useState("");
   const [specsText, setSpecsText] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
   const selectedCategory = categories.find((item) => item.slug === category);
   const firstImagePreview = useObjectUrl(files[0]);
   const secondImagePreview = useObjectUrl(files[1]);
@@ -96,6 +99,19 @@ export default function AddProduct() {
   const videoPreview = useObjectUrl(video);
   const brandLogoPreview = useObjectUrl(brandLogo);
   const progress = Math.round(((step + 1) / steps.length) * 100);
+
+  const fieldErrors = {
+    photo: !files[0] ? "Añade la foto principal." : "",
+    name: !name.trim() ? "Escribe el nombre del producto." : "",
+    description: !description.trim() ? "Escribe la descripción." : "",
+    category: !selectedCategory ? "Selecciona una categoría." : "",
+    price: !(Number(price) > 0) ? "Ingresa un precio mayor a 0." : "",
+    offerPrice: offerPrice === "" || Number(offerPrice) < 0 || Number(offerPrice) > Number(price) ? "Ingresa el precio de oferta (0 si no aplica, no mayor al normal)." : "",
+    stock: stock === "" || !Number.isInteger(Number(stock)) || Number(stock) < 0 ? "Ingresa las unidades disponibles." : "",
+    printerType: isLabelPrinterSubcategory(category, subcategory) && !printerTypes.some((item) => item.slug === printerType) ? "Selecciona el tipo de impresora." : "",
+  };
+  const errorOf = (field) => (showErrors ? fieldErrors[field] : "");
+  const inputFor = (field, base = inputClass) => (errorOf(field) ? `${base} ${invalidClass}` : base);
 
   const validateStep = (stepIndex) => {
     if (stepIndex === 0) {
@@ -136,7 +152,10 @@ export default function AddProduct() {
       for (let index = step; index < nextStep; index += 1) {
         const error = validateStep(index);
         if (error) {
+          setStep(index);
+          setShowErrors(true);
           toast.error(error);
+          setTimeout(() => document.querySelector("[data-invalid='true']")?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
           return;
         }
       }
@@ -170,6 +189,7 @@ export default function AddProduct() {
   };
 
   const resetForm = () => {
+    setShowErrors(false);
     setStep(0);
     setFiles([]);
     setVideo(null);
@@ -195,7 +215,9 @@ export default function AddProduct() {
       const error = validateStep(index);
       if (error) {
         setStep(index);
+        setShowErrors(true);
         toast.error(error);
+        setTimeout(() => document.querySelector("[data-invalid='true']")?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
         return;
       }
     }
@@ -301,7 +323,7 @@ export default function AddProduct() {
           </ol>
         </div>
 
-        <form id="product-wizard-form" onSubmit={handleSubmit} className="rounded-2xl border border-brand-line bg-white p-4 shadow-sm sm:p-6 md:p-8">
+        <form id="product-wizard-form" noValidate onSubmit={handleSubmit} className="rounded-2xl border border-brand-line bg-white p-4 shadow-sm sm:p-6 md:p-8">
           {step === 0 && (
             <section>
               <StepHeading
@@ -311,7 +333,7 @@ export default function AddProduct() {
               />
               <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 {[0, 1, 2].map((index) => (
-                  <label key={index} htmlFor={`product-image-${index}`} className="group relative flex aspect-square cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-brand-line bg-brand-sand/40 p-2 text-center transition hover:border-brand-accent sm:p-3">
+                  <label key={index} htmlFor={`product-image-${index}`} data-invalid={index === 0 && errorOf("photo") ? "true" : undefined} className={`group relative flex aspect-square cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed ${index === 0 && errorOf("photo") ? "border-brand-sale bg-red-50/60" : "border-brand-line bg-brand-sand/40"} p-2 text-center transition hover:border-brand-accent sm:p-3`}>
                     <input
                       id={`product-image-${index}`}
                       type="file"
@@ -330,7 +352,7 @@ export default function AddProduct() {
                     ) : (
                       <>
                         <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-brand-accent shadow-sm sm:h-12 sm:w-12 sm:rounded-2xl"><ImagePlus size={18} className="sm:h-[22px] sm:w-[22px]" /></span>
-                        <span className="mt-2 text-[10px] font-semibold leading-tight text-brand-ink sm:mt-3 sm:text-xs">{index === 0 ? "Foto principal *" : `Foto ${index + 1}`}</span>
+                        <span className={`mt-2 text-[10px] font-semibold leading-tight sm:mt-3 sm:text-xs ${index === 0 && errorOf("photo") ? "text-brand-sale" : "text-brand-ink"}`}>{index === 0 ? "Foto principal *" : `Foto ${index + 1}`}</span>
                         <span className="mt-1 hidden text-[10px] text-brand-muted sm:block">Toca para seleccionar</span>
                       </>
                     )}
@@ -338,6 +360,7 @@ export default function AddProduct() {
                   </label>
                 ))}
               </div>
+              {errorOf("photo") && <p role="alert" className="mt-2 text-[11px] text-brand-sale">{errorOf("photo")}</p>}
               <p className="mt-3 text-xs leading-5 text-brand-muted">JPG, PNG o WebP · Máximo 8 MB por imagen. Se optimizan automáticamente.</p>
 
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -390,20 +413,20 @@ export default function AddProduct() {
                 description="Un nombre claro y una descripción completa ayudan a tus clientes a identificar el producto."
               />
               <div className="grid gap-5">
-                <Field label="Nombre del producto *" hint="(máximo 160 caracteres)">
-                  <input required maxLength={160} value={name} onChange={(event) => setName(event.target.value)} placeholder="Ej. Impresora industrial de etiquetas" className={inputClass} />
+                <Field label="Nombre del producto *" hint="(máximo 160 caracteres)" error={errorOf("name")}>
+                  <input required maxLength={160} value={name} onChange={(event) => setName(event.target.value)} placeholder="Ej. Impresora industrial de etiquetas" className={inputFor("name")} />
                 </Field>
-                <Field label="Descripción *" hint="(máximo 5000 caracteres)">
-                  <textarea required maxLength={5000} rows={6} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Describe sus funciones, ventajas y para quién es ideal…" className={`${inputClass} resize-y`} />
+                <Field label="Descripción *" hint="(máximo 5000 caracteres)" error={errorOf("description")}>
+                  <textarea required maxLength={5000} rows={6} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Describe sus funciones, ventajas y para quién es ideal…" className={`${inputFor("description")} resize-y`} />
                   <span className="mt-1 block text-right text-[11px] text-brand-muted">{description.length}/5000</span>
                 </Field>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Categoría *">
+                  <Field label="Categoría *" error={errorOf("category")}>
                     <select required value={category} onChange={(event) => {
                       setCategory(event.target.value);
                       setSubcategory("");
                       setPrinterType("");
-                    }} className={inputClass}>
+                    }} className={inputFor("category")}>
                       {categories.map((item) => <option key={item.slug} value={item.slug}>{item.label || item.name}</option>)}
                     </select>
                   </Field>
@@ -429,20 +452,20 @@ export default function AddProduct() {
                 description="Revisa los valores con cuidado. El stock debe ser un número entero y el precio de oferta no puede superar el normal."
               />
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Precio normal *">
+                <Field label="Precio normal *" error={errorOf("price")}>
                   <div className="relative">
                     <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-brand-muted">{process.env.NEXT_PUBLIC_CURRENCY || "$"}</span>
-                    <input required min="0.01" step="0.01" type="number" value={price} onChange={(event) => setPrice(event.target.value)} placeholder="0.00" className={`${inputClass} pl-11`} />
+                    <input required min="0.01" step="0.01" type="number" value={price} onChange={(event) => setPrice(event.target.value)} placeholder="0.00" className={inputFor("price", `${inputClass} pl-11`)} />
                   </div>
                 </Field>
-                <Field label="Precio de oferta" hint="(usa 0 si no aplica)">
+                <Field label="Precio de oferta *" hint="(usa 0 si no aplica)" error={errorOf("offerPrice")}>
                   <div className="relative">
                     <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-brand-muted">{process.env.NEXT_PUBLIC_CURRENCY || "$"}</span>
-                    <input required min="0" step="0.01" type="number" value={offerPrice} onChange={(event) => setOfferPrice(event.target.value)} placeholder="0.00" className={`${inputClass} pl-11`} />
+                    <input required min="0" step="0.01" type="number" value={offerPrice} onChange={(event) => setOfferPrice(event.target.value)} placeholder="0.00" className={inputFor("offerPrice", `${inputClass} pl-11`)} />
                   </div>
                 </Field>
-                <Field label="Unidades disponibles *">
-                  <input required min="0" step="1" type="number" value={stock} onChange={(event) => setStock(event.target.value)} placeholder="0" className={inputClass} />
+                <Field label="Unidades disponibles *" error={errorOf("stock")}>
+                  <input required min="0" step="1" type="number" value={stock} onChange={(event) => setStock(event.target.value)} placeholder="0" className={inputFor("stock")} />
                 </Field>
                 <div className="flex items-center gap-3 rounded-xl bg-brand-sand/70 p-4 text-xs leading-5 text-brand-muted">
                   <BadgeCheck size={20} className="shrink-0 text-brand-accent" />
@@ -461,8 +484,8 @@ export default function AddProduct() {
               />
               <div className="space-y-6">
                 {isLabelPrinterSubcategory(category, subcategory) && (
-                  <Field label="Tipo de impresora *">
-                    <select required value={printerType} onChange={(event) => setPrinterType(event.target.value)} className={inputClass}>
+                  <Field label="Tipo de impresora *" error={errorOf("printerType")}>
+                    <select required value={printerType} onChange={(event) => setPrinterType(event.target.value)} className={inputFor("printerType")}>
                       <option value="">Selecciona un tipo</option>
                       {printerTypes.map((type) => <option key={type.slug} value={type.slug}>{type.name}</option>)}
                     </select>

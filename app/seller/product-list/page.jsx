@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AlertTriangle, CheckCircle2, Download, Eye, Package, PackageOpen, Pencil, Plus, Search, Trash2, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, Download, Eye, GripVertical, Package, PackageOpen, Pencil, Plus, Search, Trash2, XCircle } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useAppContext } from "@/context/AppContext";
@@ -11,6 +11,7 @@ import Loading from "@/components/Loading";
 import PageHeader from "@/components/seller/PageHeader";
 import { useConfirm } from "@/components/ui/ConfirmProvider";
 import { categories, getCategoryName, getSubcategoryName, matchesCategoryFilter } from "@/lib/categories";
+import { applyVisibleOrder, moveItem } from "@/lib/productOrder";
 
 const stockFilters = [
   { value: "all", label: "Todo el inventario" },
@@ -27,8 +28,11 @@ export default function ProductList() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [stockFilter, setStockFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("recent");
+  const [sortBy, setSortBy] = useState("store");
   const [deletingId, setDeletingId] = useState("");
+  const [reordering, setReordering] = useState(false);
+  const [dragId, setDragId] = useState("");
+  const [overId, setOverId] = useState("");
 
   const fetchProducts = async () => {
     try {
@@ -72,6 +76,66 @@ export default function ProductList() {
     if (sortBy === "price") filtered.sort((a, b) => Number(a.offerPrice || 0) - Number(b.offerPrice || 0));
     return filtered;
   }, [products, search, categoryFilter, stockFilter, sortBy]);
+
+  const canReorder = sortBy === "store" && !reordering;
+
+  const saveOrder = async (visibleIds) => {
+    const previous = products;
+    const byId = new Map(products.map((product) => [product._id, product]));
+    const fullOrder = applyVisibleOrder(products.map((product) => product._id), visibleIds);
+    setProducts(fullOrder.map((id) => byId.get(id)));
+    setReordering(true);
+    try {
+      const token = await getToken();
+      const { data } = await axios.patch("/api/product/reorder", { order: fullOrder }, { headers: { Authorization: `Bearer ${token}` } });
+      if (!data.success) throw new Error(data.message);
+      await fetchProductData();
+      toast.success("Orden guardado.");
+    } catch (error) {
+      setProducts(previous);
+      toast.error(error.response?.data?.message || error.message || "No se pudo guardar el orden.");
+    } finally {
+      setReordering(false);
+    }
+  };
+
+  const moveProduct = (index, step) => {
+    if (reordering) return;
+    const ids = filteredProducts.map((product) => product._id);
+    const next = moveItem(ids, index, step);
+    if (next !== ids) saveOrder(next);
+  };
+
+  const dropOn = (targetId) => {
+    const sourceId = dragId;
+    setDragId("");
+    setOverId("");
+    if (!sourceId || sourceId === targetId) return;
+    const ids = filteredProducts.map((product) => product._id);
+    const from = ids.indexOf(sourceId);
+    const to = ids.indexOf(targetId);
+    if (from < 0 || to < 0) return;
+    const next = [...ids];
+    next.splice(to, 0, next.splice(from, 1)[0]);
+    saveOrder(next);
+  };
+
+  const dragProps = (product) => canReorder ? {
+    draggable: true,
+    onDragStart: (event) => { event.dataTransfer.effectAllowed = "move"; setDragId(product._id); },
+    onDragOver: (event) => { event.preventDefault(); if (overId !== product._id) setOverId(product._id); },
+    onDrop: (event) => { event.preventDefault(); dropOn(product._id); },
+    onDragEnd: () => { setDragId(""); setOverId(""); },
+  } : {};
+
+  const dragClass = (product) => `${dragId === product._id ? "opacity-40" : ""} ${overId === product._id && dragId && dragId !== product._id ? "bg-brand-accent-soft/60" : ""}`;
+
+  const renderMoveButtons = (index) => (
+    <div className="flex items-center gap-1">
+      <button type="button" onClick={() => moveProduct(index, -1)} disabled={index === 0} aria-label="Subir producto" className="grid h-10 w-10 place-items-center rounded-xl border border-brand-line text-brand-charcoal transition hover:border-brand-accent hover:text-brand-accent disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9"><ArrowUp size={15} /></button>
+      <button type="button" onClick={() => moveProduct(index, 1)} disabled={index === filteredProducts.length - 1} aria-label="Bajar producto" className="grid h-10 w-10 place-items-center rounded-xl border border-brand-line text-brand-charcoal transition hover:border-brand-accent hover:text-brand-accent disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9"><ArrowDown size={15} /></button>
+    </div>
+  );
 
   const counts = useMemo(() => ({
     total: products.length,
@@ -201,6 +265,7 @@ export default function ProductList() {
                   {stockFilters.map((filter) => <option key={filter.value} value={filter.value}>{filter.label}</option>)}
                 </select>
                 <select value={sortBy} onChange={(event) => setSortBy(event.target.value)} aria-label="Ordenar productos" className="min-h-11 rounded-xl border border-brand-line bg-brand-sand/40 px-3 py-2.5 text-base outline-none transition focus:border-brand-accent sm:text-xs">
+                  <option value="store">Orden en la tienda</option>
                   <option value="recent">Más recientes</option>
                   <option value="name">Nombre A–Z</option>
                   <option value="stock">Menor stock</option>
@@ -210,6 +275,7 @@ export default function ProductList() {
 
               <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-xs text-brand-muted">
                 <span className="rounded-full bg-brand-sand px-2.5 py-1 font-medium text-brand-charcoal">{filteredProducts.length} de {products.length} productos</span>
+                {sortBy === "store" && <span className="min-w-0 flex-1 basis-full text-[11px] leading-4 sm:basis-auto"><span className="hidden lg:inline">Arrastra las filas o usa las flechas para cambiar el orden en la tienda.</span><span className="lg:hidden">Usa las flechas para cambiar el orden en la tienda.</span>{(search || categoryFilter || stockFilter !== "all") && " Con filtros activos, solo se reordenan los productos visibles."}</span>}
                 {(search || categoryFilter || stockFilter !== "all") && <button onClick={clearFilters} className="rounded-full px-2 py-1 font-medium text-brand-accent hover:underline">Limpiar filtros</button>}
               </div>
 
@@ -225,11 +291,19 @@ export default function ProductList() {
                   <div className="hidden overflow-x-auto lg:block">
                     <table className="w-full min-w-[850px]">
                       <thead className="bg-brand-sand/60 text-left text-[10px] uppercase tracking-wider text-brand-muted">
-                        <tr><th className="px-5 py-3 font-semibold">Producto</th><th className="px-4 py-3 font-semibold">Categoría</th><th className="px-4 py-3 font-semibold">Precio</th><th className="px-4 py-3 font-semibold">Stock</th><th className="px-5 py-3 text-right font-semibold">Acciones</th></tr>
+                        <tr>{sortBy === "store" && <th className="w-36 py-3 pl-5 font-semibold">Orden</th>}<th className="px-5 py-3 font-semibold">Producto</th><th className="px-4 py-3 font-semibold">Categoría</th><th className="px-4 py-3 font-semibold">Precio</th><th className="px-4 py-3 font-semibold">Stock</th><th className="px-5 py-3 text-right font-semibold">Acciones</th></tr>
                       </thead>
                       <tbody className="divide-y divide-brand-line">
-                        {filteredProducts.map((product) => (
-                          <tr key={product._id} className="transition hover:bg-brand-sand/30">
+                        {filteredProducts.map((product, index) => (
+                          <tr key={product._id} {...dragProps(product)} className={`transition hover:bg-brand-sand/30 ${dragClass(product)}`}>
+                            {sortBy === "store" && (
+                              <td className="py-3 pl-5">
+                                <div className="flex items-center gap-2">
+                                  <GripVertical size={18} aria-hidden="true" className={canReorder ? "cursor-grab text-brand-muted" : "text-brand-line"} />
+                                  {renderMoveButtons(index)}
+                                </div>
+                              </td>
+                            )}
                             <td className="px-5 py-3">
                               <div className="flex items-center gap-3">
                                 <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-brand-line bg-brand-sand/40">
@@ -248,7 +322,7 @@ export default function ProductList() {
                     </table>
                   </div>
                   <div className="divide-y divide-brand-line lg:hidden">
-                    {filteredProducts.map((product) => (
+                    {filteredProducts.map((product, index) => (
                       <article key={product._id} className="p-4">
                         <div className="flex gap-3">
                           <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-brand-line bg-brand-sand/40">
@@ -269,6 +343,12 @@ export default function ProductList() {
                               </div>
                               {renderActions(product)}
                             </div>
+                            {sortBy === "store" && (
+                              <div className="mt-3 flex items-center justify-between gap-2 border-t border-brand-line pt-3">
+                                <span className="text-[11px] font-medium text-brand-muted">Posición {index + 1}</span>
+                                {renderMoveButtons(index)}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </article>

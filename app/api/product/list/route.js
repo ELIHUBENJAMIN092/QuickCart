@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabasePublicClient, getAuthenticatedSupabase } from "@/lib/supabase/server";
 import { mapProduct } from "@/lib/supabase/records";
+import { loadPositions, sortByPosition } from "@/lib/productOrder";
 
 export async function GET(request) {
   try {
@@ -9,7 +10,8 @@ export async function GET(request) {
     const { data, error } = await supabase.rpc("storefront_products");
     if (error) throw error;
 
-    const products = data.map(mapProduct);
+    const positions = await loadPositions(supabase);
+    const products = sortByPosition(data.map(mapProduct), positions);
     return NextResponse.json(
       { success: true, products },
       { headers: { "Cache-Control": "private, no-store" } }

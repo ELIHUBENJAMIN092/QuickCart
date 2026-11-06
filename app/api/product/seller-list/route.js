@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import authSeller from "@/lib/authSeller";
 import { getAuthenticatedSupabase } from "@/lib/supabase/server";
 import { mapProduct } from "@/lib/supabase/records";
+import { loadPositions, sortByPosition } from "@/lib/productOrder";
 
 export async function GET(request) {
   try {
@@ -16,7 +17,8 @@ export async function GET(request) {
       .order("created_at", { ascending: false });
     if (error) throw error;
 
-    return NextResponse.json({ success: true, products: data.map(mapProduct) });
+    const products = sortByPosition(data.map(mapProduct), await loadPositions(supabase));
+    return NextResponse.json({ success: true, products });
   } catch (error) {
     console.error("Error obteniendo el inventario:", error);
     return NextResponse.json(

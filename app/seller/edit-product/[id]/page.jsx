@@ -25,6 +25,7 @@ export default function EditProduct() {
   const { getToken, router, fetchProductData, user } = useAppContext();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [slots, setSlots] = useState([]);
   const [processingSlot, setProcessingSlot] = useState(null);
   const [videoFile, setVideoFile] = useState(null);
@@ -61,7 +62,7 @@ export default function EditProduct() {
     const fetchProduct = async () => {
       try {
         const token = await getToken();
-        const { data } = await axios.get(`/api/product/${id}`, {
+        const { data } = await axios.get(`/api/product/seller-list/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!data.success || !data.product) {
@@ -76,7 +77,7 @@ export default function EditProduct() {
           category: normalized.category,
           subcategory: normalized.subcategory,
           price: data.product.price ?? "",
-          offerPrice: data.product.offerPrice ?? "",
+          offerPrice: Number.isFinite(data.product.offerPrice) ? data.product.offerPrice : "",
           stock: data.product.stock ?? 0,
           image: data.product.image || [],
           video: data.product.video || "",
@@ -97,6 +98,20 @@ export default function EditProduct() {
     };
     fetchProduct();
   }, [getToken, id, router]);
+
+  const missing = {
+    name: !product.name.trim(),
+    description: !product.description.trim(),
+    category: !product.category || !selectedCategoryIsValid,
+    price: !(Number(product.price) > 0),
+    offerPrice: product.offerPrice === "" || Number(product.offerPrice) < 0 || Number(product.offerPrice) > Number(product.price),
+    stock: product.stock === "" || Number(product.stock) < 0,
+    images: !slots.some((slot) => slot.url || slot.file),
+  };
+  const hasError = (field) => submitted && missing[field];
+  const fieldClass = (field) => hasError(field) ? `${inputClass} !border-brand-sale !ring-2 !ring-red-100` : inputClass;
+  const errorText = (field, text) => hasError(field) && <span role="alert" className="block text-[11px] font-normal text-brand-sale">{text}</span>;
+  const required = <span className="text-brand-sale" aria-hidden="true"> *</span>;
 
   const updateField = (field, value) =>
     setProduct((current) => ({ ...current, [field]: value }));
@@ -126,6 +141,12 @@ export default function EditProduct() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setSubmitted(true);
+    if (Object.values(missing).some(Boolean)) {
+      toast.error("Completa los campos obligatorios marcados en rojo.");
+      document.querySelector("[data-invalid='true']")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     if (Number(product.offerPrice) > Number(product.price)) {
       toast.error("El precio de oferta no puede superar el precio normal.");
       return;
@@ -217,24 +238,27 @@ export default function EditProduct() {
           description="Actualiza la información que verán tus clientes en la tienda."
         />
 
-        <form id="edit-product-form" onSubmit={handleSubmit} className="space-y-7 rounded-2xl border border-brand-line bg-white p-4 shadow-sm sm:p-6 md:p-8">
+        <form id="edit-product-form" noValidate onSubmit={handleSubmit} className="space-y-7 rounded-2xl border border-brand-line bg-white p-4 shadow-sm sm:p-6 md:p-8">
           <section>
             <h2 className="mb-4 text-sm font-semibold text-brand-ink">Información del producto</h2>
             <div className="grid gap-5 md:grid-cols-2">
               <label className="space-y-2 text-xs font-medium text-brand-charcoal md:col-span-2">
-                Nombre del producto
-                <input required maxLength={160} value={product.name} onChange={(event) => updateField("name", event.target.value)} className={inputClass} />
+                <span>Nombre del producto{required}</span>
+                <input required aria-invalid={hasError("name")} data-invalid={hasError("name")} maxLength={160} value={product.name} onChange={(event) => updateField("name", event.target.value)} className={fieldClass("name")} />
+                {errorText("name", "Escribe el nombre del producto.")}
               </label>
               <label className="space-y-2 text-xs font-medium text-brand-charcoal md:col-span-2">
-                Descripción
-                <textarea required rows={5} maxLength={5000} value={product.description} onChange={(event) => updateField("description", event.target.value)} className={`${inputClass} resize-y`} />
+                <span>Descripción{required}</span>
+                <textarea required aria-invalid={hasError("description")} data-invalid={hasError("description")} rows={5} maxLength={5000} value={product.description} onChange={(event) => updateField("description", event.target.value)} className={`${fieldClass("description")} resize-y`} />
+                {errorText("description", "Escribe la descripción.")}
               </label>
               <label className="space-y-2 text-xs font-medium text-brand-charcoal">
-                Categoría principal
-                <select required value={product.category} onChange={(event) => setProduct((current) => ({ ...current, category: event.target.value, subcategory: "", printerType: "" }))} className={inputClass}>
+                <span>Categoría principal{required}</span>
+                <select required aria-invalid={hasError("category")} data-invalid={hasError("category")} value={product.category} onChange={(event) => setProduct((current) => ({ ...current, category: event.target.value, subcategory: "", printerType: "" }))} className={fieldClass("category")}>
                   <option value="">Selecciona una categoría</option>
                   {categories.map((category) => <option key={category.slug} value={category.slug}>{category.name}</option>)}
                 </select>
+                {errorText("category", "Selecciona una categoría.")}
               </label>
               <label className="space-y-2 text-xs font-medium text-brand-charcoal">
                 Subcategoría
@@ -255,23 +279,27 @@ export default function EditProduct() {
             <h2 className="mb-4 text-sm font-semibold text-brand-ink">Precio e inventario</h2>
             <div className="grid gap-5 sm:grid-cols-3">
               <label className="space-y-2 text-xs font-medium text-brand-charcoal">
-                Precio normal
-                <input required type="number" min="0.01" step="0.01" value={product.price} onChange={(event) => updateField("price", event.target.value)} className={inputClass} />
+                <span>Precio normal{required}</span>
+                <input required aria-invalid={hasError("price")} data-invalid={hasError("price")} type="number" min="0.01" step="0.01" value={product.price} onChange={(event) => updateField("price", event.target.value)} className={fieldClass("price")} />
+                {errorText("price", "Ingresa un precio mayor a 0.")}
               </label>
               <label className="space-y-2 text-xs font-medium text-brand-charcoal">
-                Precio de oferta
-                <input required type="number" min="0" step="0.01" value={product.offerPrice} onChange={(event) => updateField("offerPrice", event.target.value)} className={inputClass} />
+                <span>Precio de oferta{required}</span>
+                <input required aria-invalid={hasError("offerPrice")} data-invalid={hasError("offerPrice")} type="number" min="0" step="0.01" value={product.offerPrice} onChange={(event) => updateField("offerPrice", event.target.value)} className={fieldClass("offerPrice")} />
+                {errorText("offerPrice", "Ingresa el precio de oferta (no mayor al normal).")}
               </label>
               <label className="space-y-2 text-xs font-medium text-brand-charcoal">
-                Unidades en stock
-                <input required type="number" min="0" step="1" value={product.stock} onChange={(event) => updateField("stock", event.target.value)} className={inputClass} />
+                <span>Unidades en stock{required}</span>
+                <input required aria-invalid={hasError("stock")} data-invalid={hasError("stock")} type="number" min="0" step="1" value={product.stock} onChange={(event) => updateField("stock", event.target.value)} className={fieldClass("stock")} />
+                {errorText("stock", "Ingresa las unidades en stock.")}
               </label>
             </div>
           </section>
 
           <section className="border-t border-brand-line pt-6">
-            <h2 className="mb-1 text-sm font-semibold text-brand-ink">Imágenes y video</h2>
+            <h2 className="mb-1 text-sm font-semibold text-brand-ink">Imágenes y video{required}</h2>
             <p className="mb-4 text-xs leading-5 text-brand-muted">Cambia o quita cada foto por separado. Máximo 3 imágenes de 8 MB; se optimizan y se les quita el fondo blanco automáticamente.</p>
+            {hasError("images") && <p role="alert" data-invalid="true" className="mb-3 text-[11px] text-brand-sale">Sube al menos una imagen del producto.</p>}
             <div className="grid grid-cols-3 gap-2.5 sm:max-w-md sm:gap-3">
               {slots.map((slot, index) => (
                 <div key={index} className="space-y-2">
