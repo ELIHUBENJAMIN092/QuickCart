@@ -91,9 +91,9 @@ export default function AllProducts() {
               )}
             </aside>
 
-            <div>
+            <div className="min-w-0">
               <div className="mb-6 flex flex-col gap-3 sm:flex-row">
-                <select aria-label="Filtrar por categoría" value={selectedCategory} onChange={(event) => chooseCategory(event.target.value)} className="border border-brand-line bg-transparent px-4 py-3 text-sm outline-none lg:hidden">
+                <select aria-label="Filtrar por categoría" value={selectedCategory} onChange={(event) => chooseCategory(event.target.value)} className="min-w-0 w-full border border-brand-line bg-transparent px-4 py-3 text-sm outline-none lg:hidden sm:w-auto">
                   <option value="">Todas las categorías</option>
                   {categories.map((category) => <optgroup key={category.slug} label={category.name}><option value={category.slug}>{category.name}</option>{category.subcategories.map((subcategory) => <option key={subcategory.slug} value={`${category.slug}/${subcategory.slug}`}>{subcategory.label || subcategory.name}</option>)}</optgroup>)}
                 </select>

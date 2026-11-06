@@ -9,6 +9,7 @@ const config: JestConfigWithTsJest = {
       tsconfig: {
         allowJs: true,
         module: 'commonjs',
+        jsx: 'react-jsx',
       },
     }],
   },
