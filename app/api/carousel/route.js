@@ -6,6 +6,8 @@ import { loadCategoryRows } from "@/lib/categoryServer";
 import { createSupabasePublicClient, getAuthenticatedSupabase } from "@/lib/supabase/server";
 import { validateProductFile } from "@/lib/supabase/storage";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const supabase = createSupabasePublicClient();

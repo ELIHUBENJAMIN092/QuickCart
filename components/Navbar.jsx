@@ -168,14 +168,14 @@ const pathIsActive = (pathname, target) => {
   return path === href || path.startsWith(`${href}/`);
 };
 
-export default function Navbar() {
+export default function Navbar({ initialBanner }) {
   const { isSeller, user, signOut, products, cartItems, getCartCount, getCartAmount, commerceEnabled } =
     useAppContext();
   const canShop = Boolean(user && commerceEnabled);
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileCategory, setMobileCategory] = useState(null);
-  const [banner, setBanner] = useState(defaultBanner);
+  const [banner, setBanner] = useState(() => initialBanner || defaultBanner);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
   const [menuLeft, setMenuLeft] = useState(0);

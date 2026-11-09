@@ -9,9 +9,9 @@ import { buildSlides, slideImage } from "@/lib/carousel";
 
 const SLIDE_DURATION = 6000;
 
-export default function HeaderSlider() {
-  const [slides, setSlides] = useState(() => buildSlides());
-  const [certifications, setCertifications] = useState([]);
+export default function HeaderSlider({ initialSlides, initialCertifications }) {
+  const [slides, setSlides] = useState(() => (initialSlides?.length ? initialSlides : buildSlides()));
+  const [certifications, setCertifications] = useState(() => initialCertifications || []);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [paused, setPaused] = useState(false);
 

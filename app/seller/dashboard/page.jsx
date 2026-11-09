@@ -132,13 +132,13 @@ export default function SellerDashboard() {
           </div>
         )}
 
-        <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <section className="grid grid-cols-1 gap-2.5 min-[380px]:grid-cols-2 sm:gap-3 xl:grid-cols-4">
           {stats.map(({ label, value, note, icon: Icon }) => (
-            <article key={label} className="rounded-2xl border border-brand-line bg-white p-3.5 shadow-sm transition hover:shadow-md md:p-5">
-              <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-accent-soft text-brand-accent">
+            <article key={label} className="min-w-0 rounded-2xl border border-brand-line bg-white p-3.5 shadow-sm transition hover:shadow-md md:p-5">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-accent-soft text-brand-accent">
                 <Icon size={17} />
               </span>
-              <p className="mt-3 break-words font-display text-[26px] leading-none text-brand-ink md:text-3xl">{value}</p>
+              <p className="mt-3 break-words font-display text-xl leading-tight tabular-nums text-brand-ink sm:text-2xl md:text-3xl">{value}</p>
               <p className="mt-2 text-[11px] font-medium leading-4 text-brand-charcoal md:text-xs">{label}</p>
               <p className="mt-1 text-[10px] leading-4 text-brand-muted">{note}</p>
             </article>
@@ -164,28 +164,28 @@ export default function SellerDashboard() {
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-accent-soft text-brand-accent"><Clock3 size={16} /></span>
               <span className="min-w-0">
                 <span className="block text-[10px] font-semibold uppercase tracking-wider text-brand-muted">Por confirmar</span>
-                <span className="mt-0.5 block truncate text-base font-semibold text-brand-ink">{salesValue(`${sales.pendingCount} órdenes`)}</span>
+                <span className="mt-0.5 block break-words text-base font-semibold tabular-nums text-brand-ink">{salesValue(`${sales.pendingCount} órdenes`)}</span>
               </span>
             </Link>
             <Link href="/seller/orders" className="flex items-center gap-3 rounded-xl border border-brand-line bg-white px-3.5 py-3 transition hover:border-amber-300 hover:shadow-sm">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-amber-50 text-amber-700"><Wallet size={16} /></span>
               <span className="min-w-0">
                 <span className="block text-[10px] font-semibold uppercase tracking-wider text-brand-muted">Por cobrar</span>
-                <span className="mt-0.5 block truncate text-base font-semibold text-brand-ink">{salesValue(`${currency}${sales.pendingAmount.toFixed(2)}`)}</span>
+                <span className="mt-0.5 block break-words text-base font-semibold tabular-nums text-brand-ink">{salesValue(`${currency}${sales.pendingAmount.toFixed(2)}`)}</span>
               </span>
             </Link>
             <Link href="/seller/pagos" className="flex items-center gap-3 rounded-xl border border-brand-success/20 bg-brand-success/5 px-3.5 py-3 transition hover:border-brand-success/50 hover:shadow-sm">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white text-brand-success"><BadgeCheck size={16} /></span>
               <span className="min-w-0">
                 <span className="block text-[10px] font-semibold uppercase tracking-wider text-brand-muted">Recaudado</span>
-                <span className="mt-0.5 block truncate text-base font-semibold text-brand-ink">{salesValue(`${currency}${sales.paidAmount.toFixed(2)}`)}</span>
+                <span className="mt-0.5 block break-words text-base font-semibold tabular-nums text-brand-ink">{salesValue(`${currency}${sales.paidAmount.toFixed(2)}`)}</span>
               </span>
             </Link>
           </div>
         </section>
 
-        <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_1.2fr]">
-          <section className="rounded-2xl border border-brand-line bg-white p-4 shadow-sm sm:p-5">
+        <div className="mt-4 grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+          <section className="min-w-0 rounded-2xl border border-brand-line bg-white p-4 shadow-sm sm:p-5">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-muted">Organización</p>
@@ -198,9 +198,9 @@ export default function SellerDashboard() {
                 const count = products.filter((product) => matchesCategoryFilter(product, category.slug)).length;
                 const percent = products.length ? (count / products.length) * 100 : 0;
                 return (
-                  <button key={category.slug} type="button" onClick={() => router.push(`/seller/product-list?category=${category.slug}`)} className="block w-full rounded-lg text-left transition hover:opacity-80">
-                    <div className="mb-1.5 flex items-center justify-between gap-3 text-xs">
-                      <span className="truncate font-medium text-brand-charcoal">{category.name}</span>
+                  <button key={category.slug} type="button" onClick={() => router.push(`/seller/product-list?category=${category.slug}`)} className="block w-full min-w-0 rounded-lg text-left transition hover:opacity-80">
+                    <div className="mb-1.5 flex min-w-0 items-center justify-between gap-3 text-xs">
+                      <span className="min-w-0 truncate font-medium text-brand-charcoal">{category.name}</span>
                       <span className="shrink-0 tabular-nums text-brand-muted">{count}</span>
                     </div>
                     <div className="h-1.5 overflow-hidden rounded-full bg-brand-sand"><div className="h-full rounded-full bg-brand-accent" style={{ width: `${percent}%` }} /></div>
@@ -211,7 +211,7 @@ export default function SellerDashboard() {
             <Link href="/seller/categories" className="mt-4 inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-brand-line text-xs font-semibold text-brand-accent transition hover:bg-brand-sand/50 sm:w-auto sm:justify-start sm:border-0 sm:px-0 sm:min-h-0 sm:py-1">Administrar categorías <ArrowRight size={14} /></Link>
           </section>
 
-          <section className="rounded-2xl border border-brand-line bg-white p-4 shadow-sm sm:p-5">
+          <section className="min-w-0 rounded-2xl border border-brand-line bg-white p-4 shadow-sm sm:p-5">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-muted">Atención requerida</p>
@@ -224,7 +224,7 @@ export default function SellerDashboard() {
             ) : (
               <div className="mt-2 divide-y divide-brand-line">
                 {[...outOfStock, ...lowStock].slice(0, 6).map((product) => (
-                  <div key={product._id} className="flex items-center justify-between gap-3 py-2.5">
+                  <div key={product._id} className="flex min-w-0 items-center justify-between gap-3 py-2.5">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-brand-ink">{product.name}</p>
                       <p className="mt-0.5 truncate text-[10px] text-brand-muted">{getCategoryName(product.category)}{product.subcategory ? ` · ${getSubcategoryName(product.category, product.subcategory)}` : ""}</p>

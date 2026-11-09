@@ -4,6 +4,7 @@ import { useState } from "react";
 import Navbar from "@/components/seller/Navbar";
 import Sidebar from "@/components/seller/Sidebar";
 import Footer from "@/components/seller/Footer";
+import ScrollToTopFloat from "@/components/ScrollToTopFloat";
 
 export default function Layout({ children }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -16,6 +17,7 @@ export default function Layout({ children }) {
         <div className="min-w-0 flex-1">{children}</div>
       </div>
       <Footer />
+      <ScrollToTopFloat />
     </div>
   );
 }

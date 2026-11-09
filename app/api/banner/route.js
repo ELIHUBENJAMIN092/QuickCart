@@ -5,6 +5,8 @@ import { createSupabasePublicClient, getAuthenticatedSupabase } from "@/lib/supa
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const supabase = createSupabasePublicClient();
