@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function AuthForm({ mode, heroImage }) {
+  const isSignIn = mode === "sign-in";
   const isSignUp = mode === "sign-up";
   const isForgotPassword = mode === "forgot-password";
   const isUpdatePassword = mode === "update-password";
@@ -112,9 +113,11 @@ export default function AuthForm({ mode, heroImage }) {
           <form onSubmit={handleSubmit} className="w-full space-y-4 rounded-2xl border border-white/70 bg-white/85 p-5 text-brand-ink shadow-2xl backdrop-blur-md sm:space-y-5 sm:p-8">
             <div className="flex flex-col items-center">
               <Link href="/" aria-label="Ir al inicio" className="mb-4 inline-flex">
-                <Image className="h-6 w-auto drop-shadow-[0_3px_6px_rgba(0,0,0,0.4)]" src={logoCompel} alt="COMPEL" priority />
+                <Image className="h-6 w-auto drop-shadow-[0_3px_6px_rgba(0,0,0,0.15)]" src={logoCompel} alt="COMPEL" priority />
               </Link>
-              <h2 className="text-center font-display text-2xl leading-[1] text-[#0B2A6F] sm:text-3xl lg:text-4xl">{title}</h2>
+              {!isSignIn && (
+                <h2 className="text-center font-display text-2xl leading-[1] text-[#0B2A6F] sm:text-3xl lg:text-4xl">{title}</h2>
+              )}
               <p className="mt-2 text-center text-sm leading-relaxed text-brand-muted sm:mt-3">{subtitle}</p>
             </div>
         {isSignUp && (

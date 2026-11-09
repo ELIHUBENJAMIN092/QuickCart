@@ -6,6 +6,8 @@ import toast from "react-hot-toast";
 import {
   Activity,
   Ban,
+  ChevronLeft,
+  ChevronRight,
   Eye,
   Globe2,
   MapPin,
@@ -21,6 +23,7 @@ import { useConfirm } from "@/components/ui/ConfirmProvider";
 import { describeReferrer, describeUserAgent, isValidIp } from "@/lib/visits";
 
 const MIGRATION_FILE = "20261106120000_site_visits.sql";
+const PAGE_SIZE = 20;
 const RANGE_OPTIONS = [
   { days: 1, label: "24 h" },
   { days: 7, label: "7 días" },
@@ -62,12 +65,70 @@ function StatCard({ label, value, note, icon: Icon, tone = "accent" }) {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-muted">{label}</p>
-          <p className="mt-2 font-display text-2xl leading-none text-brand-ink">{value}</p>
+          <p className="mt-2 break-words font-display text-2xl leading-tight text-brand-ink">{value}</p>
           {note && <p className="mt-2 text-[11px] leading-4 text-brand-muted">{note}</p>}
         </div>
         <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${tones[tone] || tones.accent}`}>
           <Icon size={18} aria-hidden="true" />
         </span>
+      </div>
+    </div>
+  );
+}
+
+function VisitActionButton({ ip, isBlocked, busy, onBlock, onUnblock, className = "" }) {
+  const baseClass =
+    "rounded-lg border border-brand-line px-2.5 py-1.5 text-[11px] font-medium transition disabled:opacity-40";
+
+  if (isBlocked) {
+    return (
+      <button
+        type="button"
+        onClick={() => onUnblock(ip)}
+        disabled={busy === ip}
+        className={`${baseClass} text-brand-muted hover:border-brand-accent hover:text-brand-accent ${className}`}
+      >
+        Desbloquear
+      </button>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onBlock(ip)}
+      disabled={busy === ip}
+      className={`${baseClass} text-brand-sale hover:border-brand-sale hover:bg-red-50 ${className}`}
+    >
+      Bloquear
+    </button>
+  );
+}
+
+function Pagination({ page, totalPages, total, pageSize, onChange }) {
+  if (total === 0) return null;
+
+  const start = (page - 1) * pageSize + 1;
+  const end = Math.min(page * pageSize, total);
+  const buttonClass =
+    "inline-flex min-h-9 items-center gap-1 rounded-lg border border-brand-line px-2.5 text-[11px] font-medium text-brand-charcoal transition hover:border-brand-accent hover:text-brand-accent disabled:cursor-not-allowed disabled:opacity-40";
+
+  return (
+    <div className="flex flex-col gap-3 border-t border-brand-line px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-[11px] text-brand-muted">
+        Mostrando <span className="font-semibold text-brand-charcoal">{start}–{end}</span> de{" "}
+        <span className="font-semibold text-brand-charcoal">{total}</span> registros
+      </p>
+      <div className="flex items-center justify-between gap-2 sm:justify-end">
+        <button type="button" onClick={() => onChange(page - 1)} disabled={page <= 1} className={buttonClass}>
+          <ChevronLeft size={14} /> Anterior
+        </button>
+        <span className="text-xs text-brand-muted">
+          Página <span className="font-semibold text-brand-charcoal">{page}</span> de {totalPages}
+        </span>
+        <button type="button" onClick={() => onChange(page + 1)} disabled={page >= totalPages} className={buttonClass}>
+          Siguiente <ChevronRight size={14} />
+        </button>
       </div>
     </div>
   );
@@ -140,6 +201,7 @@ export default function VisitsPage() {
   const [days, setDays] = useState(7);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
@@ -164,7 +226,9 @@ export default function VisitsPage() {
           if (data.code === "MIGRATION_REQUIRED") setPendingMigration(true);
           throw new Error(data.message || "No se pudieron cargar las visitas.");
         }
-        setVisits(data.visits || []);
+        const loadedVisits = data.visits || [];
+        setVisits(loadedVisits);
+        setPage((current) => Math.min(current, Math.max(1, Math.ceil(loadedVisits.length / PAGE_SIZE))));
         setBlocked(data.blocked || []);
         setPendingMigration(false);
         setError("");
@@ -194,6 +258,14 @@ export default function VisitsPage() {
     const interval = setInterval(() => loadVisits({ silent: true }), 60000);
     return () => clearInterval(interval);
   }, [authLoading, isSeller, loadVisits]);
+
+  const totalPages = Math.max(1, Math.ceil(visits.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+
+  const paginatedVisits = useMemo(
+    () => visits.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [visits, currentPage]
+  );
 
   const blockedSet = useMemo(() => new Set(blocked.map((item) => item.ip)), [blocked]);
 
@@ -397,7 +469,10 @@ export default function VisitsPage() {
               <button
                 key={option.days}
                 type="button"
-                onClick={() => setDays(option.days)}
+                onClick={() => {
+                  setDays(option.days);
+                  setPage(1);
+                }}
                 aria-pressed={days === option.days}
                 className={`min-h-10 rounded-lg px-3 text-xs font-semibold transition ${
                   days === option.days
@@ -415,6 +490,7 @@ export default function VisitsPage() {
               onSubmit={(event) => {
                 event.preventDefault();
                 setSearch(searchInput.trim());
+                setPage(1);
               }}
               className="relative min-w-0 sm:w-64"
             >
@@ -432,6 +508,7 @@ export default function VisitsPage() {
                 onClick={() => {
                   setSearchInput("");
                   setSearch("");
+                  setPage(1);
                 }}
                 className="min-h-10 rounded-lg border border-brand-line px-3 text-xs font-medium text-brand-charcoal transition hover:border-brand-accent hover:text-brand-accent"
               >
@@ -476,68 +553,119 @@ export default function VisitsPage() {
                 No hay visitas registradas en este periodo.
               </p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[720px] text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-brand-line text-[10px] uppercase tracking-[0.14em] text-brand-muted">
-                      <th className="px-4 py-3 font-semibold">Fecha</th>
-                      <th className="px-4 py-3 font-semibold">IP</th>
-                      <th className="px-4 py-3 font-semibold">Ruta</th>
-                      <th className="px-4 py-3 font-semibold">Origen</th>
-                      <th className="px-4 py-3 font-semibold">Dispositivo</th>
-                      <th className="px-4 py-3 font-semibold">Ubicación</th>
-                      <th className="px-4 py-3 text-right font-semibold">Acción</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visits.map((visit) => {
-                      const isBlocked = blockedSet.has(visit.ip);
-                      const location = [visit.city, visit.country].filter(Boolean).join(", ");
-                      return (
-                        <tr key={visit.id} className="border-b border-brand-line/70 last:border-0 hover:bg-brand-sand/30">
-                          <td className="whitespace-nowrap px-4 py-3 text-xs text-brand-muted">{formatDate(visit.created_at)}</td>
-                          <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-brand-ink">{visit.ip}</td>
-                          <td className="max-w-[220px] truncate px-4 py-3 text-xs text-brand-charcoal" title={visit.path}>
-                            {visit.path}
-                          </td>
-                          <td className="px-4 py-3 text-xs text-brand-muted">{describeReferrer(visit.referrer)}</td>
-                          <td className="px-4 py-3 text-xs text-brand-muted">{describeUserAgent(visit.user_agent)}</td>
-                          <td className="px-4 py-3 text-xs text-brand-muted">
-                            {location ? (
-                              <span className="inline-flex items-center gap-1">
-                                <MapPin size={12} /> {location}
-                              </span>
-                            ) : (
-                              "—"
-                            )}
-                          </td>
-                          <td className="whitespace-nowrap px-4 py-3 text-right">
-                            {isBlocked ? (
-                              <button
-                                type="button"
-                                onClick={() => unblock(visit.ip)}
-                                disabled={busy === visit.ip}
-                                className="rounded-lg border border-brand-line px-2.5 py-1.5 text-[11px] font-medium text-brand-muted transition hover:border-brand-accent hover:text-brand-accent disabled:opacity-40"
-                              >
-                                Desbloquear
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => openBlock(visit.ip)}
-                                disabled={busy === visit.ip}
-                                className="rounded-lg border border-brand-line px-2.5 py-1.5 text-[11px] font-medium text-brand-sale transition hover:border-brand-sale hover:bg-red-50 disabled:opacity-40"
-                              >
-                                Bloquear
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+              <>
+                {/* Vista móvil: tarjetas apiladas */}
+                <ul className="divide-y divide-brand-line md:hidden">
+                  {paginatedVisits.map((visit) => {
+                    const isBlocked = blockedSet.has(visit.ip);
+                    const location = [visit.city, visit.country].filter(Boolean).join(", ");
+                    return (
+                      <li key={visit.id} className="space-y-3 p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="break-all font-mono text-xs font-semibold text-brand-ink">{visit.ip}</p>
+                            <p className="mt-1 text-[11px] text-brand-muted">{formatDate(visit.created_at)}</p>
+                          </div>
+                          <VisitActionButton
+                            ip={visit.ip}
+                            isBlocked={isBlocked}
+                            busy={busy}
+                            onBlock={openBlock}
+                            onUnblock={unblock}
+                            className="shrink-0"
+                          />
+                        </div>
+                        <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-[11px]">
+                          <div className="col-span-2 min-w-0">
+                            <dt className="uppercase tracking-[0.12em] text-brand-muted">Ruta</dt>
+                            <dd className="mt-0.5 break-all text-brand-charcoal">{visit.path}</dd>
+                          </div>
+                          <div className="min-w-0">
+                            <dt className="uppercase tracking-[0.12em] text-brand-muted">Origen</dt>
+                            <dd className="mt-0.5 break-words text-brand-charcoal">{describeReferrer(visit.referrer)}</dd>
+                          </div>
+                          <div className="min-w-0">
+                            <dt className="uppercase tracking-[0.12em] text-brand-muted">Dispositivo</dt>
+                            <dd className="mt-0.5 break-words text-brand-charcoal">{describeUserAgent(visit.user_agent)}</dd>
+                          </div>
+                          <div className="col-span-2 min-w-0">
+                            <dt className="uppercase tracking-[0.12em] text-brand-muted">Ubicación</dt>
+                            <dd className="mt-0.5 flex items-center gap-1 break-words text-brand-charcoal">
+                              {location ? (
+                                <>
+                                  <MapPin size={12} className="shrink-0" /> {location}
+                                </>
+                              ) : (
+                                "—"
+                              )}
+                            </dd>
+                          </div>
+                        </dl>
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                {/* Vista de escritorio: tabla */}
+                <div className="hidden overflow-x-auto md:block">
+                  <table className="w-full min-w-[720px] text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-brand-line text-[10px] uppercase tracking-[0.14em] text-brand-muted">
+                        <th className="px-4 py-3 font-semibold">Fecha</th>
+                        <th className="px-4 py-3 font-semibold">IP</th>
+                        <th className="px-4 py-3 font-semibold">Ruta</th>
+                        <th className="px-4 py-3 font-semibold">Origen</th>
+                        <th className="px-4 py-3 font-semibold">Dispositivo</th>
+                        <th className="px-4 py-3 font-semibold">Ubicación</th>
+                        <th className="px-4 py-3 text-right font-semibold">Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedVisits.map((visit) => {
+                        const isBlocked = blockedSet.has(visit.ip);
+                        const location = [visit.city, visit.country].filter(Boolean).join(", ");
+                        return (
+                          <tr key={visit.id} className="border-b border-brand-line/70 last:border-0 hover:bg-brand-sand/30">
+                            <td className="whitespace-nowrap px-4 py-3 text-xs text-brand-muted">{formatDate(visit.created_at)}</td>
+                            <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-brand-ink">{visit.ip}</td>
+                            <td className="max-w-[220px] truncate px-4 py-3 text-xs text-brand-charcoal" title={visit.path}>
+                              {visit.path}
+                            </td>
+                            <td className="px-4 py-3 text-xs text-brand-muted">{describeReferrer(visit.referrer)}</td>
+                            <td className="px-4 py-3 text-xs text-brand-muted">{describeUserAgent(visit.user_agent)}</td>
+                            <td className="px-4 py-3 text-xs text-brand-muted">
+                              {location ? (
+                                <span className="inline-flex items-center gap-1">
+                                  <MapPin size={12} /> {location}
+                                </span>
+                              ) : (
+                                "—"
+                              )}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3 text-right">
+                              <VisitActionButton
+                                ip={visit.ip}
+                                isBlocked={isBlocked}
+                                busy={busy}
+                                onBlock={openBlock}
+                                onUnblock={unblock}
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <Pagination
+                  page={currentPage}
+                  totalPages={totalPages}
+                  total={visits.length}
+                  pageSize={PAGE_SIZE}
+                  onChange={setPage}
+                />
+              </>
             )}
           </section>
 
