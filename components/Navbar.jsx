@@ -178,11 +178,6 @@ export default function Navbar({ initialBanner }) {
   const [banner, setBanner] = useState(() => initialBanner || defaultBanner);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
-  const [menuLeft, setMenuLeft] = useState(0);
-  const openAt = (slug, element) => {
-    setMenuLeft(element.getBoundingClientRect().left + 10);
-    setOpenMenu(slug);
-  };
   const [suggestOpen, setSuggestOpen] = useState(false);
   const searchRef = useRef(null);
   const [cartOpen, setCartOpen] = useState(false);
@@ -303,8 +298,8 @@ export default function Navbar({ initialBanner }) {
                   <button
                     key={category.slug}
                     type="button"
-                    onMouseEnter={(event) => openAt(category.slug, event.currentTarget)}
-                    onClick={(event) => (expanded ? setOpenMenu(null) : openAt(category.slug, event.currentTarget))}
+                    onMouseEnter={() => setOpenMenu(category.slug)}
+                    onClick={() => setOpenMenu(expanded ? null : category.slug)}
                     aria-expanded={expanded}
                     aria-current={active ? "page" : undefined}
                     className={`group relative flex items-center gap-1 whitespace-nowrap rounded-none px-3 py-7 transition-colors focus:outline-none focus-visible:text-brand-accent xl:px-3.5 ${active ? "text-brand-accent" : expanded ? "text-brand-ink" : "text-brand-charcoal hover:text-brand-ink"}`}
@@ -471,40 +466,106 @@ export default function Navbar({ initialBanner }) {
             </div>
           </div>
 
-          {categories.map((category) => openMenu === category.slug && (
-            <div key={category.slug} className="absolute inset-x-0 top-full z-50 hidden border-t border-brand-line bg-white shadow-lg xl:block">
-              <div className="flex flex-wrap gap-x-16 gap-y-8 py-8 pr-6" style={{ paddingLeft: menuLeft }}>
-                {(() => {
-                  const leaves = category.subcategories.filter((item) => !item.parent && !category.subcategories.some((child) => child.parent === item.slug));
-                  const parents = category.subcategories.filter((item) => category.subcategories.some((child) => child.parent === item.slug));
-                  return (
-                    <>
-                      {leaves.length > 0 && (
-                        <div>
-                          <Link href={categoryHref(category.slug)} onClick={() => setOpenMenu(null)} className="text-base font-semibold text-brand-ink hover:text-brand-accent">{category.name}</Link>
-                          <ul className="mt-4 space-y-3">
-                            {leaves.map((item) => (
-                              <li key={item.slug}><Link href={item.href || categoryHref(category.slug, item.slug)} onClick={() => setOpenMenu(null)} className="text-sm font-semibold text-brand-accent hover:text-brand-ink">{item.name}</Link></li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {parents.map((parent) => (
-                        <div key={parent.slug}>
-                          <Link href={categoryHref(category.slug, parent.slug)} onClick={() => setOpenMenu(null)} className="text-base font-semibold text-brand-ink hover:text-brand-accent">{parent.name}</Link>
-                          <ul className="mt-4 space-y-3">
-                            {category.subcategories.filter((child) => child.parent === parent.slug).map((child) => (
-                              <li key={child.slug}><Link href={categoryHref(category.slug, child.slug)} onClick={() => setOpenMenu(null)} className="text-sm font-semibold text-brand-accent hover:text-brand-ink">{child.name}</Link></li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </>
-                  );
-                })()}
+          {categories.map((category) => {
+            if (openMenu !== category.slug) return null;
+            const leaves = category.subcategories.filter(
+              (item) => !item.parent && !category.subcategories.some((child) => child.parent === item.slug)
+            );
+            const parents = category.subcategories.filter((item) =>
+              category.subcategories.some((child) => child.parent === item.slug)
+            );
+            const imageSrc = category.image_url || category.image;
+            const categoryLink = categoryHref(category.slug);
+            return (
+              <div
+                key={category.slug}
+                className="absolute inset-x-0 top-full z-50 hidden border-t border-brand-line bg-white shadow-[0_30px_70px_-25px_rgba(11,13,18,0.35)] animate-menu-in xl:block"
+              >
+                <div className="mx-auto flex max-w-[1360px] gap-10 px-5 py-8 md:px-8 lg:px-12">
+                  <div className="flex min-w-0 flex-1 flex-wrap gap-x-12 gap-y-7">
+                    {leaves.length > 0 && (
+                      <div className="w-[180px] shrink-0">
+                        <Link
+                          href={categoryLink}
+                          onClick={() => setOpenMenu(null)}
+                          className="group flex items-center justify-between gap-2 border-b border-brand-line pb-2.5 text-[13px] font-semibold text-brand-ink transition hover:text-brand-accent"
+                        >
+                          {category.name}
+                          <ChevronRight size={14} className="shrink-0 text-brand-line transition group-hover:text-brand-accent" />
+                        </Link>
+                        <ul className="mt-3 space-y-2.5">
+                          {leaves.map((item) => (
+                            <li key={item.slug}>
+                              <Link
+                                href={item.href || categoryHref(category.slug, item.slug)}
+                                onClick={() => setOpenMenu(null)}
+                                className="group flex items-start gap-2 text-[13px] font-medium text-brand-muted transition hover:text-brand-accent"
+                              >
+                                <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-brand-line transition group-hover:bg-brand-accent" aria-hidden="true" />
+                                <span className="min-w-0">{item.name}</span>
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {parents.map((parent) => (
+                      <div key={parent.slug} className="w-[180px] shrink-0">
+                        <Link
+                          href={categoryHref(category.slug, parent.slug)}
+                          onClick={() => setOpenMenu(null)}
+                          className="group flex items-center justify-between gap-2 border-b border-brand-line pb-2.5 text-[13px] font-semibold text-brand-ink transition hover:text-brand-accent"
+                        >
+                          {parent.name}
+                          <ChevronRight size={14} className="shrink-0 text-brand-line transition group-hover:text-brand-accent" />
+                        </Link>
+                        <ul className="mt-3 space-y-2.5">
+                          {category.subcategories.filter((child) => child.parent === parent.slug).map((child) => (
+                            <li key={child.slug}>
+                              <Link
+                                href={categoryHref(category.slug, child.slug)}
+                                onClick={() => setOpenMenu(null)}
+                                className="group flex items-start gap-2 text-[13px] font-medium text-brand-muted transition hover:text-brand-accent"
+                              >
+                                <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-brand-line transition group-hover:bg-brand-accent" aria-hidden="true" />
+                                <span className="min-w-0">{child.name}</span>
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+
+                  {imageSrc && (
+                    <Link
+                      href={categoryLink}
+                      onClick={() => setOpenMenu(null)}
+                      className="group relative hidden min-h-[230px] w-[330px] shrink-0 overflow-hidden rounded-2xl bg-brand-sand xl:block"
+                    >
+                      <Image
+                        src={imageSrc}
+                        alt={`Descubre ${category.name}`}
+                        fill
+                        sizes="(min-width: 1280px) 330px, 0px"
+                        className="object-cover transition duration-700 group-hover:scale-105"
+                      />
+                      <span className="absolute inset-0 bg-gradient-to-t from-brand-ink/90 via-brand-ink/25 to-brand-ink/5" />
+                      <span className="absolute inset-x-0 bottom-0 p-5">
+                        <span className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">Descubre</span>
+                        <span className="mt-1 flex items-center justify-between gap-3 font-display text-lg font-semibold text-white">
+                          {category.name}
+                          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/15 text-white ring-1 ring-white/25 backdrop-blur transition group-hover:bg-brand-accent group-hover:ring-brand-accent">
+                            <ChevronRight size={16} />
+                          </span>
+                        </span>
+                      </span>
+                    </Link>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
         </nav>
       </header>

@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import { BadgeCheck, Box, ChevronLeft, ChevronRight, Play, FileText, Headset, Minus, Plus, Truck, X } from "lucide-react";
+import { BadgeCheck, Box, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Play, FileText, Headset, Minus, Plus, Truck, X } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import BrandCarousel from "@/components/BrandLogos";
 import Loading from "@/components/Loading";
@@ -25,6 +25,10 @@ export default function ProductPage() {
   const [show3d, setShow3d] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [zoom, setZoom] = useState({ active: false, x: 50, y: 50 });
+  const thumbsRef = useRef(null);
+  const scrollThumbs = (direction) => {
+    thumbsRef.current?.scrollBy({ top: direction * 200, behavior: "smooth" });
+  };
 
   const product = useMemo(() => products.find((item) => item._id === id), [id, products]);
   const related = useMemo(
@@ -98,38 +102,118 @@ export default function ProductPage() {
                   {canShop && product.is_offer === true ? <Badge variant="sale" className="!px-4 !py-2 !text-sm">Oferta</Badge> : product.is_new === true ? <Badge variant="new" className="!px-4 !py-2 !text-sm">Nuevo</Badge> : null}
                 </div>
               </div>
-              <div
-                className={`relative aspect-square overflow-hidden bg-white ${!showVideo && product.image?.[selectedImage] ? (zoom.active ? "cursor-zoom-out" : "cursor-zoom-in") : ""}`}
-                onClick={() => { if (!showVideo && product.image?.[selectedImage]) setZoom((current) => ({ ...current, active: !current.active })); }}
-                onMouseMove={zoom.active ? moveZoom : undefined}
-                onMouseLeave={() => setZoom((current) => ({ ...current, active: false }))}
-              >
-                {showVideo && product.video ? (
-                  <video src={product.video} controls playsInline preload="metadata" className="h-full w-full object-contain" />
-                ) : product.image?.[selectedImage] ? (
-                  <Image src={product.image[selectedImage]} alt={product.name} fill priority sizes="(max-width: 1024px) 100vw, 50vw" className="object-contain p-7 transition-transform duration-200 ease-out md:p-12" style={{ transform: zoom.active ? "scale(2.2)" : "scale(1)", transformOrigin: `${zoom.x}% ${zoom.y}%` }} />
-                ) : (
-                  <div className="grid h-full place-items-center text-sm text-brand-muted">Imagen no disponible</div>
-                )}
-                {mediaCount > 1 && (
-                  <>
-                    <button onClick={(event) => { event.stopPropagation(); goToMedia(currentMedia - 1); }} aria-label="Anterior" className="absolute left-2 top-1/2 -translate-y-1/2 border border-brand-line bg-white/95 p-2.5 text-brand-ink transition hover:border-brand-ink"><ChevronLeft size={20} /></button>
-                    <button onClick={(event) => { event.stopPropagation(); goToMedia(currentMedia + 1); }} aria-label="Siguiente" className="absolute right-2 top-1/2 -translate-y-1/2 border border-brand-line bg-white/95 p-2.5 text-brand-ink transition hover:border-brand-ink"><ChevronRight size={20} /></button>
-                  </>
-                )}
-              </div>
-              <div className="mx-auto mt-4 grid max-w-[27rem] grid-cols-4 gap-3">
-                {product.image?.map((image, index) => (
-                  <button key={`${image}-${index}`} onClick={() => { setSelectedImage(index); setShowVideo(false); setZoom((current) => ({ ...current, active: false })); }} className={`relative box-border block aspect-square w-full overflow-hidden border-2 bg-white ${selectedImage === index && !showVideo ? "border-brand-accent" : "border-brand-line"}`} aria-label={`Ver imagen ${index + 1}`}>
-                    <Image src={image} alt="" fill sizes="96px" className="object-contain p-2" />
+              <div className="flex gap-3 md:gap-4">
+                <div className="hidden w-[74px] shrink-0 flex-col gap-2.5 sm:flex">
+                  <button
+                    type="button"
+                    onClick={() => scrollThumbs(-1)}
+                    aria-label="Desplazar miniaturas hacia arriba"
+                    className="grid h-14 w-full shrink-0 place-items-center rounded-xl bg-brand-sand text-brand-muted transition hover:bg-brand-line hover:text-brand-ink"
+                  >
+                    <ChevronUp size={20} />
                   </button>
-                ))}
-                {product.video && (
-                  <button onClick={() => setShowVideo(true)} aria-label="Reproducir video" className={`relative box-border block aspect-square w-full overflow-hidden border-2 bg-brand-ink ${showVideo ? "border-brand-accent" : "border-brand-line"}`}>
-                    <video src={`${product.video}#t=0.5`} preload="metadata" muted playsInline tabIndex={-1} className="pointer-events-none absolute inset-0 h-full w-full object-cover" />
-                    <span className="absolute inset-0 grid place-items-center bg-black/30"><span className="grid h-8 w-8 place-items-center rounded-full bg-white/90 text-brand-ink"><Play size={14} fill="currentColor" /></span></span>
+                  <div
+                    ref={thumbsRef}
+                    className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                  >
+                    {product.image?.map((image, index) => (
+                      <button
+                        key={`${image}-${index}`}
+                        type="button"
+                        onClick={() => { setSelectedImage(index); setShowVideo(false); setZoom((current) => ({ ...current, active: false })); }}
+                        aria-label={`Ver imagen ${index + 1}`}
+                        className={`relative block aspect-square w-full shrink-0 overflow-hidden rounded-lg border bg-white transition ${
+                          selectedImage === index && !showVideo
+                            ? "border-brand-ink"
+                            : "border-brand-line hover:border-brand-muted"
+                        }`}
+                      >
+                        <Image src={image} alt="" fill sizes="74px" className="object-contain p-1.5" />
+                      </button>
+                    ))}
+                    {product.video && (
+                      <button
+                        type="button"
+                        onClick={() => setShowVideo(true)}
+                        aria-label="Reproducir video"
+                        className={`relative block aspect-square w-full shrink-0 overflow-hidden rounded-lg border bg-brand-ink transition ${
+                          showVideo ? "border-brand-charcoal" : "border-brand-line hover:border-brand-muted"
+                        }`}
+                      >
+                        <video src={`${product.video}#t=0.5`} preload="metadata" muted playsInline tabIndex={-1} className="pointer-events-none absolute inset-0 h-full w-full object-cover" />
+                        <span className="absolute inset-0 grid place-items-center bg-black/30"><span className="grid h-8 w-8 place-items-center rounded-full bg-white/90 text-brand-ink"><Play size={14} fill="currentColor" /></span></span>
+                      </button>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => scrollThumbs(1)}
+                    aria-label="Desplazar miniaturas hacia abajo"
+                    className="grid h-14 w-full shrink-0 place-items-center rounded-xl bg-brand-sand text-brand-muted transition hover:bg-brand-line hover:text-brand-ink"
+                  >
+                    <ChevronDown size={20} />
                   </button>
-                )}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="overflow-hidden rounded-xl border border-brand-line bg-white">
+                    <div
+                      className={`relative aspect-square bg-white ${!showVideo && product.image?.[selectedImage] ? (zoom.active ? "cursor-zoom-out" : "cursor-zoom-in") : ""}`}
+                      onClick={() => { if (!showVideo && product.image?.[selectedImage]) setZoom((current) => ({ ...current, active: !current.active })); }}
+                      onMouseMove={zoom.active ? moveZoom : undefined}
+                      onMouseLeave={() => setZoom((current) => ({ ...current, active: false }))}
+                    >
+                      {showVideo && product.video ? (
+                        <video src={product.video} controls playsInline preload="metadata" className="h-full w-full object-contain" />
+                      ) : product.image?.[selectedImage] ? (
+                        <Image src={product.image[selectedImage]} alt={product.name} fill priority sizes="(max-width: 1024px) 100vw, 50vw" className="object-contain p-7 transition-transform duration-200 ease-out md:p-12" style={{ transform: zoom.active ? "scale(2.2)" : "scale(1)", transformOrigin: `${zoom.x}% ${zoom.y}%` }} />
+                      ) : (
+                        <div className="grid h-full place-items-center text-sm text-brand-muted">Imagen no disponible</div>
+                      )}
+                      {mediaCount > 1 && (
+                        <>
+                          <button onClick={(event) => { event.stopPropagation(); goToMedia(currentMedia - 1); }} aria-label="Anterior" className="absolute left-2 top-1/2 -translate-y-1/2 border border-brand-line bg-white/95 p-2.5 text-brand-ink transition hover:border-brand-ink"><ChevronLeft size={20} /></button>
+                          <button onClick={(event) => { event.stopPropagation(); goToMedia(currentMedia + 1); }} aria-label="Siguiente" className="absolute right-2 top-1/2 -translate-y-1/2 border border-brand-line bg-white/95 p-2.5 text-brand-ink transition hover:border-brand-ink"><ChevronRight size={20} /></button>
+                        </>
+                      )}
+                    </div>
+                    {(product.model_3d_url || product.catalog_pdf) && (
+                      <div className="flex flex-col gap-2 border-t border-brand-line p-3 sm:flex-row">
+                        {product.model_3d_url && (
+                          <button
+                            type="button"
+                            onClick={() => setShow3d(true)}
+                            className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-brand-accent px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-white shadow-sm transition hover:bg-brand-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent active:scale-[0.99]"
+                          >
+                            <Box size={16} /> Ver en 3D
+                          </button>
+                        )}
+                        {product.catalog_pdf && (
+                          <button
+                            type="button"
+                            onClick={() => setCatalogOpen(true)}
+                            className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[#05245C] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-white shadow-sm transition hover:bg-brand-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#05245C] active:scale-[0.99]"
+                          >
+                            <FileText size={16} /> Ver catálogo
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="mx-auto mt-4 grid max-w-[27rem] grid-cols-4 gap-3 sm:hidden">
+                    {product.image?.map((image, index) => (
+                      <button key={`${image}-${index}`} onClick={() => { setSelectedImage(index); setShowVideo(false); setZoom((current) => ({ ...current, active: false })); }} className={`relative box-border block aspect-square w-full overflow-hidden border-2 bg-white ${selectedImage === index && !showVideo ? "border-brand-accent" : "border-brand-line"}`} aria-label={`Ver imagen ${index + 1}`}>
+                        <Image src={image} alt="" fill sizes="96px" className="object-contain p-2" />
+                      </button>
+                    ))}
+                    {product.video && (
+                      <button onClick={() => setShowVideo(true)} aria-label="Reproducir video" className={`relative box-border block aspect-square w-full overflow-hidden border-2 bg-brand-ink ${showVideo ? "border-brand-accent" : "border-brand-line"}`}>
+                        <video src={`${product.video}#t=0.5`} preload="metadata" muted playsInline tabIndex={-1} className="pointer-events-none absolute inset-0 h-full w-full object-cover" />
+                        <span className="absolute inset-0 grid place-items-center bg-black/30"><span className="grid h-8 w-8 place-items-center rounded-full bg-white/90 text-brand-ink"><Play size={14} fill="currentColor" /></span></span>
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -165,17 +249,6 @@ export default function ProductPage() {
                   Inicia sesión para consultar precios
                 </Link>
               ) : null}
-
-              {(product.model_3d_url || product.catalog_pdf) && (
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  {product.model_3d_url && (
-                    <button onClick={() => setShow3d(true)} className="inline-flex items-center justify-center gap-2 border border-brand-line px-6 py-3.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-ink transition hover:border-brand-ink hover:bg-brand-ink hover:text-white"><Box size={16} /> Ver en 3D</button>
-                  )}
-                  {product.catalog_pdf && (
-                    <button onClick={() => setCatalogOpen(true)} className="inline-flex items-center justify-center gap-2 border border-brand-line px-6 py-3.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-ink transition hover:border-brand-ink hover:bg-brand-ink hover:text-white"><FileText size={16} /> Ver catálogo</button>
-                  )}
-                </div>
-              )}
 
               {canShop && <div className="mt-8 grid grid-cols-3 gap-3 border-y border-brand-line py-5">
                 <div className="text-center"><Truck className="mx-auto mb-2 text-brand-accent" size={20} /><p className="text-[10px] leading-4 text-brand-muted">Envíos a nivel nacional</p></div>
