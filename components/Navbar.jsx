@@ -204,7 +204,7 @@ export default function Navbar({ initialBanner }) {
     setMenuLeft(element.getBoundingClientRect().left + 10);
     setOpenMenu(slug);
   };
-  const [suggestOpen, setSuggestOpen] = useState(false);
+  const [searchExpanded, setSearchExpanded] = useState(false);
   const searchRef = useRef(null);
   const searchPanelRef = useRef(null);
   const [cartOpen, setCartOpen] = useState(false);
@@ -530,7 +530,6 @@ export default function Navbar({ initialBanner }) {
                 {mobileOpen ? <X size={22} /> : <Menu size={22} />}
               </button>
               </div>
-            )}
 
             {searchExpanded && (
               <button
