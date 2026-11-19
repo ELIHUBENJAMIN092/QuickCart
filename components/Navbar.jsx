@@ -395,9 +395,47 @@ export default function Navbar({ initialBanner }) {
             </div>
             <div className="flex-1 xl:hidden" />
 
+            <form
+              role="search"
+              onSubmit={submitSearch}
+              ref={searchRef}
+              className="hidden w-[320px] shrink-0 md:block xl:w-[420px]"
+            >
+              <div className="flex h-10 w-full items-center gap-1 rounded-full border border-brand-line bg-brand-sand pl-4 pr-1 transition focus-within:border-brand-accent focus-within:ring-2 focus-within:ring-brand-accent/15">
+                <Search size={16} className="shrink-0 text-brand-muted" aria-hidden="true" />
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  onFocus={() => setSearchExpanded(true)}
+                  placeholder="¿Qué estás buscando?"
+                  autoComplete="off"
+                  aria-label="Buscar"
+                  className="min-w-0 flex-1 bg-transparent text-sm text-brand-ink outline-none placeholder:text-brand-muted [&::-webkit-search-cancel-button]:hidden"
+                />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch("")}
+                    aria-label="Borrar búsqueda"
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-brand-muted transition hover:bg-white hover:text-brand-ink"
+                  >
+                    <X size={15} />
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  aria-label="Buscar"
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-accent text-white transition hover:bg-brand-ink"
+                >
+                  <Search size={16} />
+                </button>
+              </div>
+            </form>
+
             <div className="flex shrink-0 items-center gap-4 text-brand-charcoal md:gap-5">
-              <button onClick={() => setSearchOpen(true)} aria-label="Buscar" className="flex items-center gap-2 text-[14px] font-medium transition hover:text-brand-accent">
-                <span className="hidden 2xl:inline">Buscar</span><Search size={20} />
+              <button onClick={() => setSearchOpen(true)} aria-label="Buscar" className="flex items-center gap-2 text-[14px] font-medium transition hover:text-brand-accent md:hidden">
+                <Search size={20} />
               </button>
               {canShop && (
                 <button onClick={() => setCartOpen(true)} aria-label="Abrir carrito" className="relative transition hover:text-brand-accent">
