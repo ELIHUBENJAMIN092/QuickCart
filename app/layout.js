@@ -1,4 +1,5 @@
 import { Inter, Manrope } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { AppContextProvider } from "@/context/AppContext";
 import { ConfirmProvider } from "@/components/ui/ConfirmProvider";
@@ -38,6 +39,9 @@ export default function RootLayout({ children }) {
         <Toaster />
         <VisitTracker />
         <AppContextProvider><ConfirmProvider>{children}</ConfirmProvider></AppContextProvider>
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        )}
       </body>
     </html>
   );
