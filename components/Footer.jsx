@@ -44,7 +44,7 @@ export default function Footer() {
         </div>
         <div className="mx-auto grid max-w-[1360px] gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-4 md:px-8 lg:px-12">
           <div>
-            <Link href="/" aria-label="COMPEL, inicio"><Image className="w-32" src={assets.logo} alt="COMPEL" /></Link>
+            <Link href="/" aria-label="COMPEL, inicio"><Image className="w-32" src={assets.logo} alt="COMPEL" sizes="128px" /></Link>
             <p className="mt-5 max-w-xs text-sm leading-7 text-brand-muted">Soluciones profesionales de identificación, impresión y captura de datos para empresas en Ecuador.</p>
             <div className="mt-5 flex gap-4">
               <a href="https://www.facebook.com/CompelEcuadorImpresorasSuministrosEtiquetasNylon" target="_blank" rel="noreferrer" aria-label="Facebook"><Image src={assets.facebook_icon} alt="" width={20} height={20} /></a>
@@ -76,7 +76,7 @@ export default function Footer() {
             <form onSubmit={subscribe}>
               <div className="flex border-b border-brand-ink">
                 <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" placeholder="Tu correo electrónico" aria-label="Tu correo electrónico" className="min-w-0 flex-1 bg-transparent py-3 text-sm outline-none" />
-                <button type="submit" aria-label="Suscribirme" className="px-2 text-sm font-semibold text-brand-accent">Enviar →</button>
+                <button type="submit" className="px-2 text-sm font-semibold text-brand-accent">Enviar →</button>
               </div>
               <label className="mt-3 flex items-start gap-2 text-xs leading-5 text-brand-muted">
                 <input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} className="mt-1 accent-brand-accent" />

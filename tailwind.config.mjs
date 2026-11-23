@@ -13,8 +13,8 @@ export default {
           sand: '#EEF1F7',
           ink: '#0B0D12',
           charcoal: '#3A3A3A',
-          muted: '#6F7480',
-          accent: '#0069FF',
+          muted: '#656A76',
+          accent: '#0060E6',
           'accent-hover': '#3BA6EF',
           line: '#E0E3EA',
           'accent-soft': '#EAF3FF',
@@ -28,8 +28,8 @@ export default {
       },
       keyframes: {
         progress: {
-          from: { width: '0' },
-          to: { width: '100%' },
+          from: { transform: 'scaleX(0)' },
+          to: { transform: 'scaleX(1)' },
         },
         'menu-in': {
           from: { opacity: '0', transform: 'translateY(-6px) scale(0.97)' },

@@ -2,7 +2,6 @@
 import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { applyCategories } from "@/lib/categories";
 import { getCartAmount as calculateCartAmount, getCartCount as calculateCartCount } from "@/lib/cart";
 
@@ -25,6 +24,18 @@ async function requestJson(url, { method = "GET", body, headers } = {}) {
   return data;
 }
 
+// El cliente de Supabase se carga después de la primera pintura para que su
+// bundle no bloquee la hidratación ni el LCP en páginas de la tienda.
+let browserClientPromise;
+function loadBrowserClient() {
+  if (!browserClientPromise) {
+    browserClientPromise = import("@/lib/supabase/client").then(
+      (module) => module.createSupabaseBrowserClient()
+    );
+  }
+  return browserClientPromise;
+}
+
 export const AppContext = createContext();
 
 export const useAppContext = () => {
@@ -34,7 +45,6 @@ export const useAppContext = () => {
 export const AppContextProvider = (props) => {
   const currency = process.env.NEXT_PUBLIC_CURRENCY;
   const router = useRouter();
-  const supabase = createSupabaseBrowserClient();
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [products, setProducts] = useState([]);
@@ -54,13 +64,15 @@ export const AppContextProvider = (props) => {
   const [categoriesVersion, setCategoriesVersion] = useState(0);
 
   const getToken = useCallback(async () => {
-    const { data, error } = await supabase.auth.getSession();
+    const client = await loadBrowserClient();
+    const { data, error } = await client.auth.getSession();
     if (error) throw error;
     return data.session?.access_token || null;
-  }, [supabase]);
+  }, []);
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
+    const client = await loadBrowserClient();
+    const { error } = await client.auth.signOut();
     if (error) {
       toast.error(error.message);
       return;
@@ -264,30 +276,39 @@ export const AppContextProvider = (props) => {
 
   useEffect(() => {
     let mounted = true;
-    supabase.auth.getSession().then(({ data, error }) => {
-      if (error) {
-        toast.error(error.message);
-        if (mounted) setAuthLoading(false);
-        return;
-      }
-      if (mounted) {
-        setUser(data.session?.user || null);
-        setAuthLoading(false);
-      }
-    });
+    let cancelled = false;
+    let subscription;
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
-      setAuthLoading(false);
-    });
+    loadBrowserClient()
+      .then((client) => {
+        if (cancelled) return;
+        client.auth.getSession().then(({ data, error }) => {
+          if (error) {
+            toast.error(error.message);
+            if (mounted) setAuthLoading(false);
+            return;
+          }
+          if (mounted) {
+            setUser(data.session?.user || null);
+            setAuthLoading(false);
+          }
+        });
+
+        const { data } = client.auth.onAuthStateChange((_event, session) => {
+          if (!mounted) return;
+          setUser(session?.user || null);
+          setAuthLoading(false);
+        });
+        subscription = data.subscription;
+      })
+      .catch(() => { if (mounted) setAuthLoading(false); });
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      cancelled = true;
+      subscription?.unsubscribe();
     };
-  }, [supabase]);
+  }, []);
 
   useEffect(() => {
     if (!user) {

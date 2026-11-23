@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import authSeller from "@/lib/authSeller";
 import { BANNER_LIMITS, buildBanner, isValidLink } from "@/lib/banner";
 import { createSupabasePublicClient, getAuthenticatedSupabase } from "@/lib/supabase/server";
@@ -20,6 +21,7 @@ export async function GET() {
 }
 
 export async function PUT(request) {
+  revalidateTag("site-banner");
   try {
     const { supabase, user } = await getAuthenticatedSupabase(request);
     if (!user || !(await authSeller(supabase, user.id))) {

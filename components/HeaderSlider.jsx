@@ -39,14 +39,20 @@ export default function HeaderSlider({ initialSlides, initialCertifications }) {
           className={`relative [grid-area:1/1] transition-opacity duration-1000 ${index === currentSlide ? "opacity-100" : "pointer-events-none opacity-0"}`}
           aria-hidden={index !== currentSlide}
         >
-          <Image
-            src={slideImage(slide)}
-            alt=""
-            fill
-            priority={index === 0}
-            sizes="100vw"
-            className="object-cover object-center"
-          />
+          {(index === currentSlide ||
+            index === (currentSlide + 1) % slides.length ||
+            (currentSlide > 0 && index === (currentSlide - 1 + slides.length) % slides.length)) && (
+            <Image
+              src={slideImage(slide)}
+              alt=""
+              fill
+              loading={index === 0 ? "eager" : "lazy"}
+              fetchPriority={index === 0 ? "high" : undefined}
+              quality={70}
+              sizes="100vw"
+              className="object-cover object-center"
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-r from-brand-ink/90 via-brand-ink/65 to-brand-ink/10" />
           <div className="relative mx-auto flex h-full min-h-[640px] max-w-7xl items-center px-6 pb-28 pt-20 md:min-h-[min(720px,calc(100vh-100px))] md:px-12">
             <div className={`min-w-0 max-w-2xl transition-all duration-700 ${index === currentSlide ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"}`}>
@@ -94,7 +100,7 @@ export default function HeaderSlider({ initialSlides, initialCertifications }) {
         {slides.map((slide, index) => (
           <button key={slide.position} onClick={() => setCurrentSlide(index)} className="group h-8 flex-1 py-3" aria-label={`Mostrar diapositiva ${index + 1}`} aria-current={index === currentSlide}>
             <span className="block h-px w-full overflow-hidden bg-white/40">
-              <span className={`block h-full bg-white ${index === currentSlide ? "animate-progress" : "w-0"}`} style={{ animationPlayState: paused ? "paused" : "running" }} />
+              <span className={`block h-full w-full origin-left bg-white ${index === currentSlide ? "animate-progress" : "scale-x-0"}`} style={{ animationPlayState: paused ? "paused" : "running" }} />
             </span>
           </button>
         ))}

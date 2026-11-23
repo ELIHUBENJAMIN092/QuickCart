@@ -349,7 +349,7 @@ export default function Navbar({ initialBanner }) {
         <nav className="relative border-b border-brand-line bg-white" onMouseLeave={() => setOpenMenu(null)}>
           <div className="mx-auto flex h-[76px] max-w-[1440px] items-center gap-2 pl-5 pr-3 md:gap-4 md:pl-4 md:pr-5 lg:pl-2 lg:pr-7">
             <Link href="/" aria-label="COMPEL, inicio" className="shrink-0">
-              <Image className="w-24 md:w-28" src={assets.logo} alt="COMPEL" priority />
+              <Image className="w-24 md:w-28" src={assets.logo} alt="COMPEL" priority sizes="(min-width: 768px) 112px, 96px" />
             </Link>
 
             <div className="mr-auto hidden items-center text-[14px] font-medium xl:flex">
@@ -802,7 +802,7 @@ export default function Navbar({ initialBanner }) {
           <aside className="absolute inset-y-0 right-0 flex w-[min(90vw,400px)] max-w-full flex-col rounded-none bg-white shadow-[-24px_0_60px_-20px_rgba(11,13,18,0.35)] animate-drawer-in motion-reduce:animate-none">
             <div className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-brand-line px-4">
               <Link href="/" onClick={closeMobile} aria-label="COMPEL, inicio" className="shrink-0">
-                <Image className="w-24" src={assets.logo} alt="COMPEL" />
+                <Image className="w-24" src={assets.logo} alt="COMPEL" sizes="96px" />
               </Link>
               <button
                 type="button"

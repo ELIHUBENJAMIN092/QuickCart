@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import authSeller from "@/lib/authSeller";
 import { buildCertifications, CERTIFICATION_HEIGHT, defaultCertifications, isCertificationId } from "@/lib/certifications";
 import { createSupabasePublicClient, getAuthenticatedSupabase } from "@/lib/supabase/server";
@@ -64,6 +65,7 @@ export async function GET() {
 }
 
 export async function POST(request) {
+  revalidateTag("home-carousel");
   let supabase;
   let user;
   let imagePath = "";
@@ -125,6 +127,7 @@ export async function POST(request) {
 }
 
 export async function PATCH(request) {
+  revalidateTag("home-carousel");
   try {
     const { supabase, user } = await getAuthenticatedSupabase(request);
     if (!user || !(await authSeller(supabase, user.id))) {
@@ -197,6 +200,7 @@ export async function PATCH(request) {
 }
 
 export async function DELETE(request) {
+  revalidateTag("home-carousel");
   try {
     const { supabase, user } = await getAuthenticatedSupabase(request);
     if (!user || !(await authSeller(supabase, user.id))) {

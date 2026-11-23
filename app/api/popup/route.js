@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import authSeller from "@/lib/authSeller";
 import { POPUP_LIMITS, buildPopup, clampVolume, isValidLink } from "@/lib/popup";
 import { createSupabasePublicClient, getAuthenticatedSupabase } from "@/lib/supabase/server";
@@ -23,6 +24,7 @@ export async function GET() {
 }
 
 export async function PUT(request) {
+  revalidateTag("site-popup");
   try {
     const { supabase, user } = await getAuthenticatedSupabase(request);
     if (!user || !(await authSeller(supabase, user.id))) {
