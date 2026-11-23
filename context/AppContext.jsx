@@ -1,11 +1,29 @@
 "use client";
-import axios from "axios";
 import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { applyCategories } from "@/lib/categories";
 import { getCartAmount as calculateCartAmount, getCartCount as calculateCartCount } from "@/lib/cart";
+
+// Cliente HTTP mínimo para no cargar axios en todas las páginas.
+async function requestJson(url, { method = "GET", body, headers } = {}) {
+  const response = await fetch(url, {
+    method,
+    headers: {
+      ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+      ...headers,
+    },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok || !data?.success) {
+    const error = new Error(data?.message || "No se pudo completar la solicitud.");
+    error.response = { data };
+    throw error;
+  }
+  return data;
+}
 
 export const AppContext = createContext();
 
@@ -55,10 +73,9 @@ export const AppContextProvider = (props) => {
     setProductsError("");
     try {
       const token = await getToken();
-      const { data } = await axios.get("/api/product/list", {
+      const data = await requestJson("/api/product/list", {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
-      if (!data.success) throw new Error(data.message || "No se pudieron cargar los productos.");
       setProducts(data.products);
       return true;
     } catch (error) {
@@ -75,10 +92,9 @@ export const AppContextProvider = (props) => {
     if (!silent) setCommerceSettingsLoading(true);
     setCommerceSettingsError("");
     try {
-      const { data } = await axios.get("/api/commerce-settings", {
+      const data = await requestJson("/api/commerce-settings", {
         headers: { "Cache-Control": "no-cache" },
       });
-      if (!data.success) throw new Error(data.message || "No se pudo cargar la configuración de la tienda.");
       setCommerceEnabled(data.enabled === true);
       return true;
     } catch (error) {
@@ -94,11 +110,9 @@ export const AppContextProvider = (props) => {
 
   const fetchCategories = async () => {
     try {
-      const { data } = await axios.get("/api/categories");
-      if (data.success) {
-        applyCategories(data.categories);
-        setCategoriesVersion((version) => version + 1);
-      }
+      const data = await requestJson("/api/categories");
+      applyCategories(data.categories);
+      setCategoriesVersion((version) => version + 1);
     } catch (error) {
       console.error("No se pudieron cargar las categorías:", error);
     } finally {
@@ -111,20 +125,16 @@ export const AppContextProvider = (props) => {
       const token = await getToken();
       if (!token) return;
 
-      const { data } = await axios.get("/api/user/data", {
+      const data = await requestJson("/api/user/data", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (data.success) {
-        setUserData(data.user);
-        const nextCartItems = data.user.cartItems || {};
-        cartItemsRef.current = nextCartItems;
-        persistedCartItemsRef.current = nextCartItems;
-        setCartItems(nextCartItems);
-        setIsSeller(data.user.role === "seller");
-      } else {
-        toast.error(data.message);
-      }
+      setUserData(data.user);
+      const nextCartItems = data.user.cartItems || {};
+      cartItemsRef.current = nextCartItems;
+      persistedCartItemsRef.current = nextCartItems;
+      setCartItems(nextCartItems);
+      setIsSeller(data.user.role === "seller");
     } catch (error) {
       toast.error(error.response?.data?.message || error.message);
     }
@@ -138,12 +148,11 @@ export const AppContextProvider = (props) => {
     const request = cartUpdateQueue.current.then(async () => {
       const token = await getToken();
       if (!token) throw new Error("Tu sesión expiró. Inicia sesión nuevamente.");
-      const { data } = await axios.post(
-        "/api/cart/update",
-        { cartData: nextCartItems },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (!data.success) throw new Error(data.message || "No se pudo actualizar el carrito.");
+      const data = await requestJson("/api/cart/update", {
+        method: "POST",
+        body: { cartData: nextCartItems },
+        headers: { Authorization: `Bearer ${token}` },
+      });
       persistedCartItemsRef.current = nextCartItems;
     });
     cartUpdateQueue.current = request.catch(() => undefined);

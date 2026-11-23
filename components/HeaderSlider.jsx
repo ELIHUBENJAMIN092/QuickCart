@@ -10,28 +10,10 @@ import { buildSlides, slideImage } from "@/lib/carousel";
 const SLIDE_DURATION = 6000;
 
 export default function HeaderSlider({ initialSlides, initialCertifications }) {
-  const [slides, setSlides] = useState(() => (initialSlides?.length ? initialSlides : buildSlides()));
-  const [certifications, setCertifications] = useState(() => initialCertifications || []);
+  const slides = initialSlides?.length ? initialSlides : buildSlides();
+  const certifications = initialCertifications || [];
   const [currentSlide, setCurrentSlide] = useState(0);
   const [paused, setPaused] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    fetch("/api/carousel")
-      .then((response) => response.json())
-      .then((data) => { if (active && data.slides) setSlides(data.slides); })
-      .catch(() => {});
-    return () => { active = false; };
-  }, []);
-
-  useEffect(() => {
-    let active = true;
-    fetch("/api/certifications", { cache: "no-store" })
-      .then((response) => response.json())
-      .then((data) => { if (active && data.certifications) setCertifications(data.certifications); })
-      .catch(() => {});
-    return () => { active = false; };
-  }, []);
 
   useEffect(() => {
     if (paused) return undefined;
@@ -61,7 +43,7 @@ export default function HeaderSlider({ initialSlides, initialCertifications }) {
             src={slideImage(slide)}
             alt=""
             fill
-            priority
+            priority={index === 0}
             sizes="100vw"
             className="object-cover object-center"
           />

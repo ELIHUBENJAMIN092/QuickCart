@@ -5,12 +5,12 @@ import youtube_icon from "./youtube_icon.svg";
 import box_icon from "./box_icon.png";
 import my_location_image from "./my_location_image.jpg";
 import credencial from "./credencial.png";
-import boy_with_laptop_image from "./boy_with_laptop_image.png";
-import codigo_barras from "./codigo_barras.png";
+import boy_with_laptop_image from "./boy_with_laptop_image.jpg";
+import codigo_barras from "./codigo_barras.jpg";
 import rfid_fx9600 from "./rfid_fx9600.jpg";
 import rfid_rfd40 from "./rfid_rfd40.jpg";
 import rfid_mc3330r from "./rfid_mc3330r.jpg";
-import navidad from "./Navidad 2027.png";
+import navidad from "./navidad-2027.jpg";
 
 export const assets = {
   logo,

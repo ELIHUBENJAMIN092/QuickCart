@@ -196,7 +196,7 @@ export default function Navbar({ initialBanner }) {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileCategory, setMobileCategory] = useState(null);
-  const [banner, setBanner] = useState(() => initialBanner || defaultBanner);
+  const banner = initialBanner || defaultBanner;
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
   const [menuLeft, setMenuLeft] = useState(0);
@@ -240,10 +240,6 @@ export default function Navbar({ initialBanner }) {
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [mobileOpen]);
-
-  useEffect(() => {
-    fetch("/api/banner").then((res) => res.json()).then((data) => data.banner && setBanner(data.banner)).catch(() => {});
-  }, []);
 
   const dismissBanner = () => setBannerDismissed(true);
 
@@ -819,6 +815,15 @@ export default function Navbar({ initialBanner }) {
             </div>
 
             <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-4">
+              <button
+                type="button"
+                onClick={() => { closeMobile(); setSearchOpen(true); }}
+                className="mb-4 flex h-11 w-full items-center gap-2.5 rounded-xl border border-brand-line bg-brand-sand/50 px-3.5 text-left text-sm text-brand-muted transition hover:border-brand-accent hover:bg-white hover:text-brand-charcoal"
+              >
+                <Search size={17} className="shrink-0" aria-hidden="true" />
+                <span className="min-w-0 flex-1 truncate">Buscar productos...</span>
+              </button>
+
               <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-muted/80">Navegación</p>
               <div className="space-y-0.5">
                 <MobileNavLink href="/" label="Inicio" icon={Home} active={isHomeActive} onClick={closeMobile} />
@@ -831,8 +836,13 @@ export default function Navbar({ initialBanner }) {
                 />
               </div>
 
-              <p className="mt-5 px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-muted/80">Categorías</p>
-              <div className="space-y-1">
+              <div className="mt-5 flex items-end justify-between gap-3 px-3 pb-2">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-muted/80">Categorías</p>
+                <Link href="/all-products" onClick={closeMobile} className="text-[11px] font-semibold text-brand-accent transition hover:text-brand-ink">
+                  Ver todas
+                </Link>
+              </div>
+              <div className="space-y-2">
                 {categories.map((category) => {
                   const active = categoryIsActive(pathname, category);
                   const expanded = mobileCategory === category.slug;
@@ -842,78 +852,141 @@ export default function Navbar({ initialBanner }) {
                   const parents = category.subcategories.filter((item) =>
                     category.subcategories.some((child) => child.parent === item.slug)
                   );
+                  const imageSrc = category.image_url || category.image || category.hero?.image_url;
+                  const categoryLink = `/categoria/${category.slug}`;
+                  const totalItems = category.subcategories.length;
                   return (
                     <div
                       key={category.slug}
-                      className="overflow-hidden"
+                      className={`overflow-hidden rounded-2xl border bg-white transition-colors ${
+                        active || expanded ? "border-brand-accent/40 shadow-sm" : "border-brand-line"
+                      }`}
                     >
-                      <button
-                        type="button"
-                        onClick={() => setMobileCategory(expanded ? null : category.slug)}
-                        aria-expanded={expanded}
-                        aria-current={active ? "page" : undefined}
-                        className={`flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm transition-colors focus:outline-none focus-visible:text-brand-accent ${
-                          active
-                            ? "bg-brand-accent-soft font-semibold text-brand-accent"
-                            : "font-medium text-brand-charcoal hover:bg-brand-sand/70 hover:text-brand-ink"
-                        }`}
-                      >
-                        <span className="min-w-0 flex-1 truncate">{category.name}</span>
-                        {active && (
-                          <span className="shrink-0 rounded-full bg-white px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-brand-accent ring-1 ring-brand-accent/20">
-                            Actual
+                      <div className="flex items-center gap-3 p-2.5">
+                        <Link
+                          href={categoryLink}
+                          onClick={closeMobile}
+                          aria-current={active ? "page" : undefined}
+                          className="group flex min-w-0 flex-1 items-center gap-3"
+                        >
+                          <span className="relative grid h-14 w-16 shrink-0 place-items-center overflow-hidden rounded-xl bg-brand-sand">
+                            {imageSrc ? (
+                              <Image
+                                src={imageSrc}
+                                alt=""
+                                fill
+                                sizes="64px"
+                                className="object-cover transition duration-500 group-hover:scale-105"
+                              />
+                            ) : (
+                              <LayoutGrid size={20} className="text-brand-muted" aria-hidden="true" />
+                            )}
+                            <span className="absolute inset-0 bg-gradient-to-t from-brand-ink/25 to-transparent" aria-hidden="true" />
                           </span>
-                        )}
-                        <ChevronDown
-                          size={16}
-                          className={`shrink-0 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
-                        />
-                      </button>
-                      {expanded && (
-                        <div className="space-y-0.5 px-2 pb-2 pt-1">
-                          <MobileSubLink
-                            href={`/categoria/${category.slug}`}
-                            label={`Ver todo ${category.name}`}
-                            active={currentPath === normalizePath(`/categoria/${category.slug}`)}
-                            onClick={closeMobile}
-                            showBadge={false}
-                          />
-                          {leaves.map((subcategory) => (
-                            <MobileSubLink
-                              key={subcategory.slug}
-                              href={subcategoryHref(category, subcategory)}
-                              label={subcategory.name}
-                              active={currentPath === normalizePath(subcategoryHref(category, subcategory))}
-                              onClick={closeMobile}
+                          <span className="min-w-0 flex-1">
+                            <span className={`block text-[15px] font-semibold leading-tight ${active ? "text-brand-accent" : "text-brand-ink"}`}>
+                              {category.name}
+                            </span>
+                            <span className="mt-1 block text-[11.5px] text-brand-muted">
+                              {active
+                                ? <span className="font-semibold text-brand-accent">Estás aquí</span>
+                                : totalItems > 0
+                                  ? `${totalItems} ${totalItems === 1 ? "subcategoría" : "subcategorías"}`
+                                  : "Explorar categoría"}
+                            </span>
+                          </span>
+                        </Link>
+                        {totalItems > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setMobileCategory(expanded ? null : category.slug)}
+                            aria-expanded={expanded}
+                            aria-controls={`mobile-category-${category.slug}`}
+                            aria-label={`${expanded ? "Ocultar" : "Mostrar"} subcategorías de ${category.name}`}
+                            className={`grid h-9 w-9 shrink-0 place-items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/30 ${
+                              expanded
+                                ? "bg-brand-accent text-white shadow-sm"
+                                : "bg-brand-sand text-brand-charcoal hover:bg-brand-accent-soft hover:text-brand-accent"
+                            }`}
+                          >
+                            <ChevronDown
+                              size={18}
+                              strokeWidth={2.25}
+                              className={`transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
                             />
-                          ))}
-                          {parents.map((parent) => {
-                            const children = category.subcategories.filter((child) => child.parent === parent.slug);
-                            const parentActive =
-                              currentPath === normalizePath(subcategoryHref(category, parent)) ||
-                              children.some((child) => currentPath === normalizePath(subcategoryHref(category, child)));
-                            return (
-                              <div key={parent.slug} className="pt-1">
-                                <MobileSubLink
-                                  href={subcategoryHref(category, parent)}
-                                  label={parent.name}
-                                  active={parentActive}
-                                  onClick={closeMobile}
-                                />
-                                <div className="ml-3 border-l border-brand-line pl-1.5">
-                                  {children.map((child) => (
-                                    <MobileSubLink
-                                      key={child.slug}
-                                      href={subcategoryHref(category, child)}
-                                      label={child.name}
-                                      active={currentPath === normalizePath(subcategoryHref(category, child))}
-                                      onClick={closeMobile}
-                                    />
-                                  ))}
+                          </button>
+                        )}
+                      </div>
+                      {expanded && (
+                        <div id={`mobile-category-${category.slug}`} className="bg-brand-sand/40 p-2 pt-2.5">
+                          {imageSrc && (
+                            <Link
+                              href={categoryLink}
+                              onClick={closeMobile}
+                              className="group relative mb-2 block aspect-[16/7] overflow-hidden rounded-xl bg-brand-sand"
+                            >
+                              <Image
+                                src={imageSrc}
+                                alt={`Ver ${category.name}`}
+                                fill
+                                sizes="(max-width: 1280px) 360px, 0px"
+                                className="object-cover transition duration-500 group-hover:scale-105"
+                              />
+                              <span className="absolute inset-0 bg-gradient-to-r from-brand-ink/85 via-brand-ink/40 to-transparent" aria-hidden="true" />
+                              <span className="absolute inset-y-0 left-0 flex flex-col justify-center p-3.5">
+                                <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/70">Descubre</span>
+                                <span className="mt-0.5 flex items-center gap-1.5 font-display text-sm font-semibold text-white">
+                                  {category.name}
+                                  <ChevronRight size={14} className="transition group-hover:translate-x-0.5" />
+                                </span>
+                              </span>
+                            </Link>
+                          )}
+                          <div className="space-y-0.5">
+                            <MobileSubLink
+                              href={categoryLink}
+                              label={`Ver todo ${category.name}`}
+                              active={currentPath === normalizePath(categoryLink)}
+                              onClick={closeMobile}
+                              showBadge={false}
+                            />
+                            {leaves.map((subcategory) => (
+                              <MobileSubLink
+                                key={subcategory.slug}
+                                href={subcategoryHref(category, subcategory)}
+                                label={subcategory.name}
+                                active={currentPath === normalizePath(subcategoryHref(category, subcategory))}
+                                onClick={closeMobile}
+                              />
+                            ))}
+                            {parents.map((parent) => {
+                              const children = category.subcategories.filter((child) => child.parent === parent.slug);
+                              const parentActive =
+                                currentPath === normalizePath(subcategoryHref(category, parent)) ||
+                                children.some((child) => currentPath === normalizePath(subcategoryHref(category, child)));
+                              return (
+                                <div key={parent.slug} className="pt-1">
+                                  <MobileSubLink
+                                    href={subcategoryHref(category, parent)}
+                                    label={parent.name}
+                                    active={parentActive}
+                                    onClick={closeMobile}
+                                  />
+                                  <div className="ml-3 border-l border-brand-line pl-1.5">
+                                    {children.map((child) => (
+                                      <MobileSubLink
+                                        key={child.slug}
+                                        href={subcategoryHref(category, child)}
+                                        label={child.name}
+                                        active={currentPath === normalizePath(subcategoryHref(category, child))}
+                                        onClick={closeMobile}
+                                      />
+                                    ))}
+                                  </div>
                                 </div>
-                              </div>
-                            );
-                          })}
+                              );
+                            })}
+                          </div>
                         </div>
                       )}
                     </div>

@@ -52,7 +52,9 @@ export default function PopupModal({ popup }) {
     };
   }, [open]);
 
-  // Reproduce o silencia la música de fondo según el estado de la ventana.
+  // Intenta reproducir con sonido apenas se abre la ventana. Si el navegador
+  // bloquea el autoplay, el audio arranca en silencio y el primer toque en la
+  // página activa el volumen (los navegadores no permiten sonido sin gesto).
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return undefined;
@@ -62,9 +64,15 @@ export default function PopupModal({ popup }) {
     if (open && audioEnabled) {
       if (audio.paused) {
         audio.currentTime = 0;
+        audio.muted = false;
         const playPromise = audio.play();
         if (playPromise && typeof playPromise.catch === "function") {
-          playPromise.catch(() => { /* autoplay bloqueado, se reintenta abajo */ });
+          playPromise.catch(() => {
+            // Autoplay con sonido bloqueado: arranca en silencio para que el
+            // primer toque solo tenga que activar el volumen.
+            audio.muted = true;
+            audio.play().catch(() => {});
+          });
         }
       }
     } else {
@@ -74,26 +82,27 @@ export default function PopupModal({ popup }) {
     return () => audio.pause();
   }, [open, audioEnabled, popup?.audio_url, popup?.audio_volume]);
 
-  // Si el navegador bloqueó el autoplay, reanuda con la primera interacción.
+  // Activa el sonido con el primer toque cuando el navegador bloqueó el
+  // autoplay. Escucha todos los gestos habituales mientras la ventana siga
+  // abierta, para reintentar si el primero no fue válido.
   useEffect(() => {
     if (!open || !audioEnabled || !hasAudio) return undefined;
-    const audio = audioRef.current;
-    if (!audio || !audio.paused) return undefined;
 
-    const resume = () => {
-      const current = audioRef.current;
-      if (current && current.paused) current.play().catch(() => {});
-      cleanup();
+    const enableSound = () => {
+      const audio = audioRef.current;
+      if (!audio) return;
+      if (audio.muted) {
+        audio.muted = false;
+        audio.currentTime = 0;
+      }
+      if (audio.paused) audio.play().catch(() => {});
     };
-    const cleanup = () => {
-      window.removeEventListener("pointerdown", resume);
-      window.removeEventListener("keydown", resume);
-      window.removeEventListener("touchstart", resume);
+
+    const events = ["pointerdown", "keydown", "touchstart", "touchend", "click"];
+    events.forEach((event) => window.addEventListener(event, enableSound, true));
+    return () => {
+      events.forEach((event) => window.removeEventListener(event, enableSound, true));
     };
-    window.addEventListener("pointerdown", resume);
-    window.addEventListener("keydown", resume);
-    window.addEventListener("touchstart", resume);
-    return cleanup;
   }, [open, audioEnabled, hasAudio]);
 
   const image = popupImage(popup);
@@ -101,8 +110,8 @@ export default function PopupModal({ popup }) {
 
   return (
     <>
-      {hasAudio && (
-        <audio ref={audioRef} src={popup.audio_url} loop preload="auto" />
+      {open && popup?.enabled && hasAudio && (
+        <audio ref={audioRef} src={popup.audio_url} loop autoPlay preload="auto" />
       )}
 
       {open && popup?.enabled && (
