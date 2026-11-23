@@ -2,7 +2,6 @@ import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 import { AppContextProvider } from "@/context/AppContext";
 import { ConfirmProvider } from "@/components/ui/ConfirmProvider";
-import GoogleTag from "@/components/GoogleTag";
 import VisitTracker from "@/components/VisitTracker";
 import { Toaster } from "react-hot-toast";
 
@@ -23,8 +22,19 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="es" data-scroll-behavior="smooth">
+      <head>
+        <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-MQTPNBLR" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+            `,
+          }}
+        />
+      </head>
       <body className={`${inter.variable} ${manrope.variable} font-sans antialiased`}>
-        <GoogleTag />
         <Toaster />
         <VisitTracker />
         <AppContextProvider><ConfirmProvider>{children}</ConfirmProvider></AppContextProvider>
