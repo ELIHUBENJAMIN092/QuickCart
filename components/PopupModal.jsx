@@ -27,45 +27,15 @@ export default function PopupModal({ popup }) {
     try { window.sessionStorage.setItem(STORAGE_KEY, "1"); } catch { /* sin almacenamiento */ }
   };
 
-  // Abre la ventana. En escritorio lo hace con un pequeño retraso; en móvil
-  // espera el primer gesto del usuario para poder reproducir el audio (los
-  // navegadores móviles bloquean el sonido sin interacción previa).
+  // Abre la ventana apenas carga la página, sin retraso, en todos los
+  // dispositivos. En móvil la música se activa con el primer toque (los
+  // navegadores bloquean el autoplay de audio sin interacción).
   useEffect(() => {
     if (!popup?.enabled) return undefined;
     if (window.sessionStorage.getItem(STORAGE_KEY)) return undefined;
-
-    const isTouch =
-      typeof window.matchMedia === "function" &&
-      window.matchMedia("(hover: none) and (pointer: coarse)").matches;
-
-    const openPopup = () => {
-      setOpen(true);
-      const audio = audioRef.current;
-      if (audio && audioEnabled) {
-        audio.volume = clampVolume(popup?.audio_volume) / 100;
-        audio.currentTime = 0;
-        audio.play().catch(() => { /* no disponible */ });
-      }
-      cleanup();
-    };
-
-    const cleanup = () => {
-      window.removeEventListener("pointerdown", openPopup);
-      window.removeEventListener("touchstart", openPopup);
-      window.removeEventListener("keydown", openPopup);
-      window.removeEventListener("scroll", openPopup);
-    };
-
-    if (isTouch) {
-      window.addEventListener("pointerdown", openPopup);
-      window.addEventListener("touchstart", openPopup);
-      window.addEventListener("scroll", openPopup);
-      return cleanup;
-    }
-
     queueMicrotask(() => setOpen(true));
     return undefined;
-  }, [popup?.enabled, popup?.updated_at, audioEnabled, popup?.audio_volume]);
+  }, [popup?.enabled, popup?.updated_at]);
 
   // Bloquea el scroll de la página mientras la ventana está abierta.
   useEffect(() => {
