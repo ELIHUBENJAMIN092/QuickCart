@@ -10,6 +10,7 @@ import codigo_barras from "./codigo_barras.png";
 import rfid_fx9600 from "./rfid_fx9600.jpg";
 import rfid_rfd40 from "./rfid_rfd40.jpg";
 import rfid_mc3330r from "./rfid_mc3330r.jpg";
+import navidad from "./Navidad 2027.png";
 
 export const assets = {
   logo,
@@ -24,4 +25,5 @@ export const assets = {
   rfid_fx9600,
   rfid_rfd40,
   rfid_mc3330r,
+  navidad,
 };
