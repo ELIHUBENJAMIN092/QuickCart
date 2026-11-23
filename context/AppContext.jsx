@@ -17,6 +17,7 @@ async function requestJson(url, { method = "GET", body, headers } = {}) {
   });
   const data = await response.json().catch(() => null);
   if (!response.ok || !data?.success) {
+    console.error("requestJson:", url, response.status, data);
     const error = new Error(data?.message || "No se pudo completar la solicitud.");
     error.response = { data };
     throw error;
