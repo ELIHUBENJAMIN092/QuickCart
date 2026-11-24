@@ -31,7 +31,10 @@ const nextConfig = {
                 source: '/:path*',
                 headers: [
                     { key: 'X-Content-Type-Options', value: 'nosniff' },
-                    { key: 'X-Frame-Options', value: 'DENY' },
+                    // SAMEORIGIN (no DENY): el pie de página incrusta el PDF de la
+                    // política de privacidad (/docs/...) en un iframe del propio sitio,
+                    // y DENY también bloqueaba ese embebido del mismo origen.
+                    { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
                     { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
                     { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
                     {
@@ -48,7 +51,15 @@ const nextConfig = {
                             "media-src 'self' data: blob: https://*.supabase.co",
                             "font-src 'self' data:",
                             "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.resend.com https://www.google-analytics.com https://region1.google-analytics.com",
-                            "frame-ancestors 'none'",
+                            // Sin frame-src, el navegador usa default-src ('self') y bloquea los
+                            // iframes hacia Supabase (catálogos PDF), los visores 3D de Zebra y
+                            // el mapa de Google. Se permiten orígenes https porque los vendedores
+                            // pueden indicar URLs 3D de cualquier dominio.
+                            "frame-src 'self' https:",
+                            // 'self' (no 'none') para permitir que el propio sitio incruste
+                            // su PDF de privacidad; sigue bloqueando el embebido desde
+                            // cualquier sitio externo (protección contra clickjacking).
+                            "frame-ancestors 'self'",
                             "base-uri 'self'",
                             "form-action 'self'",
                         ].join('; '),
