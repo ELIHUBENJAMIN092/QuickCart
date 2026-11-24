@@ -458,7 +458,7 @@ export default function AddProduct() {
                     <input required min="0.01" step="0.01" type="number" value={price} onChange={(event) => setPrice(event.target.value)} placeholder="0.00" className={inputFor("price", `${inputClass} pl-11`)} />
                   </div>
                 </Field>
-                <Field label="Precio de oferta *" hint="(usa 0 si no aplica)" error={errorOf("offerPrice")}>
+                <Field label="Precio de oferta *" hint="(0 = sin oferta)" error={errorOf("offerPrice")}>
                   <div className="relative">
                     <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-brand-muted">{process.env.NEXT_PUBLIC_CURRENCY || "$"}</span>
                     <input required min="0" step="0.01" type="number" value={offerPrice} onChange={(event) => setOfferPrice(event.target.value)} placeholder="0.00" className={inputFor("offerPrice", `${inputClass} pl-11`)} />

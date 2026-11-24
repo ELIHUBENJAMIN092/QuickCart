@@ -16,16 +16,19 @@ export default function Pagos() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState("");
+  const [total, setTotal] = useState(0);
 
   const fetchPaidOrders = async (manual = false) => {
     if (manual) setRefreshing(true);
     try {
       const token = await getToken();
       const { data } = await axios.get("/api/order/seller-orders", {
+        params: { status: "paid", limit: 100 },
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!data.success) throw new Error(data.message || "Error al obtener los pagos.");
       setPaidOrders(data.orders.filter((order) => order.isPaid === true));
+      setTotal(data.total ?? data.orders.length);
     } catch (error) {
       toast.error(error.response?.data?.message || error.message || "Ocurrió un error al obtener los pagos.");
     } finally {
@@ -103,7 +106,7 @@ export default function Pagos() {
                 className="min-h-11 w-full rounded-xl border border-brand-line bg-white py-2.5 pl-9 pr-4 text-base outline-none transition placeholder:text-brand-muted focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/10 sm:text-xs"
               />
             </label>
-            <p className="text-xs text-brand-muted">{filtered.length} de {paidOrders.length} pagos</p>
+            <p className="text-xs text-brand-muted">{filtered.length} de {total} pagos</p>
           </div>
 
           <div className="mt-4 space-y-4">

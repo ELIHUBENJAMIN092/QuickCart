@@ -13,6 +13,9 @@ const config: JestConfigWithTsJest = {
       },
     }],
   },
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/$1',
+  },
   verbose: true,
   clearMocks: true,
   collectCoverage: true,

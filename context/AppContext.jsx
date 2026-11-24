@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import toast from "react-hot-toast";
 import { applyCategories } from "@/lib/categories";
 import { getCartAmount as calculateCartAmount, getCartCount as calculateCartCount } from "@/lib/cart";
+import { logWarn } from "@/lib/logger";
 
 // Cliente HTTP mínimo para no cargar axios en todas las páginas.
 async function requestJson(url, { method = "GET", body, headers } = {}) {
@@ -17,7 +18,7 @@ async function requestJson(url, { method = "GET", body, headers } = {}) {
   });
   const data = await response.json().catch(() => null);
   if (!response.ok || !data?.success) {
-    console.error("requestJson:", url, response.status, data);
+    logWarn("requestJson:", { url, status: response.status });
     const error = new Error(data?.message || "No se pudo completar la solicitud.");
     error.response = { data };
     throw error;

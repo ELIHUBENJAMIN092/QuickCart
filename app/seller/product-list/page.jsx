@@ -12,6 +12,7 @@ import PageHeader from "@/components/seller/PageHeader";
 import { useConfirm } from "@/components/ui/ConfirmProvider";
 import { categories, getCategoryName, getSubcategoryName, matchesCategoryFilter } from "@/lib/categories";
 import { applyVisibleOrder, moveItem } from "@/lib/productOrder";
+import { getEffectiveUnitPrice, hasActiveOffer } from "@/lib/pricing";
 
 const stockFilters = [
   { value: "all", label: "Todo el inventario" },
@@ -73,7 +74,7 @@ export default function ProductList() {
     if (sortBy === "recent") filtered.sort((a, b) => Number(b.date || 0) - Number(a.date || 0));
     if (sortBy === "name") filtered.sort((a, b) => a.name.localeCompare(b.name, "es"));
     if (sortBy === "stock") filtered.sort((a, b) => Number(a.stock || 0) - Number(b.stock || 0));
-    if (sortBy === "price") filtered.sort((a, b) => Number(a.offerPrice || 0) - Number(b.offerPrice || 0));
+    if (sortBy === "price") filtered.sort((a, b) => getEffectiveUnitPrice(a) - getEffectiveUnitPrice(b));
     return filtered;
   }, [products, search, categoryFilter, stockFilter, sortBy]);
 
@@ -313,7 +314,7 @@ export default function ProductList() {
                               </div>
                             </td>
                             <td className="px-4 py-3 text-xs text-brand-charcoal">{getCategoryName(product.category)}{product.subcategory && <span className="mt-1 block text-[10px] text-brand-muted">{getSubcategoryName(product.category, product.subcategory)}</span>}</td>
-                            <td className="whitespace-nowrap px-4 py-3 text-xs"><span className="font-semibold text-brand-ink">{currency}{Number(product.offerPrice ?? product.price).toFixed(2)}</span>{Number(product.offerPrice) > 0 && Number(product.offerPrice) < Number(product.price) && <span className="ml-2 text-brand-muted line-through">{currency}{Number(product.price).toFixed(2)}</span>}</td>
+                            <td className="whitespace-nowrap px-4 py-3 text-xs"><span className="font-semibold text-brand-ink">{currency}{getEffectiveUnitPrice(product).toFixed(2)}</span>{hasActiveOffer(product) && <span className="ml-2 text-brand-muted line-through">{currency}{Number(product.price).toFixed(2)}</span>}</td>
                             <td className="px-4 py-3"><span className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-[10px] font-semibold ${Number(product.stock) > 5 ? "bg-brand-success/10 text-brand-success" : Number(product.stock) > 0 ? "bg-amber-50 text-amber-700" : "bg-red-50 text-brand-sale"}`}>{Number(product.stock) > 0 ? `${product.stock} unidades` : "Agotado"}</span></td>
                             <td className="px-5 py-3"><div className="flex justify-end">{renderActions(product)}</div></td>
                           </tr>
@@ -338,8 +339,8 @@ export default function ProductList() {
                             </div>
                             <div className="mt-3 flex flex-wrap items-end justify-between gap-2">
                               <div className="min-w-0">
-                                <p className="text-sm font-semibold text-brand-ink">{currency}{Number(product.offerPrice ?? product.price).toFixed(2)}</p>
-                                {Number(product.offerPrice) > 0 && Number(product.offerPrice) < Number(product.price) && <p className="text-[10px] text-brand-muted line-through">{currency}{Number(product.price).toFixed(2)}</p>}
+                                <p className="text-sm font-semibold text-brand-ink">{currency}{getEffectiveUnitPrice(product).toFixed(2)}</p>
+                                {hasActiveOffer(product) && <p className="text-[10px] text-brand-muted line-through">{currency}{Number(product.price).toFixed(2)}</p>}
                               </div>
                               {renderActions(product)}
                             </div>

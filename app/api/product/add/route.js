@@ -6,6 +6,7 @@ import { getAuthenticatedSupabase } from "@/lib/supabase/server";
 import { mapProduct } from "@/lib/supabase/records";
 import { textToSpecifications } from "@/lib/specsText";
 import { validateProductFile } from "@/lib/supabase/storage";
+import { logError } from "@/lib/logger";
 
 export async function POST(request) {
   try {
@@ -96,7 +97,7 @@ export async function POST(request) {
       newProduct: mapProduct(data),
     });
   } catch (error) {
-    console.error("Error agregando producto:", error);
+    logError("Error agregando producto:", error);
     return NextResponse.json(
       { success: false, message: "No se pudo guardar el producto." },
       { status: 500 }

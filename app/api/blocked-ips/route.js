@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import authSeller from "@/lib/authSeller";
 import { isValidIp } from "@/lib/visits";
+import { invalidateBlockedIpCache } from "@/lib/blockedIps";
 import { getAuthenticatedSupabase } from "@/lib/supabase/server";
 
 const MIGRATION_FILE = "20261106120000_site_visits.sql";
@@ -67,6 +68,7 @@ export async function POST(request) {
     return NextResponse.json({ success: false, message: "No se pudo bloquear la IP." }, { status: 500 });
   }
 
+  await invalidateBlockedIpCache(ip);
   return NextResponse.json({ success: true, message: `La IP ${ip} fue bloqueada.` });
 }
 
@@ -94,5 +96,6 @@ export async function DELETE(request) {
     return NextResponse.json({ success: false, message: "No se pudo desbloquear la IP." }, { status: 500 });
   }
 
+  await invalidateBlockedIpCache(ip);
   return NextResponse.json({ success: true, message: `La IP ${ip} fue desbloqueada.` });
 }

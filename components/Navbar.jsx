@@ -23,6 +23,7 @@ import { assets } from "@/assets/assets";
 import { defaultBanner } from "@/lib/banner";
 import { categories } from "@/lib/categories";
 import { useAppContext } from "@/context/AppContext";
+import { getEffectiveUnitPrice } from "@/lib/pricing";
 
 function BannerLink({ href, className, children }) {
   if (!href) return <span className={className.replace("hover:underline", "")}>{children}</span>;
@@ -180,12 +181,6 @@ const highlightTerm = (text, term) => {
       {text.slice(index + query.length)}
     </>
   );
-};
-
-const displayPrice = (product) => {
-  const price = Number(product?.price);
-  const offer = Number(product?.offerPrice);
-  return Number.isFinite(offer) && offer > 0 && offer < price ? offer : price;
 };
 
 export default function Navbar({ initialBanner }) {
@@ -760,7 +755,7 @@ export default function Navbar({ initialBanner }) {
                               {canShop ? (
                                 <>
                                   {currency || "$"}
-                                  {displayPrice(product).toFixed(2)}
+                                  {getEffectiveUnitPrice(product).toFixed(2)}
                                 </>
                               ) : (
                                 <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-accent">
@@ -1082,7 +1077,7 @@ export default function Navbar({ initialBanner }) {
                     <div className="min-w-0 flex-1">
                       <p className="line-clamp-2 text-sm font-medium text-brand-ink">{product.name}</p>
                       <p className="mt-1 text-xs text-brand-muted">Cantidad: {quantity}</p>
-                      <p className="mt-2 text-sm font-semibold text-brand-ink">{process.env.NEXT_PUBLIC_CURRENCY || "$"}{(Number(product.offerPrice ?? product.price) * quantity).toFixed(2)}</p>
+                      <p className="mt-2 text-sm font-semibold text-brand-ink">{process.env.NEXT_PUBLIC_CURRENCY || "$"}{(getEffectiveUnitPrice(product) * quantity).toFixed(2)}</p>
                     </div>
                   </div>
                 ))}
@@ -1129,7 +1124,7 @@ export default function Navbar({ initialBanner }) {
                       <span className="line-clamp-2 text-sm font-medium text-brand-ink">{product.name}</span>
                       {canShop && (
                         <span className="mt-0.5 block text-xs font-semibold text-brand-ink">
-                          {currency || "$"}{displayPrice(product).toFixed(2)}
+                          {currency || "$"}{getEffectiveUnitPrice(product).toFixed(2)}
                         </span>
                       )}
                     </span>

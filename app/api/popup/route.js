@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import authSeller from "@/lib/authSeller";
 import { POPUP_LIMITS, buildPopup, clampVolume, isValidLink } from "@/lib/popup";
+import { popupAudioVolumeSchema } from "@/lib/schemas";
 import { createSupabasePublicClient, getAuthenticatedSupabase } from "@/lib/supabase/server";
 import { validateProductFile } from "@/lib/supabase/storage";
 
@@ -32,6 +33,15 @@ export async function PUT(request) {
     }
 
     const body = await request.json();
+    // El esquema usa volumen normalizado 0..1, pero la UI actual envía 0..100.
+    // Se convierte para validar y se sigue persistiendo con clampVolume (0..100).
+    const volumeCheck = popupAudioVolumeSchema.safeParse({
+      audio_volume: clampVolume(body.audio_volume) / 100,
+    });
+    if (!volumeCheck.success) {
+      return NextResponse.json({ success: false, message: "Revisa el volumen del audio." }, { status: 400 });
+    }
+
     const values = {
       enabled: Boolean(body.enabled),
       audio_enabled: Boolean(body.audio_enabled),
@@ -54,7 +64,7 @@ export async function PUT(request) {
       values.image_url = "";
     } else {
       const imageUrl = String(body.image_url ?? "").trim();
-      if (imageUrl.length > 1000) {
+      if (imageUrl.length > 1000 || !isValidLink(imageUrl)) {
         return NextResponse.json({ success: false, message: "La imagen no es válida." }, { status: 400 });
       }
       values.image_url = imageUrl;
@@ -69,7 +79,7 @@ export async function PUT(request) {
       values.audio_enabled = false;
     } else {
       const audioUrl = String(body.audio_url ?? "").trim();
-      if (audioUrl.length > 1000) {
+      if (audioUrl.length > 1000 || !isValidLink(audioUrl)) {
         return NextResponse.json({ success: false, message: "La pista de audio no es válida." }, { status: 400 });
       }
       values.audio_url = audioUrl;

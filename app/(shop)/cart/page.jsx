@@ -8,6 +8,7 @@ import { useAppContext } from "@/context/AppContext";
 import Container from "@/components/ui/Container";
 import Price from "@/components/ui/Price";
 import Loading from "@/components/Loading";
+import { getEffectiveUnitPrice } from "@/lib/pricing";
 
 export default function Cart() {
   const { authLoading, commerceEnabled, commerceSettingsLoading, currency, products, cartItems, addToCart, updateCartQuantity, getCartCount, cartSaving, user } = useAppContext();
@@ -67,7 +68,7 @@ export default function Cart() {
                         <span className="min-w-7 text-center text-xs">{quantity}</span>
                         <button onClick={() => addToCart(product._id)} disabled={cartSaving} className="p-2.5 text-brand-ink disabled:opacity-40" aria-label="Aumentar cantidad"><Plus size={13} /></button>
                       </div>
-                      <p className="text-sm font-semibold text-brand-ink">{currency}{(Number(product.offerPrice ?? product.price) * quantity).toFixed(2)}</p>
+                      <p className="text-sm font-semibold text-brand-ink">{currency}{(getEffectiveUnitPrice(product) * quantity).toFixed(2)}</p>
                     </div>
                   </article>
                 ))}

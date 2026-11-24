@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import authSeller from "@/lib/authSeller";
 import { getAuthenticatedSupabase } from "@/lib/supabase/server";
 import { removeProductMedia } from "@/lib/supabase/storage";
+import { isUuid } from "@/lib/validation";
 
 export async function DELETE(request, context) {
   try {
@@ -11,17 +12,22 @@ export async function DELETE(request, context) {
     }
 
     const { id } = await context.params;
+    if (!isUuid(id)) {
+      return NextResponse.json({ success: false, message: "Identificador de producto inválido." }, { status: 400 });
+    }
+
     const { data: product, error: readError } = await supabase
       .from("products")
       .select("id, image_urls, video")
       .eq("id", id)
+      .eq("user_id", user.id)
       .maybeSingle();
     if (readError) throw readError;
     if (!product) {
       return NextResponse.json({ success: false, message: "Producto no encontrado." }, { status: 404 });
     }
 
-    const { error } = await supabase.from("products").delete().eq("id", id);
+    const { error } = await supabase.from("products").delete().eq("id", id).eq("user_id", user.id);
     if (error) throw error;
 
     let cleanupPending = false;

@@ -3,6 +3,7 @@ import { revalidateTag } from "next/cache";
 import authSeller from "@/lib/authSeller";
 import { BANNER_LIMITS, buildBanner, isValidLink } from "@/lib/banner";
 import { createSupabasePublicClient, getAuthenticatedSupabase } from "@/lib/supabase/server";
+import { logError } from "@/lib/logger";
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
 
@@ -15,7 +16,7 @@ export async function GET() {
     if (error) throw error;
     return NextResponse.json({ success: true, banner: buildBanner(data) });
   } catch (error) {
-    console.error("Error cargando el banner:", error);
+    logError("Error cargando el banner:", error);
     return NextResponse.json({ success: true, banner: buildBanner(null) });
   }
 }
@@ -49,7 +50,7 @@ export async function PUT(request) {
     if (error) throw error;
     return NextResponse.json({ success: true, message: "Banner guardado." });
   } catch (error) {
-    console.error("Error guardando banner:", error);
+    logError("Error guardando banner:", error);
     return NextResponse.json({ success: false, message: "No se pudo guardar el banner." }, { status: 500 });
   }
 }

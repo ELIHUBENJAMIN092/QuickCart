@@ -35,6 +35,7 @@ const OrderSummary = () => {
   const [selectedAddressId, setSelectedAddressId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const submittingRef = useRef(false);
+  const idempotencyKeyRef = useRef("");
   const subtotal = getCartAmount();
   const totals = getOrderTotals(subtotal);
 
@@ -161,10 +162,21 @@ const OrderSummary = () => {
 
       const token = await getToken();
       if (!token) throw new Error("Tu sesión expiró. Inicia sesión nuevamente.");
+      if (!idempotencyKeyRef.current) {
+        idempotencyKeyRef.current =
+          typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+            ? crypto.randomUUID()
+            : `idem-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      }
       const { data } = await axios.post(
         "/api/order/create",
         { address, items },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Idempotency-Key": idempotencyKeyRef.current,
+          },
+        }
       );
       if (!data.success) throw new Error(data.message || "No se pudo crear la orden.");
 

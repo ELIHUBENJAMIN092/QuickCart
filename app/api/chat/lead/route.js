@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { hasTrustedOrigin } from "@/lib/csrf";
 import {
   createSupabasePublicClient,
   getAuthenticatedSupabase,
@@ -19,6 +20,10 @@ function jsonError(message, status, code) {
 }
 
 export async function POST(request) {
+  if (!hasTrustedOrigin(request)) {
+    return NextResponse.json({ success: false, message: "Origen no permitido." }, { status: 403 });
+  }
+
   let body;
   try {
     body = await request.json();

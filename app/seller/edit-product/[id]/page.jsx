@@ -284,7 +284,7 @@ export default function EditProduct() {
                 {errorText("price", "Ingresa un precio mayor a 0.")}
               </label>
               <label className="space-y-2 text-xs font-medium text-brand-charcoal">
-                <span>Precio de oferta{required}</span>
+                <span>Precio de oferta (0 = sin oferta){required}</span>
                 <input required aria-invalid={hasError("offerPrice")} data-invalid={hasError("offerPrice")} type="number" min="0" step="0.01" value={product.offerPrice} onChange={(event) => updateField("offerPrice", event.target.value)} className={fieldClass("offerPrice")} />
                 {errorText("offerPrice", "Ingresa el precio de oferta (no mayor al normal).")}
               </label>

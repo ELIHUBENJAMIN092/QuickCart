@@ -32,7 +32,7 @@ const MyOrders = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!data.success) throw new Error(data.message || "No se pudieron cargar tus órdenes.");
-      setOrders([...data.orders].reverse());
+      setOrders(data.orders);
     } catch (requestError) {
       setError(requestError.response?.data?.message || requestError.message || "No se pudieron cargar tus órdenes.");
     } finally {

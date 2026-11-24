@@ -4,7 +4,7 @@ This application now uses Supabase Auth, Postgres, and Storage for new accounts 
 
 ## Configure and deploy
 
-1. The base schema migration referenced by earlier setup instructions (`migrations/20261020140000_initial_schema.sql`) is not present in this checkout. Do not treat this repository alone as sufficient to create or verify the production schema. Restore the authoritative baseline migration from the Supabase project history before provisioning a new environment. The checked-in `migrations/20261027160000_category_heroes.sql` only extends an existing `categories` table.
+1. The base schema migration referenced by earlier setup instructions (`migrations/20261020140000_initial_schema.sql`) is not present in this checkout. Do not treat this repository alone as sufficient to create or verify the production schema. Restore the authoritative baseline migration from the Supabase project history before provisioning a new environment. The checked-in `migrations/20261027160000_category_heroes.sql` only extends an existing `categories` table. See `CONTRATO_BASE.md` for the expected contract and `VERIFICACION_SEGURIDAD.sql` for the read-only audit to run in the SQL Editor.
 2. After restoring and applying the authoritative base schema, apply `migrations/20261028170000_commerce_visibility.sql` to create the seller-controlled store switch.
 3. Apply `migrations/20261028190000_trusted_brands.sql` to create the brand carousel catalog and import the eight existing logo entries. New logo files use the existing `product-media` bucket and seller-owned storage paths.
 4. Apply `migrations/20261104130000_certifications.sql` to create the certification seals catalog. Its three seeded Zebra seals are displayed over the first home carousel slide; sellers can add, resize, reorder, and remove them from **Certificaciones**.
@@ -33,6 +33,8 @@ The seller dashboard's **Certificaciones** page manages the certified rating sea
 The seller dashboard's **Contactos** page manages the WhatsApp numbers shown in the Contact section of **Nosotros**. Sellers can add, rename, edit the phone number, reorder, and remove contacts; each one opens a WhatsApp conversation using the Ecuador country code.
 
 The application expects a public product-media bucket, seller-restricted storage writes, and an atomic order-creation RPC that records item snapshots and clears the user's cart. Verify these controls against the deployed Supabase policies and function before relying on them; their definitions are not checked into this repository.
+
+Apply `migrations/20261124140000_order_idempotency.sql` and `migrations/20261124150000_order_payment_audit.sql` before enabling the new checkout idempotency and payment audit fields. The API degrades gracefully if the columns are missing, but idempotency and the payment event log require them. Set `SELLER_ORDER_SCOPE=own` if more than one seller account should only see their own orders; the default `all` is intended for a single administrator.
 
 ## Database security verification before release
 

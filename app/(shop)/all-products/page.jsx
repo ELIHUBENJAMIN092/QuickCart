@@ -8,6 +8,7 @@ import { useAppContext } from "@/context/AppContext";
 import BrandCarousel from "@/components/BrandLogos";
 import { categories, matchesCategoryFilter } from "@/lib/categories";
 import Container from "@/components/ui/Container";
+import { getEffectiveUnitPrice } from "@/lib/pricing";
 
 const PAGE_SIZE = 12;
 
@@ -32,13 +33,13 @@ export default function AllProducts() {
       const matchesSearch = `${product.name} ${product.description || ""}`
         .toLowerCase()
         .includes(search.trim().toLowerCase());
-      const price = Number(product.offerPrice ?? product.price);
+      const price = getEffectiveUnitPrice(product);
       const matchesPrice = !canShop || ((!minPrice || price >= Number(minPrice)) && (!maxPrice || price <= Number(maxPrice)));
       return matchesCategoryFilter(product, selectedCategory) && matchesSearch && matchesPrice;
     });
 
-    if (canShop && sortBy === "price-asc") result.sort((a, b) => Number(a.offerPrice ?? a.price) - Number(b.offerPrice ?? b.price));
-    if (canShop && sortBy === "price-desc") result.sort((a, b) => Number(b.offerPrice ?? b.price) - Number(a.offerPrice ?? a.price));
+    if (canShop && sortBy === "price-asc") result.sort((a, b) => getEffectiveUnitPrice(a) - getEffectiveUnitPrice(b));
+    if (canShop && sortBy === "price-desc") result.sort((a, b) => getEffectiveUnitPrice(b) - getEffectiveUnitPrice(a));
     if (sortBy === "recent") result.sort((a, b) => Number(b.date || 0) - Number(a.date || 0));
     return result;
   }, [canShop, products, selectedCategory, search, minPrice, maxPrice, sortBy]);

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import authSeller from "@/lib/authSeller";
 import { getAuthenticatedSupabase } from "@/lib/supabase/server";
 import { mapProduct } from "@/lib/supabase/records";
+import { isUuid } from "@/lib/validation";
 
 // Devuelve el producto completo (incluidos los precios) sin depender del interruptor de la tienda.
 export async function GET(request, { params }) {
@@ -12,7 +13,15 @@ export async function GET(request, { params }) {
     }
 
     const { id } = await params;
-    const { data, error } = await supabase.from("products").select("*").eq("id", id).maybeSingle();
+    if (!isUuid(id)) {
+      return NextResponse.json({ success: false, message: "Identificador de producto inválido." }, { status: 400 });
+    }
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .maybeSingle();
     if (error) throw error;
     if (!data) {
       return NextResponse.json({ success: false, message: "Producto no encontrado." }, { status: 404 });

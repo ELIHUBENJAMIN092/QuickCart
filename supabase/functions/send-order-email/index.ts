@@ -39,9 +39,26 @@ Deno.serve(async (request) => {
     return Response.json({ message: "Order details unavailable." }, { status: 404 });
   }
 
+  const rawAddress = (order as { address?: unknown }).address;
+  let address: Record<string, unknown> = {};
+  if (typeof rawAddress === "string") {
+    try {
+      address = JSON.parse(rawAddress) as Record<string, unknown>;
+    } catch {
+      address = {};
+    }
+  } else if (rawAddress && typeof rawAddress === "object") {
+    address = rawAddress as Record<string, unknown>;
+  }
+
+  const addressEmail = typeof address.email === "string" ? address.email.trim() : "";
+  const customerEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addressEmail) ? addressEmail : profile.email;
+  const addressName = typeof address.fullName === "string" ? address.fullName.trim() : "";
+  const customerName = addressName || profile.name || "Cliente";
+
   const apiKey = Deno.env.get("RESEND_API_KEY");
   const from = Deno.env.get("RESEND_FROM_EMAIL");
-  if (!apiKey || !from || !profile.email) {
+  if (!apiKey || !from || !customerEmail) {
     return Response.json({ message: "Email delivery is not configured." }, { status: 503 });
   }
 
@@ -61,11 +78,11 @@ Deno.serve(async (request) => {
     },
     body: JSON.stringify({
       from,
-      to: [profile.email],
+      to: [customerEmail],
       subject: "Confirmación de tu pedido",
       html: `
       <div style="font-family:Arial,sans-serif;color:#333;max-width:680px;margin:auto">
-        <h2>Gracias por tu compra, ${escapeHtml(profile.name || "Cliente")}</h2>
+        <h2>Gracias por tu compra, ${escapeHtml(customerName)}</h2>
         <p>Tu pedido fue registrado correctamente.</p>
         <table width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse">
           <thead><tr><th align="left">Producto</th><th>Cantidad</th><th align="right">Precio</th></tr></thead>

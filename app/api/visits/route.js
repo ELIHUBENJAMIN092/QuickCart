@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import authSeller from "@/lib/authSeller";
 import { getClientIp, isLikelyBot } from "@/lib/visits";
 import { createSupabasePublicClient, getAuthenticatedSupabase } from "@/lib/supabase/server";
+import { hasTrustedOrigin } from "@/lib/csrf";
+import { visitBodySchema } from "@/lib/schemas";
+import { checkRateLimit } from "@/lib/ai/rateLimit";
+import { getClientKey } from "@/lib/ai/request";
 
 const MIGRATION_FILE = "20261106120000_site_visits.sql";
 const MAX_LIMIT = 1000;
@@ -20,13 +24,37 @@ async function authorize(request) {
 
 // Registro público de visitas. La función SQL decide si la IP está bloqueada.
 export async function POST(request) {
+  if (!hasTrustedOrigin(request)) {
+    return NextResponse.json({ success: false, message: "Origen no permitido." }, { status: 403 });
+  }
+
   try {
-    const body = await request.json().catch(() => ({}));
+    const parsedBody = visitBodySchema.safeParse(await request.json().catch(() => ({})));
+    if (!parsedBody.success) {
+      return NextResponse.json({ success: false, message: "Datos de la visita no válidos." }, { status: 400 });
+    }
+    const body = parsedBody.data;
+
     const ip = getClientIp(request);
     if (!ip) return NextResponse.json({ success: true });
 
     const userAgent = String(request.headers.get("user-agent") || "");
     if (isLikelyBot(userAgent)) return NextResponse.json({ success: true });
+
+    const rateLimit = await checkRateLimit(getClientKey(request), {
+      prefix: "visits",
+      limit: 60,
+      windowMs: 60 * 1000,
+    });
+    // El registro de visitas es best-effort: si el limitador compartido falla,
+    // no bloqueamos el registro (el resto de la ruta tampoco falla).
+    if (!rateLimit.unavailable && !rateLimit.allowed) {
+      const retryAfter = Math.max(1, Math.ceil((rateLimit.resetAt - Date.now()) / 1000));
+      return NextResponse.json(
+        { success: false, message: "Demasiadas solicitudes." },
+        { status: 429, headers: { "Retry-After": String(retryAfter) } }
+      );
+    }
 
     const supabase = createSupabasePublicClient();
     const { data, error } = await supabase.rpc("record_site_visit", {

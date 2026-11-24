@@ -6,6 +6,7 @@ import { getAuthenticatedSupabase } from "@/lib/supabase/server";
 import { mapProduct } from "@/lib/supabase/records";
 import { textToSpecifications } from "@/lib/specsText";
 import { removeProductMedia, validateProductFile } from "@/lib/supabase/storage";
+import { isUuid } from "@/lib/validation";
 
 export async function PUT(request, context) {
   try {
@@ -15,6 +16,9 @@ export async function PUT(request, context) {
     }
 
     const { id } = await context.params;
+    if (!isUuid(id)) {
+      return NextResponse.json({ success: false, message: "Identificador de producto inválido." }, { status: 400 });
+    }
     const body = await request.json();
     const name = String(body.name || "").trim();
     const description = String(body.description || "").trim();
@@ -58,6 +62,7 @@ export async function PUT(request, context) {
       .from("products")
       .select("*")
       .eq("id", id)
+      .eq("user_id", user.id)
       .maybeSingle();
     if (readError) throw readError;
     if (!current) {
@@ -101,6 +106,7 @@ export async function PUT(request, context) {
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)
+      .eq("user_id", user.id)
       .select("*")
       .single();
     if (error) throw error;

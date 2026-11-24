@@ -1,39 +1,6 @@
 import { NextResponse } from "next/server";
+import { isIpBlocked } from "@/lib/blockedIps";
 import { getClientIp } from "@/lib/visits";
-
-const CACHE_TTL = 60 * 1000;
-const cache = new Map();
-
-async function isBlocked(ip) {
-  const cached = cache.get(ip);
-  if (cached && Date.now() - cached.at < CACHE_TTL) return cached.blocked;
-
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return false;
-
-  try {
-    const response = await fetch(`${url}/rest/v1/rpc/is_ip_blocked`, {
-      method: "POST",
-      headers: {
-        apikey: key,
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ p_ip: ip }),
-      cache: "no-store",
-    });
-    if (!response.ok) return false;
-
-    const blocked = (await response.json()) === true;
-    if (cache.size > 5000) cache.clear();
-    cache.set(ip, { blocked, at: Date.now() });
-    return blocked;
-  } catch {
-    // Si la consulta falla, no se bloquea a nadie.
-    return false;
-  }
-}
 
 const blockedPage = `<!doctype html>
 <html lang="es">
@@ -64,20 +31,22 @@ const blockedPage = `<!doctype html>
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
-  if (pathname.startsWith("/seller") || pathname.startsWith("/api")) {
-    return NextResponse.next();
-  }
-
   const ip = getClientIp(request);
   if (!ip) return NextResponse.next();
 
-  if (await isBlocked(ip)) {
+  if (await isIpBlocked(ip)) {
+    const headers = { "cache-control": "no-store" };
+
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { success: false, message: "Acceso bloqueado desde esta conexión." },
+        { status: 403, headers }
+      );
+    }
+
     return new NextResponse(blockedPage, {
       status: 403,
-      headers: {
-        "content-type": "text/html; charset=utf-8",
-        "cache-control": "no-store",
-      },
+      headers: { ...headers, "content-type": "text/html; charset=utf-8" },
     });
   }
 
@@ -85,5 +54,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 };

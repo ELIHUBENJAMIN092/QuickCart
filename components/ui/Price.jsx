@@ -1,6 +1,9 @@
+import { getEffectiveUnitPrice, hasActiveOffer } from "@/lib/pricing";
+
 export default function Price({ price, offerPrice, currency = "$", className = "" }) {
-  const hasDiscount = Number(offerPrice) < Number(price);
-  const current = hasDiscount ? Number(offerPrice) : Number(price);
+  const product = { price, offerPrice };
+  const hasDiscount = hasActiveOffer(product);
+  const current = getEffectiveUnitPrice(product);
   const discount = hasDiscount ? Math.round((1 - current / Number(price)) * 100) : 0;
   const format = (amount) =>
     `${currency || "$"}${Number(amount || 0).toLocaleString("es-EC", {

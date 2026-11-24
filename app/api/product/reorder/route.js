@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import authSeller from "@/lib/authSeller";
 import { getAuthenticatedSupabase } from "@/lib/supabase/server";
-
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { isUuid } from "@/lib/validation";
 
 export async function PATCH(request) {
   try {
@@ -13,8 +12,18 @@ export async function PATCH(request) {
 
     const body = await request.json().catch(() => null);
     const order = Array.isArray(body?.order) ? body.order : [];
-    if (!order.length || order.some((id) => typeof id !== "string" || !UUID.test(id)) || new Set(order).size !== order.length) {
+    if (!order.length || order.some((id) => !isUuid(id)) || new Set(order).size !== order.length) {
       return NextResponse.json({ success: false, message: "El orden no es válido." }, { status: 400 });
+    }
+
+    const { data: owned, error: ownershipError } = await supabase
+      .from("products")
+      .select("id")
+      .in("id", order)
+      .eq("user_id", user.id);
+    if (ownershipError) throw ownershipError;
+    if (!owned || owned.length !== order.length) {
+      return NextResponse.json({ success: false, message: "Algunos productos no te pertenecen." }, { status: 403 });
     }
 
     const { error } = await supabase.rpc("reorder_products", { new_order: order });

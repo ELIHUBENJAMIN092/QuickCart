@@ -7,6 +7,7 @@ import { ArrowRight, BadgeCheck, Boxes, CircleDollarSign, Clock3, PackageCheck, 
 import { useAppContext } from "@/context/AppContext";
 import PageHeader from "@/components/seller/PageHeader";
 import { categories, getCategoryName, getSubcategoryName, matchesCategoryFilter } from "@/lib/categories";
+import { getEffectiveUnitPrice } from "@/lib/pricing";
 
 export default function SellerDashboard() {
   const { authLoading, products, productsLoading, productsError, fetchProductData, router, user, getToken, currency } = useAppContext();
@@ -29,6 +30,7 @@ export default function SellerDashboard() {
       const token = await getToken();
       if (!token) throw new Error("Tu sesión expiró. Inicia sesión nuevamente.");
       const { data } = await axios.get("/api/order/seller-orders", {
+        params: { limit: 100 },
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!data.success) throw new Error(data.message || "No se pudieron cargar las órdenes.");
@@ -58,7 +60,7 @@ export default function SellerDashboard() {
   const lowStock = products.filter((product) => Number(product.stock) > 0 && Number(product.stock) <= 5);
   const outOfStock = products.filter((product) => Number(product.stock) <= 0);
   const estimatedValue = products.reduce(
-    (sum, product) => sum + Number(product.offerPrice ?? product.price) * Number(product.stock || 0),
+    (sum, product) => sum + getEffectiveUnitPrice(product) * Number(product.stock || 0),
     0
   );
   const stats = [

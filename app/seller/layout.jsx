@@ -1,23 +1,14 @@
-"use client";
+import { redirect } from "next/navigation";
+import { getSellerSession } from "@/lib/supabase/serverSession";
+import SellerShell from "@/components/seller/SellerShell";
 
-import { useState } from "react";
-import Navbar from "@/components/seller/Navbar";
-import Sidebar from "@/components/seller/Sidebar";
-import Footer from "@/components/seller/Footer";
-import ScrollToTopFloat from "@/components/ScrollToTopFloat";
+export default async function Layout({ children }) {
+  const { user, isSeller } = await getSellerSession();
 
-export default function Layout({ children }) {
-  const [menuOpen, setMenuOpen] = useState(false);
+  // Las rutas API siguen validando sesión/rol como segunda capa; aquí solo se protege la UI.
+  if (!user || isSeller !== true) {
+    redirect("/sign-in");
+  }
 
-  return (
-    <div className="flex min-h-screen flex-col bg-brand-sand/40">
-      <Navbar onMenu={() => setMenuOpen(true)} />
-      <div className="flex flex-1">
-        <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
-        <div className="min-w-0 flex-1">{children}</div>
-      </div>
-      <Footer />
-      <ScrollToTopFloat />
-    </div>
-  );
+  return <SellerShell>{children}</SellerShell>;
 }

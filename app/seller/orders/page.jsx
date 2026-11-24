@@ -19,16 +19,19 @@ export default function Orders() {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState("");
   const [confirmingId, setConfirmingId] = useState("");
+  const [total, setTotal] = useState(0);
 
   const fetchSellerOrders = async (manual = false) => {
     if (manual) setRefreshing(true);
     try {
       const token = await getToken();
       const { data } = await axios.get("/api/order/seller-orders", {
+        params: { status: "pending", limit: 100 },
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!data.success) throw new Error(data.message || "Error al obtener las órdenes.");
       setOrders(data.orders.filter((order) => !order.isPaid));
+      setTotal(data.total ?? data.orders.length);
     } catch (error) {
       toast.error(error.response?.data?.message || error.message || "Ocurrió un error al obtener las órdenes.");
     } finally {
@@ -139,7 +142,7 @@ export default function Orders() {
               />
             </label>
             <p className="inline-flex items-center gap-1.5 text-xs text-brand-muted">
-              <Clock3 size={13} /> {filtered.length} de {orders.length} órdenes
+              <Clock3 size={13} /> {filtered.length} de {total} órdenes pendientes
             </p>
           </div>
 
