@@ -4,10 +4,10 @@ import Image from "next/image";
 import { useState } from "react";
 import { Package } from "lucide-react";
 
-// Miniatura del inventario. Se sirve directamente desde Supabase (unoptimized)
-// porque el optimizador de Next (/_next/image) no está disponible en todos los
-// hostings y, cuando falla, deja el icono de imagen rota en la tabla.
-// Si la URL tampoco responde, se muestra un icono en lugar de una imagen rota.
+// Miniatura del inventario. La app sirve las imágenes directamente desde
+// Supabase (ver `images.unoptimized` en next.config.mjs) para no depender del
+// optimizador de Next, que falla en algunos hostings. Si la URL no responde,
+// se muestra un icono en lugar de una imagen rota.
 export default function ProductThumb({ src, sizes = "48px", className = "" }) {
   const [failed, setFailed] = useState(false);
 

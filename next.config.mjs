@@ -1,6 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     images: {
+        // El hosting actual no sirve de forma fiable el optimizador de Next
+        // (/_next/image): las imágenes remotas de Supabase aparecían rotas en
+        // el panel (productos, categorías, carrusel, ventana emergente) y en la
+        // tienda. Se sirven directamente desde Supabase, que ya guarda las
+        // imágenes redimensionadas y en WebP al subirlas. Si se despliega en un
+        // host con optimizador propio (p. ej. Vercel), poner esto en false.
+        unoptimized: true,
         remotePatterns: [
             {
                 protocol: 'https',
