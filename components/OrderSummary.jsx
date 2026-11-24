@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useAppContext } from "@/context/AppContext";
 import { getOrderTotals } from "@/lib/cart";
 import axios from "axios";
@@ -34,6 +35,7 @@ const OrderSummary = () => {
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
   const submittingRef = useRef(false);
   const idempotencyKeyRef = useRef("");
   const subtotal = getCartAmount();
@@ -77,6 +79,8 @@ const OrderSummary = () => {
           setAddress((current) => ({
             ...current,
             fullName: current.fullName || latest.fullName || "",
+            email: current.email || latest.email || "",
+            idNumber: current.idNumber || latest.idNumber || "",
             phoneNumber: current.phoneNumber || latest.phoneNumber || "",
             area: current.area || latest.area || "",
             city: current.city || latest.city || "",
@@ -97,7 +101,13 @@ const OrderSummary = () => {
   }, [getToken, user]);
 
   const handleChange = (event) => {
-    setAddress((current) => ({ ...current, [event.target.name]: event.target.value }));
+    const { name, value } = event.target;
+    setAddress((current) => ({ ...current, [name]: value }));
+    setErrors((current) => {
+      const next = { ...current };
+      delete next[name];
+      return next;
+    });
   };
 
   const selectSavedAddress = (event) => {
@@ -108,6 +118,8 @@ const OrderSummary = () => {
     setAddress((current) => ({
       ...current,
       fullName: selected.fullName || "",
+      email: selected.email || current.email || "",
+      idNumber: selected.idNumber || current.idNumber || "",
       phoneNumber: selected.phoneNumber || "",
       area: selected.area || "",
       city: selected.city || "",
@@ -119,7 +131,8 @@ const OrderSummary = () => {
   const validateIdNumber = (id) => /^\d{10}$|^\d{13}$/.test(id);
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  const createOrder = async () => {
+  const createOrder = async (event) => {
+    event?.preventDefault();
     if (submittingRef.current) return;
     if (cartSaving) {
       toast("Espera a que se guarde el carrito.", { icon: "⏳" });
@@ -135,20 +148,24 @@ const OrderSummary = () => {
       }
 
       const { fullName, email, phoneNumber, idNumber, area, city, state } = address;
-      if (!fullName || !email || !phoneNumber || !idNumber || !area || !city || !state) {
-        toast.error("Completa todos los campos obligatorios.");
-        return;
-      }
-      if (!validateEmail(email)) {
-        toast.error("Correo electrónico inválido.");
-        return;
-      }
-      if (!validatePhone(phoneNumber)) {
-        toast.error("Número celular inválido. Debe iniciar con 09 y tener 10 dígitos.");
-        return;
-      }
-      if (!validateIdNumber(idNumber)) {
-        toast.error("Cédula o RUC inválido. Debe tener 10 o 13 dígitos.");
+      const nextErrors = {};
+      if (!fullName) nextErrors.fullName = "Escribe tu nombre completo.";
+      if (!email) nextErrors.email = "Escribe tu correo electrónico.";
+      else if (!validateEmail(email)) nextErrors.email = "Correo electrónico inválido.";
+      if (!idNumber) nextErrors.idNumber = "Escribe tu cédula o RUC.";
+      else if (!validateIdNumber(idNumber)) nextErrors.idNumber = "Debe tener 10 o 13 dígitos.";
+      if (!phoneNumber) nextErrors.phoneNumber = "Escribe tu celular.";
+      else if (!validatePhone(phoneNumber)) nextErrors.phoneNumber = "Debe iniciar con 09 y tener 10 dígitos.";
+      if (!area) nextErrors.area = "Escribe la dirección o sector.";
+      if (!city) nextErrors.city = "Escribe la ciudad.";
+      if (!state) nextErrors.state = "Escribe la provincia.";
+
+      setErrors(nextErrors);
+      if (Object.keys(nextErrors).length > 0) {
+        toast.error("Revisa los campos marcados.");
+        requestAnimationFrame(() => {
+          document.getElementById(`order-${Object.keys(nextErrors)[0]}`)?.focus();
+        });
         return;
       }
 
@@ -202,9 +219,10 @@ const OrderSummary = () => {
   ];
 
   return (
-    <div className="w-full bg-brand-sand p-6 md:w-96">
+    <form onSubmit={createOrder} noValidate className="w-full bg-brand-sand p-6 md:w-96">
       <h2 className="font-display text-2xl text-brand-ink">Orden de Compra</h2>
       <hr className="my-5 border-brand-line" />
+      <Link href="/add-address" className="mb-4 inline-block text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-accent hover:underline">Guardar dirección para próximas compras</Link>
 
       <div className="space-y-3">
         {savedAddresses.length > 0 && (
@@ -237,6 +255,8 @@ const OrderSummary = () => {
                 onChange={handleChange}
                 required
                 rows={3}
+                aria-invalid={Boolean(errors[name])}
+                aria-describedby={errors[name] ? `order-${name}-error` : undefined}
                 className={`${inputClass} resize-none`}
               />
             ) : (
@@ -248,9 +268,12 @@ const OrderSummary = () => {
                 value={address[name]}
                 onChange={handleChange}
                 required
+                aria-invalid={Boolean(errors[name])}
+                aria-describedby={errors[name] ? `order-${name}-error` : undefined}
                 className={inputClass}
               />
             )}
+            {errors[name] && <span id={`order-${name}-error`} role="alert" className="mt-1 block text-[11px] text-brand-sale">{errors[name]}</span>}
           </label>
         ))}
       </div>
@@ -275,14 +298,13 @@ const OrderSummary = () => {
       </div>
 
       <button
-        type="button"
-        onClick={createOrder}
+        type="submit"
         disabled={submitting || cartSaving}
         className="mt-6 w-full bg-brand-accent py-4 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink disabled:cursor-wait disabled:opacity-60"
       >
         {submitting ? "Procesando orden..." : cartSaving ? "Guardando carrito..." : "Finalizar compra"}
       </button>
-    </div>
+    </form>
   );
 };
 

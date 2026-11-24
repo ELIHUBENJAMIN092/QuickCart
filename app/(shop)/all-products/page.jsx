@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Search, X } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
@@ -9,11 +10,16 @@ import BrandCarousel from "@/components/BrandLogos";
 import { categories, matchesCategoryFilter } from "@/lib/categories";
 import Container from "@/components/ui/Container";
 import { getEffectiveUnitPrice } from "@/lib/pricing";
+import Loading from "@/components/Loading";
 
 const PAGE_SIZE = 12;
 
-export default function AllProducts() {
+function AllProductsContent() {
   const { products, commerceEnabled, user } = useAppContext();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [urlReady, setUrlReady] = useState(false);
   const canShop = Boolean(commerceEnabled && user);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [search, setSearch] = useState("");
@@ -22,11 +28,37 @@ export default function AllProducts() {
   const [sortBy, setSortBy] = useState("recommended");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
+  // La URL es la fuente de verdad: permite compartir filtros y que la búsqueda
+  // del navbar filtre incluso cuando ya estamos en el catálogo.
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    setSelectedCategory(params.get("category") || "");
-    setSearch(params.get("search") || "");
-  }, []);
+    setSelectedCategory(searchParams.get("category") || "");
+    setSearch(searchParams.get("search") || "");
+    setMinPrice(searchParams.get("minPrice") || "");
+    setMaxPrice(searchParams.get("maxPrice") || "");
+    setSortBy(searchParams.get("sort") || "recommended");
+    setUrlReady(true);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!urlReady) return undefined;
+    const timeout = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      const apply = (key, value) => {
+        if (value) params.set(key, value);
+        else params.delete(key);
+      };
+      apply("category", selectedCategory);
+      apply("search", search.trim());
+      apply("minPrice", minPrice);
+      apply("maxPrice", maxPrice);
+      apply("sort", sortBy === "recommended" ? "" : sortBy);
+      const query = params.toString();
+      if (query !== searchParams.toString()) {
+        router.replace(`${pathname}${query ? `?${query}` : ""}`, { scroll: false });
+      }
+    }, 350);
+    return () => clearTimeout(timeout);
+  }, [urlReady, selectedCategory, search, minPrice, maxPrice, sortBy, pathname, router, searchParams]);
 
   const filteredProducts = useMemo(() => {
     const result = products.filter((product) => {
@@ -46,14 +78,7 @@ export default function AllProducts() {
 
   useEffect(() => setVisibleCount(PAGE_SIZE), [selectedCategory, search, minPrice, maxPrice, sortBy]);
 
-  const chooseCategory = (value) => {
-    setSelectedCategory(value);
-    const params = new URLSearchParams(window.location.search);
-    if (value) params.set("category", value);
-    else params.delete("category");
-    const query = params.toString();
-    window.history.replaceState(null, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
-  };
+  const chooseCategory = (value) => setSelectedCategory(value);
 
   return (
     <>
@@ -137,5 +162,13 @@ export default function AllProducts() {
         <BrandCarousel />
       </main>
     </>
+  );
+}
+
+export default function AllProducts() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <AllProductsContent />
+    </Suspense>
   );
 }

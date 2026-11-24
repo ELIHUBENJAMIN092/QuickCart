@@ -2,7 +2,6 @@
 import { useAppContext } from '@/context/AppContext'
 import { useEffect } from 'react'
 import { Check } from 'lucide-react'
-
 const OrderPlaced = () => {
 
   const { router } = useAppContext()

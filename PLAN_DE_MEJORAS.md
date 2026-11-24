@@ -368,3 +368,57 @@ Este agente **no puede rotar credenciales en proveedores externos ni reescribir 
 - Restaurar migración base y verificar RLS en Supabase (P1.1).
 - CSP con nonce tras migrar Google Analytics.
 - Tests cross-usuario reales contra Supabase local (RLS), no solo mocks.
+
+---
+
+## 9. Estado de ejecución del P3 (2026-11-24)
+
+### P3.1 SEO — ✅ implementado
+
+- `lib/seo.js` con `siteMetadata` y `buildPageMetadata` (canonical, Open Graph `es_EC`, Twitter, `metadataBase` desde `NEXT_PUBLIC_SITE_URL`).
+- `app/layout.js` usa el metadata global; `app/robots.ts` y `app/sitemap.ts` generan `/robots.txt` y `/sitemap.xml` (visibles en el build).
+- Títulos/descripciones/canonical únicos por ruta mediante `layout.js` de segmento (Next no permite exportar metadata desde componentes con `"use client"`).
+- PDP con `generateMetadata` en `app/(shop)/product/[id]/layout.js` (RPC `storefront_product`, fallback seguro). `openGraph.type` usa `"website"` porque Next.js 15 no admite `"product"` en ese campo y lanzaba un runtime error.
+- Redirects 308 en `next.config.mjs`: `/Acerca` → `/acerca`, `/Contactos` → `/acerca#contacto`, `/Productos` → `/all-products?category=rfid`.
+- **Nota:** en macOS (FS insensible a mayúsculas) `Acerca`/`acerca` no pueden coexistir; el renombrado quedó como `app/(shop)/acerca` y la URL antigua se canonicaliza con el 308.
+
+### P3.2 Flujo de compra — ✅ implementado
+
+- `/all-products`: la URL es la fuente de verdad (`useSearchParams` + `router.replace` con debounce). La búsqueda del navbar filtra aunque ya estés en el catálogo; categoría, precio y orden se comparten por query string. Envuelto en `Suspense`.
+- `OrderSummary`: `<form onSubmit>` con `noValidate`, errores inline (`role="alert"`, `aria-invalid`, foco al primer inválido) y enlace visible a `/add-address`.
+- Direcciones guardadas completas: nueva migración `20261124160000_address_contact_fields.sql`, API y UI persisten/leen `email` e `idNumber`; `/add-address` valida celular, correo y cédula, usa `<h1>` y `alt` descriptivo.
+- `WhatsappFloat` usa `COMPANY_INFO.whatsapp_url` (número completo).
+- `AuthForm`: respeta `?next=...` (validado como ruta relativa) en login, registro, OAuth y confirmación por correo.
+- Newsletter real: `app/api/newsletter/route.js` + `20261124170000_newsletter.sql` (tabla con RLS de solo inserción, honeypot, rate limit 5/h). El footer ya no muestra éxito falso.
+
+### P3.3 Contenido y accesibilidad — ✅ implementado
+
+- Popup desactivado por defecto en el código (se activa desde el panel), **apertura inmediata al cargar la página** (el propietario lo pidió así; antes era diferido), sin autoplay de audio, focus trap, retorno de foco, Escape y `prefers-reduced-motion`. Mantiene el «no volver a mostrar en esta sesión» mediante `sessionStorage`.
+- Hero: un solo `<h1>`, botón de pausa y respeto a movimiento reducido en el `setInterval`.
+- `Loading` con `role="status"`; `:focus-visible` global; eliminado el border-radius global que rompía los pills.
+- Bandeja de chat seller con `aria-controls`/`role="tabpanel"`.
+- Modal de privacidad del footer con Escape y retorno de foco.
+
+### P3.4 Performance y consistencia — ✅ implementado
+
+- `AppContext`: sondeo silencioso, `visibilitychange` + intervalo de 5 min, `value` memoizado y funciones estabilizadas con `useCallback`.
+- `Navbar`: `useMemo` en listas calculadas y copys corregidos.
+- Previews del panel: `URL.createObjectURL` con limpieza y `next/image` para blobs.
+- Animaciones `seller-fade-in`, `seller-drawer-in` y `scale-in` definidas en Tailwind.
+
+### Incidencias resueltas durante P3
+
+- El CSP inicial bloqueaba los videos: `media-src` añadido en `next.config.mjs`.
+- Next generó `tsconfig.json`; al coexistir con `jsconfig.json`, el alias `@/*` se perdió y Turbopack falló. Se añadieron `baseUrl`/`paths` al `tsconfig.json` y se excluyó `supabase/functions` del chequeo de tipos. El middleware usa imports relativos como refuerzo.
+- Metadata exportada desde Client Components rompía el build: se movió a `layout.js` de segmento.
+
+### Verificación P3
+
+- `npm run build`: OK (incluye `/robots.txt` y `/sitemap.xml`).
+- `npm test`: 14 suites, 88 tests en verde.
+- `npm run lint`: 0 errores, 0 advertencias.
+- `next dev` (Turbopack): middleware compila sin errores de alias.
+
+### Pendiente tras P3
+
+- Solo acciones manuales: rotar `GEMINI_API_KEY`/`RESEND_API_KEY`, purgar historial con `scripts/purge-env-history.sh`, restaurar migración base y verificar RLS en Supabase, aplicar las 5 migraciones nuevas y definir `IP_SOURCE_HEADER` / `SELLER_ORDER_SCOPE` si aplica.

@@ -1,3 +1,5 @@
+import plugin from 'tailwindcss/plugin.js';
+
 /** @type {import('tailwindcss').Config} */
 const config = {
   content: [
@@ -51,6 +53,18 @@ const config = {
           from: { opacity: '0', transform: 'translateY(12px) scale(0.96)' },
           to: { opacity: '1', transform: 'translateY(0) scale(1)' },
         },
+        'seller-fade-in': {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        'seller-drawer-in': {
+          from: { transform: 'translateX(-100%)' },
+          to: { transform: 'translateX(0)' },
+        },
+        'scale-in': {
+          from: { opacity: '0', transform: 'scale(0.8)' },
+          to: { opacity: '1', transform: 'scale(1)' },
+        },
       },
       animation: {
         progress: 'progress 6s linear',
@@ -59,10 +73,29 @@ const config = {
         'drawer-in': 'drawer-in 300ms cubic-bezier(0.32, 0.72, 0, 1)',
         'fade-in': 'fade-in 220ms ease-out',
         'pop-in': 'pop-in 280ms cubic-bezier(0.32, 0.72, 0, 1)',
+        'seller-fade-in': 'seller-fade-in 220ms ease-out',
+        'seller-drawer-in': 'seller-drawer-in 300ms cubic-bezier(0.32, 0.72, 0, 1)',
+        'scale-in': 'scale-in 500ms ease-out',
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // Sidebar.jsx usa las clases "seller-fade-in" y "seller-drawer-in" sin el
+    // prefijo animate-, así que se exponen también como utilidades directas.
+    plugin(({ addUtilities, theme }) => {
+      const keyframes = theme('keyframes') || {};
+      addUtilities({
+        '.seller-fade-in': {
+          '@keyframes seller-fade-in': keyframes['seller-fade-in'],
+          animation: 'seller-fade-in 220ms ease-out',
+        },
+        '.seller-drawer-in': {
+          '@keyframes seller-drawer-in': keyframes['seller-drawer-in'],
+          animation: 'seller-drawer-in 300ms cubic-bezier(0.32, 0.72, 0, 1)',
+        },
+      });
+    }),
+  ],
 };
 
 export default config;

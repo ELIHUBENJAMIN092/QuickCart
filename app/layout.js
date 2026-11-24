@@ -5,6 +5,7 @@ import { AppContextProvider } from "@/context/AppContext";
 import { ConfirmProvider } from "@/components/ui/ConfirmProvider";
 import VisitTracker from "@/components/VisitTracker";
 import { Toaster } from "react-hot-toast";
+import { siteMetadata } from "@/lib/seo";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -15,10 +16,7 @@ const manrope = Manrope({
   weight: ["600", "700", "800"],
   variable: "--font-display",
 });
-export const metadata = {
-  title: "COMPEL | Tecnología para identificar y optimizar tu negocio",
-  description: "Soluciones profesionales de código de barras, RFID, identificación PVC y cómputo móvil en Ecuador.",
-};
+export const metadata = siteMetadata;
 
 export default function RootLayout({ children }) {
   return (

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { Eye, EyeOff, ImagePlus, Music2, PanelTopOpen, Upload, Volume2 } from "lucide-react";
@@ -15,6 +15,16 @@ import { optimizeImage } from "@/lib/imageOptimize";
 const inputClass = "mt-2 w-full rounded-xl border border-brand-line bg-white px-4 py-3 text-base text-brand-ink outline-none transition placeholder:text-brand-muted focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/10 sm:text-sm";
 
 const MAX_AUDIO_SECONDS = 180;
+
+// Mantiene una sola blob URL por archivo y la libera al cambiar o desmontar.
+function useObjectUrl(file) {
+  const url = useMemo(() => file ? URL.createObjectURL(file) : "", [file]);
+  useEffect(() => {
+    if (!url) return undefined;
+    return () => URL.revokeObjectURL(url);
+  }, [url]);
+  return url;
+}
 
 const isMp3 = (file) =>
   file.type === "audio/mpeg" ||
@@ -52,7 +62,8 @@ export default function PopupAdmin() {
     axios.get("/api/popup").then(({ data }) => setForm(data.popup)).catch(() => toast.error("No se pudo cargar la ventana emergente."));
   }, []);
 
-  const previewImage = file ? URL.createObjectURL(file) : resetImage ? popupImage(defaultPopup) : popupImage(form || defaultPopup);
+  const previewFileUrl = useObjectUrl(file);
+  const previewImage = previewFileUrl || (resetImage ? popupImage(defaultPopup) : popupImage(form || defaultPopup));
 
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }));
 
@@ -130,7 +141,7 @@ export default function PopupAdmin() {
           <div className="grid gap-0 bg-brand-sand/30 p-3 sm:p-5">
             <div className={`mx-auto w-full max-w-3xl overflow-hidden rounded-[1.75rem] border border-brand-line bg-white shadow-lg transition ${form.enabled ? "" : "opacity-40"}`}>
               <div className="relative aspect-[4/3] w-full sm:aspect-video">
-                <Image src={previewImage} alt="" fill unoptimized={Boolean(file)} sizes="(max-width: 768px) 100vw, 768px" className="object-cover" />
+                <Image src={previewImage} alt="" fill unoptimized={Boolean(previewFileUrl)} sizes="(max-width: 768px) 100vw, 768px" className="object-cover" />
                 <span className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/80 text-brand-ink shadow-lg ring-1 ring-black/5 backdrop-blur">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
                 </span>
@@ -167,7 +178,7 @@ export default function PopupAdmin() {
             <div>
               <p className="text-xs font-medium text-brand-charcoal">Imagen de la ventana</p>
               <div className="relative mt-2 aspect-[4/3] overflow-hidden rounded-xl border border-brand-line bg-brand-sand sm:aspect-video">
-                <Image src={previewImage} alt="" fill unoptimized={Boolean(file)} sizes="(max-width: 1024px) 100vw, 300px" className="object-cover" />
+                <Image src={previewImage} alt="" fill unoptimized={Boolean(previewFileUrl)} sizes="(max-width: 1024px) 100vw, 300px" className="object-cover" />
               </div>
               <label className="mt-3 flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-brand-line bg-brand-sand/30 px-3 py-2.5 text-xs font-medium text-brand-accent transition hover:border-brand-accent hover:bg-brand-accent-soft/40">
                 <ImagePlus size={16} /> <span className="min-w-0 truncate">{file ? file.name : "Subir imagen"}</span>

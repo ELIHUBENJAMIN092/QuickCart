@@ -6,6 +6,14 @@ import BrandCarousel from "@/components/BrandLogos";
 import HomeEditorial from "@/components/home/HomeEditorial";
 import { getHomeCarousel } from "@/lib/homeCarousel";
 import { slideImage } from "@/lib/carousel";
+import { buildPageMetadata } from "@/lib/seo";
+
+export const metadata = buildPageMetadata({
+  title: "Inicio: soluciones de identificación y cómputo móvil",
+  description:
+    "Descubre en COMPEL lectores de código de barras, soluciones RFID, impresoras de etiquetas, credenciales PVC y kioscos con asesoría en Ecuador.",
+  path: "/",
+});
 
 export const dynamic = "force-dynamic";
 

@@ -1,5 +1,6 @@
 import React from "react";
 import { FaWhatsapp } from "react-icons/fa";
+import { COMPANY_INFO } from "@/lib/ai/company";
 
 const WhatsappFloat = () => {
   return (
@@ -11,7 +12,7 @@ const WhatsappFloat = () => {
 
       {/* Botón de WhatsApp */}
       <a
-        href="https://wa.me/593987873"
+        href={COMPANY_INFO.whatsapp_url}
         target="_blank"
         rel="noopener noreferrer"
         className="w-14 h-14 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg transition duration-300"

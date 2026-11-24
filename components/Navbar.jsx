@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
   ChevronRight,
@@ -258,27 +258,36 @@ export default function Navbar({ initialBanner }) {
     };
   }, [userMenuOpen]);
 
-  const cartProducts = Object.entries(cartItems)
-    .map(([id, quantity]) => ({
-      product: products.find((item) => item._id === id),
-      quantity,
-    }))
-    .filter(({ product, quantity }) => product && quantity > 0);
+  const cartProducts = useMemo(
+    () => Object.entries(cartItems)
+      .map(([id, quantity]) => ({
+        product: products.find((item) => item._id === id),
+        quantity,
+      }))
+      .filter(({ product, quantity }) => product && quantity > 0),
+    [cartItems, products]
+  );
   const normalizedSearch = search.trim().toLowerCase();
-  const searchResults = normalizedSearch
-    ? products.filter((product) =>
-        `${product.name} ${product.description || ""}`.toLowerCase().includes(normalizedSearch)
-      )
-    : products;
+  const searchResults = useMemo(
+    () => normalizedSearch
+      ? products.filter((product) =>
+          `${product.name} ${product.description || ""}`.toLowerCase().includes(normalizedSearch)
+        )
+      : products,
+    [normalizedSearch, products]
+  );
   const matches = searchResults.slice(0, 3);
   const matchCount = searchResults.length;
-  const suggestionPool = [
-    ...categories.map((category) => category.name),
-    ...categories.flatMap((category) =>
-      category.subcategories.map((subcategory) => subcategory.name)
-    ),
-    ...products.map((product) => product.name),
-  ];
+  const suggestionPool = useMemo(
+    () => [
+      ...categories.map((category) => category.name),
+      ...categories.flatMap((category) =>
+        category.subcategories.map((subcategory) => subcategory.name)
+      ),
+      ...products.map((product) => product.name),
+    ],
+    [products]
+  );
   const suggestions = [...new Set(
     normalizedSearch
       ? suggestionPool.filter((item) => item.toLowerCase().includes(normalizedSearch))
@@ -715,7 +724,7 @@ export default function Navbar({ initialBanner }) {
                 <div className="min-w-0 border-brand-line md:border-l md:pl-8">
                   <div className="flex flex-wrap items-center gap-3">
                     <h2 className="text-lg font-semibold text-brand-ink">
-                      {normalizedSearch ? "Comercio" : "Productos"}{" "}
+                      {normalizedSearch ? "Resultados" : "Productos"}{" "}
                       <span className="text-sm font-normal text-brand-muted">({matchCount})</span>
                     </h2>
                     <button
@@ -1084,7 +1093,7 @@ export default function Navbar({ initialBanner }) {
               </div>
               <div className="border-t border-brand-line pt-5">
                 <div className="mb-4 flex justify-between text-sm"><span>Subtotal</span><span className="font-semibold">{process.env.NEXT_PUBLIC_CURRENCY || "$"}{getCartAmount().toFixed(2)}</span></div>
-                <Link href="/cart" onClick={() => setCartOpen(false)} className="block bg-brand-accent py-3.5 text-center text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink">Ver carrito / Checkout</Link>
+                <Link href="/cart" onClick={() => setCartOpen(false)} className="block bg-brand-accent py-3.5 text-center text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-ink">Ver carrito / Finalizar compra</Link>
               </div>
             </aside>
           )}

@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { applyCategories } from "@/lib/categories";
 import { getCartAmount as calculateCartAmount, getCartCount as calculateCartCount } from "@/lib/cart";
@@ -72,7 +72,7 @@ export const AppContextProvider = (props) => {
     return data.session?.access_token || null;
   }, []);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     const client = await loadBrowserClient();
     const { error } = await client.auth.signOut();
     if (error) {
@@ -80,7 +80,7 @@ export const AppContextProvider = (props) => {
       return;
     }
     router.push("/");
-  };
+  }, [router]);
 
   const fetchProductData = useCallback(async () => {
     setProductsLoading(true);
@@ -103,8 +103,13 @@ export const AppContextProvider = (props) => {
   }, [getToken]);
 
   const fetchCommerceSettings = useCallback(async ({ silent = false } = {}) => {
-    if (!silent) setCommerceSettingsLoading(true);
-    setCommerceSettingsError("");
+    // Las actualizaciones automáticas son silenciosas: no muestran toasts ni
+    // cambian el estado de carga, y ante un fallo conservan el último valor
+    // válido para no cerrar la tienda por un error de red puntual.
+    if (!silent) {
+      setCommerceSettingsLoading(true);
+      setCommerceSettingsError("");
+    }
     try {
       const data = await requestJson("/api/commerce-settings", {
         headers: { "Cache-Control": "no-cache" },
@@ -112,17 +117,19 @@ export const AppContextProvider = (props) => {
       setCommerceEnabled(data.enabled === true);
       return true;
     } catch (error) {
-      const message = error.response?.data?.message || error.message || "No se pudo cargar la configuración de la tienda.";
-      setCommerceEnabled(false);
-      setCommerceSettingsError(message);
-      toast.error(message);
+      if (!silent) {
+        const message = error.response?.data?.message || error.message || "No se pudo cargar la configuración de la tienda.";
+        setCommerceEnabled(false);
+        setCommerceSettingsError(message);
+        toast.error(message);
+      }
       return false;
     } finally {
-      setCommerceSettingsLoading(false);
+      if (!silent) setCommerceSettingsLoading(false);
     }
   }, []);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const data = await requestJson("/api/categories");
       applyCategories(data.categories);
@@ -132,9 +139,9 @@ export const AppContextProvider = (props) => {
     } finally {
       setCategoriesLoaded(true);
     }
-  };
+  }, []);
 
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     try {
       const token = await getToken();
       if (!token) return;
@@ -152,9 +159,9 @@ export const AppContextProvider = (props) => {
     } catch (error) {
       toast.error(error.response?.data?.message || error.message);
     }
-  };
+  }, [getToken]);
 
-  const persistCart = async (nextCartItems, successMessage) => {
+  const persistCart = useCallback(async (nextCartItems, successMessage) => {
     cartItemsRef.current = nextCartItems;
     setCartItems(nextCartItems);
     setPendingCartUpdates((count) => count + 1);
@@ -185,9 +192,9 @@ export const AppContextProvider = (props) => {
     } finally {
       setPendingCartUpdates((count) => Math.max(0, count - 1));
     }
-  };
+  }, [getToken]);
 
-  const addToCart = async (itemId, quantity = 1) => {
+  const addToCart = useCallback(async (itemId, quantity = 1) => {
     if (!commerceEnabled) {
       return toast.error("El carrito no está disponible en este momento.");
     }
@@ -209,9 +216,9 @@ export const AppContextProvider = (props) => {
     }
     cartData[itemId] = nextQuantity;
     return persistCart(cartData, "Agregado al carrito");
-  };
+  }, [commerceEnabled, persistCart, products, user]);
 
-  const updateCartQuantity = async (itemId, quantity) => {
+  const updateCartQuantity = useCallback(async (itemId, quantity) => {
     if (!commerceEnabled) {
       return toast.error("El carrito no está disponible en este momento.");
     }
@@ -232,27 +239,27 @@ export const AppContextProvider = (props) => {
     if (cartData[itemId] === currentCart[itemId]) return;
 
     return persistCart(cartData, "Carrito actualizado");
-  };
+  }, [commerceEnabled, persistCart, products, user]);
 
-  const getCartCount = () => calculateCartCount(cartItems);
+  const getCartCount = useCallback(() => calculateCartCount(cartItems), [cartItems]);
 
-  const getCartAmount = () => {
+  const getCartAmount = useCallback(() => {
     if (!products.length) {
       console.warn("⚠️ No hay productos cargados aún para calcular el total.");
       return 0;
     }
     return calculateCartAmount(cartItems, products);
-  };
+  }, [cartItems, products]);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     cartItemsRef.current = {};
     persistedCartItemsRef.current = {};
     setCartItems({});
-  };
+  }, []);
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   useEffect(() => {
     const timeout = setTimeout(fetchCommerceSettings, 0);
@@ -267,12 +274,19 @@ export const AppContextProvider = (props) => {
 
   useEffect(() => {
     if (commerceSettingsLoading) return undefined;
-    const refresh = () => fetchCommerceSettings({ silent: true });
-    const interval = setInterval(refresh, 30000);
-    window.addEventListener("focus", refresh);
+    const refresh = () => {
+      if (document.visibilityState === "visible") {
+        fetchCommerceSettings({ silent: true });
+      }
+    };
+    // Al volver a la pestaña se refresca al instante; el intervalo largo es
+    // solo un respaldo para pestañas que permanecen abiertas y visibles.
+    const onVisibilityChange = () => refresh();
+    const interval = setInterval(refresh, 5 * 60 * 1000);
+    document.addEventListener("visibilitychange", onVisibilityChange);
     return () => {
       clearInterval(interval);
-      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [commerceSettingsLoading, fetchCommerceSettings]);
 
@@ -322,9 +336,9 @@ export const AppContextProvider = (props) => {
       return;
     }
     fetchUserData();
-  }, [user]);
+  }, [fetchUserData, user]);
 
-  const value = {
+  const value = useMemo(() => ({
     user,
     authLoading,
     signOut,
@@ -353,7 +367,35 @@ export const AppContextProvider = (props) => {
     updateCartQuantity,
     getCartCount,
     getCartAmount,
-  };
+  }), [
+    user,
+    authLoading,
+    signOut,
+    getToken,
+    currency,
+    router,
+    isSeller,
+    userData,
+    fetchUserData,
+    products,
+    productsLoading,
+    productsError,
+    fetchProductData,
+    commerceEnabled,
+    commerceSettingsLoading,
+    commerceSettingsError,
+    fetchCommerceSettings,
+    fetchCategories,
+    categoriesLoaded,
+    categoriesVersion,
+    cartItems,
+    pendingCartUpdates,
+    clearCart,
+    addToCart,
+    updateCartQuantity,
+    getCartCount,
+    getCartAmount,
+  ]);
 
   return (
     <AppContext.Provider value={value}>

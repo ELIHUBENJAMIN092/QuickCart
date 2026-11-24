@@ -12,13 +12,26 @@ export async function POST(request) {
     const row = {
       user_id: user.id,
       full_name: String(address?.fullName || "").trim(),
+      email: String(address?.email || "").trim(),
+      id_number: String(address?.idNumber || "").trim(),
       phone_number: String(address?.phoneNumber || "").trim(),
       area: String(address?.area || "").trim(),
       city: String(address?.city || "").trim(),
       state: String(address?.state || "").trim(),
     };
-    if (!row.full_name || !row.area || !row.city || !row.state) {
-      return NextResponse.json({ success: false, message: "Completa los campos obligatorios." }, { status: 400 });
+    if (
+      !row.full_name ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email) ||
+      !/^(\d{10}|\d{13})$/.test(row.id_number) ||
+      !/^09\d{8}$/.test(row.phone_number) ||
+      !row.area ||
+      !row.city ||
+      !row.state
+    ) {
+      return NextResponse.json(
+        { success: false, message: "Completa los campos con un formato válido." },
+        { status: 400 }
+      );
     }
 
     const { data, error } = await supabase
@@ -35,6 +48,8 @@ export async function POST(request) {
         ...data,
         _id: data.id,
         fullName: data.full_name,
+        email: data.email,
+        idNumber: data.id_number,
         phoneNumber: data.phone_number,
       },
     });

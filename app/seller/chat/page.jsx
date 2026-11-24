@@ -144,9 +144,11 @@ export default function ChatInboxPage() {
               ].map((item) => (
                 <button
                   key={item.id}
+                  id={`chat-tab-${item.id}`}
                   type="button"
                   role="tab"
                   aria-selected={tab === item.id}
+                  aria-controls={`chat-panel-${item.id}`}
                   onClick={() => setTab(item.id)}
                   className={`inline-flex min-h-10 items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition ${
                     tab === item.id ? "bg-brand-accent text-white" : "text-brand-charcoal hover:bg-brand-sand"
@@ -202,7 +204,14 @@ export default function ChatInboxPage() {
               </section>
 
               {tab === "leads" ? (
-                <section className="mt-6" aria-label="Solicitudes de asesoría">
+                <section
+                  id="chat-panel-leads"
+                  role="tabpanel"
+                  aria-labelledby="chat-tab-leads"
+                  tabIndex={0}
+                  className="mt-6"
+                  aria-label="Solicitudes de asesoría"
+                >
                   {data?.leads?.length ? (
                     <div className="space-y-3">
                       {data.leads.map((lead) => (
@@ -271,7 +280,14 @@ export default function ChatInboxPage() {
                 )}
               </section>
             ) : (
-              <section className="mt-6" aria-label="Feedback del asistente">
+              <section
+                id="chat-panel-feedback"
+                role="tabpanel"
+                aria-labelledby="chat-tab-feedback"
+                tabIndex={0}
+                className="mt-6"
+                aria-label="Feedback del asistente"
+              >
                 {data?.feedback?.length ? (
                   <div className="space-y-3">
                     {data.feedback.map((item) => (

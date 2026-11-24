@@ -2,11 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { X, Volume2, VolumeX } from "lucide-react";
 import { clampVolume, popupImage } from "@/lib/popup";
 
 const STORAGE_KEY = "quickcart_popup_dismissed";
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 function PopupButton({ href, className, children }) {
   if (!href) return null;
@@ -18,105 +19,119 @@ function PopupButton({ href, className, children }) {
 export default function PopupModal({ popup }) {
   const [open, setOpen] = useState(false);
   const [soundOn, setSoundOn] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const audioRef = useRef(null);
-  const soundToggleRef = useRef(null);
-  const manuallyMutedRef = useRef(false);
+  const dialogRef = useRef(null);
+  const previousFocusRef = useRef(null);
 
   const hasAudio = Boolean(popup?.audio_url);
   const audioEnabled = Boolean(popup?.audio_enabled);
 
-  const close = () => {
+  const close = useCallback(() => {
     setOpen(false);
     try { window.sessionStorage.setItem(STORAGE_KEY, "1"); } catch { /* sin almacenamiento */ }
-  };
+  }, []);
 
-  const toggleSound = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (!audio.muted && !audio.paused) {
-      manuallyMutedRef.current = true;
-      audio.pause();
-      return;
-    }
-
-    manuallyMutedRef.current = false;
-    audio.muted = false;
-    audio.play().catch(() => {});
-  };
-
-  // Abre la ventana apenas carga la página, sin retraso, en todos los
-  // dispositivos. En móvil la música se activa con el primer toque (los
-  // navegadores bloquean el autoplay de audio sin interacción).
+  // Se muestra en cuanto carga la página. Si ya fue descartado en esta sesión,
+  // no vuelve a aparecer al navegar entre páginas.
   useEffect(() => {
-    if (!popup?.enabled) return undefined;
-    if (window.sessionStorage.getItem(STORAGE_KEY)) return undefined;
-    queueMicrotask(() => setOpen(true));
-    return undefined;
+    if (!popup?.enabled) return;
+    try {
+      if (window.sessionStorage.getItem(STORAGE_KEY)) return;
+    } catch { /* sin almacenamiento */ }
+    setOpen(true);
   }, [popup?.enabled, popup?.updated_at]);
 
-  // Bloquea el scroll de la página mientras la ventana está abierta.
+  // Respeta prefers-reduced-motion, también si cambia mientras la página está abierta.
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReducedMotion(query.matches);
+    update();
+
+    if (typeof query.addEventListener === "function") {
+      query.addEventListener("change", update);
+      return () => query.removeEventListener("change", update);
+    }
+    query.addListener(update);
+    return () => query.removeListener(update);
+  }, []);
+
+  // Bloquea el scroll, guarda/devuelve el foco y atrapa Tab dentro del modal.
   useEffect(() => {
     if (!open) return undefined;
-    const previous = document.body.style.overflow;
+
+    previousFocusRef.current = document.activeElement;
+    const dialog = dialogRef.current;
+    const getFocusable = () =>
+      Array.from(dialog?.querySelectorAll(FOCUSABLE) || []).filter(
+        (element) => element.getAttribute("aria-hidden") !== "true"
+      );
+
+    const frame = window.requestAnimationFrame(() => {
+      const target = getFocusable()[0] || dialog;
+      target?.focus();
+    });
+
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+
     const onKeyDown = (event) => {
-      if (event.key === "Escape") close();
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = previous;
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open]);
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close();
+        return;
+      }
+      if (event.key !== "Tab") return;
 
-  // Inicia la música automáticamente en cuanto el navegador está libre, sin
-  // competir con la carga de la imagen principal. Si el autoplay con sonido
-  // está bloqueado, arranca en silencio y el primer toque activa el volumen.
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return undefined;
+      const items = getFocusable();
+      if (!items.length) {
+        event.preventDefault();
+        dialog?.focus();
+        return;
+      }
 
-    audio.volume = clampVolume(popup?.audio_volume) / 100;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
 
-    if (!open || !audioEnabled) {
-      audio.pause();
-      return () => audio.pause();
-    }
-
-    let cancelled = false;
-    let idleId;
-    let timeoutId;
-
-    const start = () => {
-      if (cancelled || !audioRef.current || !audio.paused) return;
-      audio.currentTime = 0;
-      audio.muted = false;
-      const playPromise = audio.play();
-      if (playPromise && typeof playPromise.catch === "function") {
-        playPromise.catch(() => {
-          if (cancelled) return;
-          audio.muted = true;
-          audio.play().catch(() => {});
-        });
+      if (event.shiftKey && (active === first || !dialog?.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (active === last || !dialog?.contains(active))) {
+        event.preventDefault();
+        first.focus();
       }
     };
 
-    if (typeof window.requestIdleCallback === "function") {
-      idleId = window.requestIdleCallback(start, { timeout: 1200 });
-    } else {
-      timeoutId = window.setTimeout(start, 600);
-    }
+    document.addEventListener("keydown", onKeyDown, true);
 
     return () => {
-      cancelled = true;
-      if (idleId !== undefined) window.cancelIdleCallback(idleId);
-      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
-      audio.pause();
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener("keydown", onKeyDown, true);
+      document.body.style.overflow = previousOverflow;
+      const previous = previousFocusRef.current;
+      if (previous && typeof previous.focus === "function") previous.focus();
     };
-  }, [open, audioEnabled, popup?.audio_url, popup?.audio_volume]);
+  }, [open, close]);
 
-  // Mantiene el icono de audio sincronizado con el estado real del reproductor.
+  // Ajusta el volumen sin iniciar ninguna reproducción.
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return undefined;
+    audio.volume = clampVolume(popup?.audio_volume) / 100;
+    return () => audio.pause();
+  }, [popup?.audio_url, popup?.audio_volume]);
+
+  // Si el usuario prefiere movimiento reducido, detenemos el audio en curso.
+  useEffect(() => {
+    if (!reducedMotion) return undefined;
+    const audio = audioRef.current;
+    if (audio) audio.pause();
+    setSoundOn(false);
+    return undefined;
+  }, [reducedMotion]);
+
+  // Mantiene el icono sincronizado con el estado real del reproductor.
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return undefined;
@@ -131,30 +146,23 @@ export default function PopupModal({ popup }) {
     };
   }, [open, hasAudio]);
 
-  // Activa el sonido con el primer toque cuando el navegador bloqueó el
-  // autoplay. Escucha todos los gestos habituales mientras la ventana siga
-  // abierta, para reintentar si el primero no fue válido.
-  useEffect(() => {
-    if (!open || !audioEnabled || !hasAudio) return undefined;
+  // Único punto donde se reproduce audio: clic explícito en el botón del modal.
+  const toggleSound = () => {
+    const audio = audioRef.current;
+    if (!audio || reducedMotion) return;
 
-    const enableSound = (event) => {
-      if (manuallyMutedRef.current) return;
-      if (soundToggleRef.current?.contains(event?.target)) return;
-      const audio = audioRef.current;
-      if (!audio) return;
-      if (audio.muted) {
-        audio.muted = false;
-        audio.currentTime = 0;
-      }
-      if (audio.paused) audio.play().catch(() => {});
-    };
+    if (!audio.paused) {
+      audio.pause();
+      return;
+    }
 
-    const events = ["pointerdown", "keydown", "touchstart", "touchend", "click"];
-    events.forEach((event) => window.addEventListener(event, enableSound, true));
-    return () => {
-      events.forEach((event) => window.removeEventListener(event, enableSound, true));
-    };
-  }, [open, audioEnabled, hasAudio]);
+    audio.muted = false;
+    audio.currentTime = 0;
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(() => setSoundOn(false));
+    }
+  };
 
   const image = popupImage(popup);
   const hasText = Boolean(popup.title || popup.message);
@@ -176,13 +184,16 @@ export default function PopupModal({ popup }) {
             type="button"
             onClick={close}
             aria-label="Cerrar"
-            className="animate-fade-in absolute inset-0 bg-brand-ink/70 backdrop-blur-sm"
+            className={`absolute inset-0 bg-brand-ink/70 backdrop-blur-sm ${reducedMotion ? "" : "animate-fade-in"}`}
           />
 
-          <div className="animate-pop-in relative w-full max-w-4xl max-h-[92vh] overflow-y-auto overflow-x-hidden rounded-[1.75rem] bg-white shadow-2xl">
-            {audioEnabled && hasAudio && (
+          <div
+            ref={dialogRef}
+            tabIndex={-1}
+            className={`relative w-full max-w-4xl max-h-[92vh] overflow-y-auto overflow-x-hidden rounded-[1.75rem] bg-white shadow-2xl outline-none ${reducedMotion ? "" : "animate-pop-in"}`}
+          >
+            {audioEnabled && hasAudio && !reducedMotion && (
               <button
-                ref={soundToggleRef}
                 type="button"
                 onClick={toggleSound}
                 aria-label={soundOn ? "Silenciar música" : "Activar música"}
@@ -194,7 +205,7 @@ export default function PopupModal({ popup }) {
                     : "bg-brand-accent text-white hover:bg-brand-ink"
                 }`}
               >
-                {soundOn ? <Volume2 size={18} /> : <VolumeX size={18} />}
+                {soundOn ? <Volume2 size={18} aria-hidden="true" /> : <VolumeX size={18} aria-hidden="true" />}
               </button>
             )}
 
@@ -204,7 +215,7 @@ export default function PopupModal({ popup }) {
               aria-label="Cerrar ventana"
               className="absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full bg-white/80 text-brand-ink shadow-lg ring-1 ring-black/5 backdrop-blur transition hover:bg-brand-ink hover:text-white sm:h-10 sm:w-10"
             >
-              <X size={18} />
+              <X size={18} aria-hidden="true" />
             </button>
 
             {image && (
@@ -213,7 +224,7 @@ export default function PopupModal({ popup }) {
                   src={image}
                   alt={popup.title || "Promoción"}
                   fill
-                  loading="eager"
+                  loading="lazy"
                   sizes="(max-width: 768px) 100vw, 896px"
                   className="object-cover"
                 />

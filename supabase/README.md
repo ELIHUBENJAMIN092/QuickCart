@@ -34,7 +34,7 @@ The seller dashboard's **Contactos** page manages the WhatsApp numbers shown in 
 
 The application expects a public product-media bucket, seller-restricted storage writes, and an atomic order-creation RPC that records item snapshots and clears the user's cart. Verify these controls against the deployed Supabase policies and function before relying on them; their definitions are not checked into this repository.
 
-Apply `migrations/20261124140000_order_idempotency.sql` and `migrations/20261124150000_order_payment_audit.sql` before enabling the new checkout idempotency and payment audit fields. The API degrades gracefully if the columns are missing, but idempotency and the payment event log require them. Set `SELLER_ORDER_SCOPE=own` if more than one seller account should only see their own orders; the default `all` is intended for a single administrator.
+Apply `migrations/20261124140000_order_idempotency.sql`, `migrations/20261124150000_order_payment_audit.sql`, `migrations/20261124160000_address_contact_fields.sql` and `migrations/20261124170000_newsletter.sql` before enabling checkout idempotency, payment audit, reusable addresses and the newsletter subscription form. The API degrades gracefully if the columns are missing, but idempotency and the payment event log require them. Set `SELLER_ORDER_SCOPE=own` if more than one seller account should only see their own orders; the default `all` is intended for a single administrator.
 
 ## Database security verification before release
 

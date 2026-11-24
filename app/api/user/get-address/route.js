@@ -21,6 +21,8 @@ export async function GET(request) {
     ...address,
     _id: address.id,
     fullName: address.full_name,
+    email: address.email,
+    idNumber: address.id_number,
     phoneNumber: address.phone_number,
   }));
   return NextResponse.json({ success: true, addresses });

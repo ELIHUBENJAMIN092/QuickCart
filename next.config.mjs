@@ -9,6 +9,17 @@ const nextConfig = {
             },
         ],
     },
+    async redirects() {
+        return [
+            // La ruta heredada en mayúsculas se redirige de forma permanente.
+            // En sistemas insensibles a mayúsculas (macOS) no puede coexistir un
+            // archivo app/(shop)/Acerca/page.jsx con /acerca/page.jsx, por eso
+            // esta regla es la responsable de canonicalizar /Acerca.
+            { source: '/Acerca', destination: '/acerca', permanent: true },
+            { source: '/Contactos', destination: '/acerca#contacto', permanent: true },
+            { source: '/Productos', destination: '/all-products?category=rfid', permanent: true },
+        ];
+    },
     async headers() {
         // CSP con nonce pendiente de migrar Analytics: app/layout.js incluye un
         // script inline y @next/third-parties/google inyecta otro, por lo que

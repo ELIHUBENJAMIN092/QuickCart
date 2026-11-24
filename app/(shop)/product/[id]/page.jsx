@@ -15,6 +15,7 @@ import Badge from "@/components/ui/Badge";
 import Container from "@/components/ui/Container";
 import SectionHeading from "@/components/ui/SectionHeading";
 
+
 export default function ProductPage() {
   const { id } = useParams();
   const { products, addToCart, user, currency, router, commerceEnabled } = useAppContext();

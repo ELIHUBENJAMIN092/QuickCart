@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { isIpBlocked } from "@/lib/blockedIps";
-import { getClientIp } from "@/lib/visits";
+import { isIpBlocked } from "./lib/blockedIps";
+import { getClientIp } from "./lib/visits";
 
 const blockedPage = `<!doctype html>
 <html lang="es">

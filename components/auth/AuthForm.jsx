@@ -16,6 +16,11 @@ export default function AuthForm({ mode, heroImage }) {
   const isUpdatePassword = mode === "update-password";
   const supabase = createSupabaseBrowserClient();
   const router = useRouter();
+  const getRedirectTarget = () => {
+    if (typeof window === "undefined") return "/";
+    const next = new URLSearchParams(window.location.search).get("next");
+    return next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
+  };
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,22 +49,22 @@ export default function AuthForm({ mode, heroImage }) {
           password,
           options: {
             data: { name: name.trim() },
-            emailRedirectTo: `${window.location.origin}/sign-in`,
+            emailRedirectTo: `${window.location.origin}/sign-in?next=${encodeURIComponent(getRedirectTarget())}`,
           },
         });
         if (error) throw error;
         if (!data.session) {
           toast.success("Revisa tu correo para confirmar la cuenta.");
-          router.push("/sign-in");
+          router.push(`/sign-in?next=${encodeURIComponent(getRedirectTarget())}`);
         } else {
           toast.success("Cuenta creada.");
-          router.push("/");
+          router.push(getRedirectTarget());
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Sesión iniciada.");
-        router.push("/");
+        router.push(getRedirectTarget());
       }
     } catch (error) {
       toast.error(error.message || "No se pudo completar la solicitud.");
@@ -72,7 +77,7 @@ export default function AuthForm({ mode, heroImage }) {
     setSubmitting(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/` },
+      options: { redirectTo: `${window.location.origin}${getRedirectTarget()}` },
     });
     if (error) {
       toast.error(error.message || "No se pudo iniciar con Google.");

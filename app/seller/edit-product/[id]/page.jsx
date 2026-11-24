@@ -20,6 +20,31 @@ import ProductExtraFields, { ProductBadgeFields, validateCatalogFile } from "@/c
 const inputClass =
   "w-full rounded-xl border border-brand-line bg-white px-4 py-3 text-base text-brand-ink outline-none transition placeholder:text-brand-muted focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/10 sm:text-sm";
 
+// Misma idea que en app/seller/page.jsx: una blob URL por archivo, liberada
+// al reemplazarlo o al desmontar el componente.
+function useObjectUrl(file) {
+  const url = useMemo(() => file ? URL.createObjectURL(file) : "", [file]);
+  useEffect(() => {
+    if (!url) return undefined;
+    return () => URL.revokeObjectURL(url);
+  }, [url]);
+  return url;
+}
+
+function SlotImage({ slot, index }) {
+  const preview = useObjectUrl(slot.file);
+  return (
+    <Image
+      src={preview || slot.url}
+      alt={`Imagen ${index + 1}`}
+      fill
+      unoptimized={Boolean(preview)}
+      sizes="(max-width: 640px) 30vw, 112px"
+      className="object-contain p-1.5"
+    />
+  );
+}
+
 export default function EditProduct() {
   const { id } = useParams();
   const { getToken, router, fetchProductData, user } = useAppContext();
@@ -52,6 +77,7 @@ export default function EditProduct() {
     printerType: "",
   });
 
+  const brandLogoPreview = useObjectUrl(brandLogoFile);
   const subcategories = useMemo(
     () => categories.find((category) => category.slug === product.category)?.subcategories || [],
     [product.category]
@@ -129,7 +155,7 @@ export default function EditProduct() {
         toast.error("La imagen debe pesar máximo 8 MB.");
         return;
       }
-      setSlots((current) => current.map((slot, i) => i === index ? { file: processed, preview: URL.createObjectURL(processed) } : slot));
+      setSlots((current) => current.map((slot, i) => i === index ? { file: processed } : slot));
     } catch {
       toast.error("No se pudo procesar la imagen.");
     } finally {
@@ -306,8 +332,8 @@ export default function EditProduct() {
                   <div className="relative aspect-square w-full overflow-hidden rounded-xl border border-brand-line bg-brand-sand/40">
                     {processingSlot === index ? (
                       <span className="flex h-full items-center justify-center px-1 text-center text-[10px] text-brand-muted">Procesando...</span>
-                    ) : slot.url || slot.preview ? (
-                      <Image src={slot.preview || slot.url} alt={`Imagen ${index + 1}`} fill unoptimized={Boolean(slot.preview)} sizes="(max-width: 640px) 30vw, 112px" className="object-contain p-1.5" />
+                    ) : slot.url || slot.file ? (
+                      <SlotImage slot={slot} index={index} />
                     ) : (
                       <span className="flex h-full items-center justify-center text-[10px] text-brand-muted">Sin imagen</span>
                     )}
@@ -339,9 +365,17 @@ export default function EditProduct() {
             <div className="mt-6 border-t border-brand-line pt-4">
               <p className="text-sm font-semibold text-brand-ink">Logo de la marca <span className="font-normal text-brand-muted">(máximo 2 MB)</span></p>
               <div className="mt-3 flex flex-wrap items-center gap-4">
-                {(brandLogoFile || (product.brandLogo && !removeBrandLogo)) && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={brandLogoFile ? URL.createObjectURL(brandLogoFile) : product.brandLogo} alt="Logo de la marca" className="h-14 w-28 rounded-lg border border-brand-line object-contain p-1" />
+                {(brandLogoPreview || (product.brandLogo && !removeBrandLogo)) && (
+                  <span className="relative h-14 w-28 shrink-0 overflow-hidden rounded-lg border border-brand-line bg-white">
+                    <Image
+                      src={brandLogoPreview || product.brandLogo}
+                      alt="Logo de la marca"
+                      fill
+                      unoptimized={Boolean(brandLogoPreview)}
+                      sizes="112px"
+                      className="object-contain p-1"
+                    />
+                  </span>
                 )}
                 <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-brand-accent">
                   <ImagePlus size={17} /> {processingSlot === "brand" ? "Procesando..." : brandLogoFile ? brandLogoFile.name : product.brandLogo ? "Reemplazar logo" : "Subir logo"}
