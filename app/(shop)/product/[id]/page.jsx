@@ -26,6 +26,7 @@ export default function ProductPage() {
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [zoom, setZoom] = useState({ active: false, x: 50, y: 50 });
   const thumbsRef = useRef(null);
+  const videoRef = useRef(null);
   const scrollThumbs = (direction) => {
     thumbsRef.current?.scrollBy({ top: direction * 200, behavior: "smooth" });
   };
@@ -44,6 +45,13 @@ export default function ProductPage() {
     setCatalogOpen(false);
     setZoom({ active: false, x: 50, y: 50 });
   }, [id]);
+
+  // El clic en «Reproducir video» debe iniciar la reproducción, no solo mostrar los controles.
+  useEffect(() => {
+    if (!showVideo) return;
+    const playback = videoRef.current?.play();
+    if (playback && typeof playback.catch === "function") playback.catch(() => {});
+  }, [showVideo]);
 
   if (!product) {
     if (!products.length) return <Loading />;
@@ -164,7 +172,7 @@ export default function ProductPage() {
                       onMouseLeave={() => setZoom((current) => ({ ...current, active: false }))}
                     >
                       {showVideo && product.video ? (
-                        <video src={product.video} controls playsInline preload="metadata" className="h-full w-full object-contain" />
+                        <video ref={videoRef} src={product.video} controls autoPlay playsInline preload="auto" className="h-full w-full object-contain" />
                       ) : product.image?.[selectedImage] ? (
                         <Image src={product.image[selectedImage]} alt={product.name} fill priority sizes="(max-width: 1024px) 100vw, 50vw" className="object-contain p-7 transition-transform duration-200 ease-out md:p-12" style={{ transform: zoom.active ? "scale(2.2)" : "scale(1)", transformOrigin: `${zoom.x}% ${zoom.y}%` }} />
                       ) : (

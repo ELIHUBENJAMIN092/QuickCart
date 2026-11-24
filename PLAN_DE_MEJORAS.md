@@ -343,6 +343,7 @@ Este agente **no puede rotar credenciales en proveedores externos ni reescribir 
 - `lib/schemas.js` con `visitBodySchema` y `popupBodySchema`; `zod@^4.6.7` añadido como dependencia directa.
 - `next.config.mjs`: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, HSTS, `Permissions-Policy` y CSP.
 - **Limitación conocida:** el CSP usa `'unsafe-inline'` en `script-src` porque `app/layout.js` tiene un script inline y `@next/third-parties/google` inyecta otro. El nonce queda pendiente de migrar Analytics.
+- `media-src` incluye `'self'`, `blob:`, `data:` y `https://*.supabase.co` para no bloquear los videos de producto (corrección aplicada tras detectar que el CSP inicial impedía reproducirlos).
 
 ### P2.3 Logs y dependencias — ✅ implementado
 
