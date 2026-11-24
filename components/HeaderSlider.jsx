@@ -82,7 +82,7 @@ export default function HeaderSlider({ initialSlides, initialCertifications }) {
                   <Link href={`/categoria/${encodeURIComponent(slide.category)}`} tabIndex={index === currentSlide ? 0 : -1} className="inline-flex items-center gap-2 rounded-full bg-brand-cream px-6 py-3 text-sm font-semibold text-brand-ink transition hover:bg-white">
                     {slide.primary_label}<ArrowRight size={16} aria-hidden="true" />
                   </Link>
-                  <Link href="/Acerca#contacto" tabIndex={index === currentSlide ? 0 : -1} className="rounded-full border border-white/50 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/10">
+                  <Link href="/acerca#contacto" tabIndex={index === currentSlide ? 0 : -1} className="rounded-full border border-white/50 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/10">
                     {slide.secondary_label}
                   </Link>
                 </div>

@@ -8,6 +8,8 @@ const nextConfig = {
         // imágenes redimensionadas y en WebP al subirlas. Si se despliega en un
         // host con optimizador propio (p. ej. Vercel), poner esto en false.
         unoptimized: true,
+        // Calidades usadas por la app (Next 16 exige declararlas).
+        qualities: [70, 75],
         remotePatterns: [
             {
                 protocol: 'https',
@@ -16,17 +18,9 @@ const nextConfig = {
             },
         ],
     },
-    async redirects() {
-        return [
-            // La ruta heredada en mayúsculas se redirige de forma permanente.
-            // En sistemas insensibles a mayúsculas (macOS) no puede coexistir un
-            // archivo app/(shop)/Acerca/page.jsx con /acerca/page.jsx, por eso
-            // esta regla es la responsable de canonicalizar /Acerca.
-            { source: '/Acerca', destination: '/acerca', permanent: true },
-            { source: '/Contactos', destination: '/acerca#contacto', permanent: true },
-            { source: '/Productos', destination: '/all-products?category=rfid', permanent: true },
-        ];
-    },
+    // Las redirecciones de Next ignoran mayúsculas, así que `/Acerca -> /acerca`
+    // también capturaba `/acerca` y provocaba un bucle infinito. Las rutas
+    // heredadas se resuelven en middleware.js con comparación exacta.
     async headers() {
         // CSP con nonce pendiente de migrar Analytics: app/layout.js incluye un
         // script inline y @next/third-parties/google inyecta otro, por lo que

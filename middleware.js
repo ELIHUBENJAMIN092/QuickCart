@@ -24,13 +24,28 @@ const blockedPage = `<!doctype html>
       <span>Acceso restringido</span>
       <h1>No podemos mostrar esta página</h1>
       <p>El acceso desde tu conexión fue restringido por el administrador del sitio. Si crees que es un error, contáctanos para revisarlo.</p>
-      <a href="/Contactos">Contactar</a>
+      <a href="/acerca#contacto">Contactar</a>
     </main>
   </body>
 </html>`;
 
+// Rutas heredadas en mayúsculas. Se resuelven aquí, con comparación sensible a
+// mayúsculas, porque las `redirects` de Next ignoran mayúsculas y una regla
+// `/Acerca -> /acerca` también capturaba `/acerca`, provocando un bucle.
+const legacyRedirects = {
+  "/Acerca": "/acerca",
+  "/Contactos": "/acerca#contacto",
+  "/Productos": "/all-products?category=rfid",
+};
+
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
+
+  const legacyTarget = legacyRedirects[pathname];
+  if (legacyTarget) {
+    return NextResponse.redirect(new URL(legacyTarget, request.url), 308);
+  }
+
   const ip = getClientIp(request);
   if (!ip) return NextResponse.next();
 

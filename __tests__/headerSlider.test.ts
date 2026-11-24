@@ -44,7 +44,7 @@ describe("enlaces del carrusel", () => {
     ]) {
       expect(markup).toContain(`href="/categoria/${slug}"`);
     }
-    expect(markup).toContain('href="/Acerca#contacto"');
+    expect(markup).toContain('href="/acerca#contacto"');
     expect(markup).not.toContain("/all-products?category=");
   });
 });

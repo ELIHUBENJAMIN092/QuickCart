@@ -379,8 +379,8 @@ Este agente **no puede rotar credenciales en proveedores externos ni reescribir 
 - `app/layout.js` usa el metadata global; `app/robots.ts` y `app/sitemap.ts` generan `/robots.txt` y `/sitemap.xml` (visibles en el build).
 - Títulos/descripciones/canonical únicos por ruta mediante `layout.js` de segmento (Next no permite exportar metadata desde componentes con `"use client"`).
 - PDP con `generateMetadata` en `app/(shop)/product/[id]/layout.js` (RPC `storefront_product`, fallback seguro). `openGraph.type` usa `"website"` porque Next.js 15 no admite `"product"` en ese campo y lanzaba un runtime error.
-- Redirects 308 en `next.config.mjs`: `/Acerca` → `/acerca`, `/Contactos` → `/acerca#contacto`, `/Productos` → `/all-products?category=rfid`.
-- **Nota:** en macOS (FS insensible a mayúsculas) `Acerca`/`acerca` no pueden coexistir; el renombrado quedó como `app/(shop)/acerca` y la URL antigua se canonicaliza con el 308.
+- Redirects 308 de rutas heredadas resueltos en `middleware.js` (comparación exacta): `/Acerca` → `/acerca`, `/Contactos` → `/acerca#contacto`, `/Productos` → `/all-products?category=rfid`.
+- **Nota:** las `redirects` de `next.config.mjs` ignoran mayúsculas, así que `/Acerca → /acerca` también capturaba `/acerca` y generaba un bucle infinito (`ERR_TOO_MANY_REDIRECTS`). Por eso el canonicalizado vive en middleware con comparación sensible a mayúsculas; además se unificaron todos los enlaces internos a `/acerca`. En macOS (FS insensible a mayúsculas) el directorio quedó como `app/(shop)/acerca`.
 
 ### P3.2 Flujo de compra — ✅ implementado
 

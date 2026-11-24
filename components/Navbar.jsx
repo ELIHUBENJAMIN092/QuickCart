@@ -213,7 +213,7 @@ export default function Navbar({ initialBanner }) {
   const activeCategorySlug = categories.find((category) => categoryIsActive(pathname, category))?.slug || null;
   const isHomeActive = currentPath === "/";
   const isCatalogActive = pathIsActive(pathname, "/all-products");
-  const isAboutActive = pathIsActive(pathname, "/Acerca");
+  const isAboutActive = pathIsActive(pathname, "/acerca");
   const isSellerActive = pathIsActive(pathname, "/seller");
   const isOrdersActive = pathIsActive(pathname, "/my-orders");
   const closeMobile = () => setMobileOpen(false);
@@ -380,7 +380,7 @@ export default function Navbar({ initialBanner }) {
                 );
               })}
               <Link
-                href="/Acerca"
+                href="/acerca"
                 onMouseEnter={() => setOpenMenu(null)}
                 aria-current={isAboutActive ? "page" : undefined}
                 style={{ borderRadius: 0 }}
@@ -999,7 +999,7 @@ export default function Navbar({ initialBanner }) {
               </div>
 
               <p className="mt-5 px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-muted/80">Compañía</p>
-              <MobileNavLink href="/Acerca" label="Nosotros" icon={Info} active={isAboutActive} onClick={closeMobile} />
+              <MobileNavLink href="/acerca" label="Nosotros" icon={Info} active={isAboutActive} onClick={closeMobile} />
             </div>
 
             <div className="shrink-0 border-t border-brand-line p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
