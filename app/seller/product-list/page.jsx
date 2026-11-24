@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, Download, Eye, GripVertical, Package, PackageOpen, Pencil, Plus, Search, Trash2, XCircle } from "lucide-react";
 import axios from "axios";
@@ -9,6 +8,7 @@ import toast from "react-hot-toast";
 import { useAppContext } from "@/context/AppContext";
 import Loading from "@/components/Loading";
 import PageHeader from "@/components/seller/PageHeader";
+import ProductThumb from "@/components/seller/ProductThumb";
 import { useConfirm } from "@/components/ui/ConfirmProvider";
 import { categories, getCategoryName, getSubcategoryName, matchesCategoryFilter } from "@/lib/categories";
 import { applyVisibleOrder, moveItem } from "@/lib/productOrder";
@@ -308,7 +308,7 @@ export default function ProductList() {
                             <td className="px-5 py-3">
                               <div className="flex items-center gap-3">
                                 <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-brand-line bg-brand-sand/40">
-                                  {product.image?.[0] && <Image src={product.image[0]} alt="" fill sizes="48px" className="object-contain p-1" />}
+                                  {product.image?.[0] && <ProductThumb src={product.image[0]} sizes="48px" className="object-contain p-1" />}
                                 </div>
                                 <div className="max-w-xs"><p className="truncate text-sm font-medium text-brand-ink">{product.name}</p><p className="mt-1 truncate text-[10px] text-brand-muted">{product.description}</p></div>
                               </div>
@@ -327,7 +327,7 @@ export default function ProductList() {
                       <article key={product._id} className="p-4">
                         <div className="flex gap-3">
                           <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-brand-line bg-brand-sand/40">
-                            {product.image?.[0] && <Image src={product.image[0]} alt="" fill sizes="80px" className="object-contain p-1.5" />}
+                            {product.image?.[0] && <ProductThumb src={product.image[0]} sizes="80px" className="object-contain p-1.5" />}
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-start justify-between gap-2">

@@ -409,6 +409,7 @@ Este agente **no puede rotar credenciales en proveedores externos ni reescribir 
 ### Incidencias resueltas durante P3
 
 - El CSP inicial bloqueaba los videos: `media-src` añadido en `next.config.mjs`.
+- Las miniaturas del inventario del panel mostraban el icono de imagen rota cuando el optimizador de Next (`/_next/image`) no está disponible en el hosting o falla con PNG pesados. Nuevo `components/seller/ProductThumb.jsx`: carga la URL pública de Supabase directamente (`unoptimized`), con `onError` que muestra un icono de paquete en vez de una imagen rota. Verificado simulando un loader roto.
 - Next generó `tsconfig.json`; al coexistir con `jsconfig.json`, el alias `@/*` se perdió y Turbopack falló. Se añadieron `baseUrl`/`paths` al `tsconfig.json` y se excluyó `supabase/functions` del chequeo de tipos. El middleware usa imports relativos como refuerzo.
 - Metadata exportada desde Client Components rompía el build: se movió a `layout.js` de segmento.
 
