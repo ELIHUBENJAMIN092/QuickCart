@@ -13,12 +13,18 @@ import { getCategoryBySlug, normalizeProductCategory } from "@/lib/categories";
 export default function CategoryPage() {
   const { slug = [] } = useParams();
   const [categorySlug, subSlug] = slug;
-  const { products } = useAppContext();
-  const category = getCategoryBySlug(categorySlug);
-  const subcategory = category?.subcategories.find((item) => item.slug === subSlug);
-  if (!category || (subSlug && !subcategory)) notFound();
+  const { products, categoriesLoaded, categoriesVersion } = useAppContext();
+  const category = useMemo(() => getCategoryBySlug(categorySlug), [categorySlug, categoriesVersion]);
+  const subcategory = useMemo(
+    () => category?.subcategories.find((item) => item.slug === subSlug),
+    [category, subSlug]
+  );
 
+  // Las categorías/subcategorías personalizadas llegan desde Supabase después
+  // del primer render. Validar antes muestra un 404 prematuro para enlaces
+  // válidos como RFID → Lectores RFID.
   const sections = useMemo(() => {
+    if (!category) return [];
     const inCategory = products
       .map((product) => ({ product, ...normalizeProductCategory(product.category, product.subcategory) }))
       .filter((entry) => entry.category === category.slug);
@@ -43,6 +49,8 @@ export default function CategoryPage() {
     return others.length ? [...result, { slug: "otros", name: "Otros productos", items: others }] : result;
   }, [products, category, subcategory]);
 
+  if (!categoriesLoaded) return <Loading />;
+  if (!category || (subSlug && !subcategory)) notFound();
   if (!products.length) return <Loading />;
 
   const total = sections.reduce((sum, section) => sum + section.items.length, 0);
