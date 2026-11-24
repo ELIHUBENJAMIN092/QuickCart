@@ -191,6 +191,7 @@ export default function Navbar({ initialBanner }) {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileCategory, setMobileCategory] = useState(null);
+  const [mobileAccountOpen, setMobileAccountOpen] = useState(false);
   const banner = initialBanner || defaultBanner;
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
@@ -216,9 +217,15 @@ export default function Navbar({ initialBanner }) {
   const isAboutActive = pathIsActive(pathname, "/acerca");
   const isSellerActive = pathIsActive(pathname, "/seller");
   const isOrdersActive = pathIsActive(pathname, "/my-orders");
-  const closeMobile = () => setMobileOpen(false);
+  const closeMobile = () => {
+    setMobileOpen(false);
+    setMobileAccountOpen(false);
+  };
   const toggleMobileMenu = () => {
-    if (!mobileOpen) setMobileCategory(activeCategorySlug);
+    if (!mobileOpen) {
+      setMobileCategory(activeCategorySlug);
+      setMobileAccountOpen(false);
+    }
     setMobileOpen(!mobileOpen);
   };
 
@@ -1004,9 +1011,18 @@ export default function Navbar({ initialBanner }) {
 
             <div className="shrink-0 border-t border-brand-line p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
               {user ? (
-                <>
-                  <div className="mb-2 flex items-center gap-2.5 rounded-xl bg-brand-sand/60 p-2.5">
-                    <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-brand-accent text-xs font-semibold text-white ring-2 ring-white">
+                <div className="overflow-hidden rounded-2xl border border-brand-line bg-white">
+                  <button
+                    type="button"
+                    onClick={() => setMobileAccountOpen((open) => !open)}
+                    aria-expanded={mobileAccountOpen}
+                    aria-controls="mobile-account-menu"
+                    aria-label={`${mobileAccountOpen ? "Ocultar" : "Mostrar"} opciones de cuenta de ${displayName}`}
+                    className={`flex w-full items-center gap-3 p-2.5 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-accent/30 ${
+                      mobileAccountOpen ? "bg-brand-accent-soft" : "hover:bg-brand-sand/60"
+                    }`}
+                  >
+                    <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-brand-accent text-xs font-semibold text-white ring-2 ring-white">
                       {avatarUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={avatarUrl} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
@@ -1014,45 +1030,55 @@ export default function Navbar({ initialBanner }) {
                         displayName.charAt(0).toUpperCase()
                       )}
                     </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[12px] font-semibold text-brand-ink">{displayName}</p>
-                      <p className="truncate text-[11px] text-brand-muted">{user.email}</p>
-                    </div>
-                  </div>
-                  <div className="grid gap-1">
-                    {isSeller && (
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[12px] font-semibold text-brand-ink">{displayName}</span>
+                      <span className="block truncate text-[11px] text-brand-muted">{user.email}</span>
+                    </span>
+                    <ChevronDown
+                      size={18}
+                      aria-hidden="true"
+                      className={`shrink-0 text-brand-muted transition-transform duration-300 ${mobileAccountOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                  {mobileAccountOpen && (
+                    <div
+                      id="mobile-account-menu"
+                      className="max-h-[50vh] overflow-y-auto overscroll-contain border-t border-brand-line p-1.5 animate-fade-in motion-reduce:animate-none"
+                    >
+                      {isSeller && (
+                        <MobileNavLink
+                          href="/seller/dashboard"
+                          label="Panel de administración"
+                          icon={LayoutDashboard}
+                          active={isSellerActive}
+                          onClick={closeMobile}
+                          showBadge={false}
+                        />
+                      )}
                       <MobileNavLink
-                        href="/seller/dashboard"
-                        label="Panel de administración"
-                        icon={LayoutDashboard}
-                        active={isSellerActive}
+                        href="/my-orders"
+                        label="Mis órdenes"
+                        icon={ShoppingBag}
+                        active={isOrdersActive}
                         onClick={closeMobile}
                         showBadge={false}
                       />
-                    )}
-                    <MobileNavLink
-                      href="/my-orders"
-                      label="Mis órdenes"
-                      icon={ShoppingBag}
-                      active={isOrdersActive}
-                      onClick={closeMobile}
-                      showBadge={false}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        closeMobile();
-                        signOut();
-                      }}
-                      className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-brand-sale transition-colors hover:bg-red-50"
-                    >
-                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-red-50 text-brand-sale">
-                        <LogOut size={15} aria-hidden="true" />
-                      </span>
-                      Cerrar sesión
-                    </button>
-                  </div>
-                </>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          closeMobile();
+                          signOut();
+                        }}
+                        className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-brand-sale transition-colors hover:bg-red-50"
+                      >
+                        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-red-50 text-brand-sale">
+                          <LogOut size={15} aria-hidden="true" />
+                        </span>
+                        Cerrar sesión
+                      </button>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <Link
                   href="/sign-in"
