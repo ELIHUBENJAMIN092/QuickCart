@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { BadgeCheck, Box, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Play, FileText, Headset, Minus, Plus, Truck, X } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
+import ProductShareButton from "@/components/ProductShareButton";
 import BrandCarousel from "@/components/BrandLogos";
 import Loading from "@/components/Loading";
 import { useAppContext } from "@/context/AppContext";
@@ -236,6 +237,14 @@ export default function ProductPage() {
                 </div>
               )}
               <p className="mt-6 whitespace-pre-line text-sm leading-7 text-brand-charcoal">{product.description}</p>
+
+              <ProductShareButton
+                product={product}
+                imageUrl={product.image?.[selectedImage] || product.image?.[0] || ""}
+                canShop={canShop}
+                currency={currency}
+                category={[getCategoryName(product.category), product.subcategory ? getSubcategoryName(product.category, product.subcategory) : ""].filter(Boolean).join(" · ")}
+              />
 
               {canShop ? (
                 <>

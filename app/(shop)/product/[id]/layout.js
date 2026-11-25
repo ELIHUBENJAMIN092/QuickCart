@@ -25,6 +25,7 @@ export async function generateMetadata({ params }) {
       description,
       path,
       type: "website",
+      image: Array.isArray(product.image_urls) ? product.image_urls[0] : product.image_urls || undefined,
     });
   } catch {
     return buildPageMetadata({

@@ -22,10 +22,11 @@ const nextConfig = {
     // también capturaba `/acerca` y provocaba un bucle infinito. Las rutas
     // heredadas se resuelven en middleware.js con comparación exacta.
     async headers() {
-        // CSP con nonce pendiente de migrar Analytics: app/layout.js incluye un
-        // script inline y @next/third-parties/google inyecta otro, por lo que
-        // un CSP estricto con nonce rompería Google Analytics. Hoy se usa
-        // 'unsafe-inline' de forma temporal en script-src/style-src.
+        // CSP con nonce pendiente de migrar Analytics: AnalyticsConsent inyecta
+        // un script inline (consentimiento + GTM) y @next/third-parties/google
+        // inyecta otro, por lo que un CSP estricto con nonce rompería Google
+        // Analytics. Hoy se usa 'unsafe-inline' de forma temporal en
+        // script-src/style-src.
         return [
             {
                 source: '/:path*',
@@ -50,7 +51,7 @@ const nextConfig = {
                             "img-src 'self' data: blob: https:",
                             "media-src 'self' data: blob: https://*.supabase.co",
                             "font-src 'self' data:",
-                            "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.resend.com https://www.google-analytics.com https://region1.google-analytics.com",
+                            "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.resend.com https://*.google-analytics.com https://www.googletagmanager.com https://analytics.google.com https://stats.g.doubleclick.net",
                             // Sin frame-src, el navegador usa default-src ('self') y bloquea los
                             // iframes hacia Supabase (catálogos PDF), los visores 3D de Zebra y
                             // el mapa de Google. Se permiten orígenes https porque los vendedores

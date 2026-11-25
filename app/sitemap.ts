@@ -12,6 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/acerca",
     "/kioscos-punto-de-venta",
     "/impresoras-etiquetas",
+    "/politica-de-cookies",
   ];
 
   let categorySlugs = categories.map((category) => category.slug);
